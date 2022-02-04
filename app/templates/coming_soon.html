@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}MacMedia{% endblock %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <h1>MacLeod's {{ library_type }} Library</h1>
+</div>
+
+<div class="container-md align-items-center">
+  <img src="{{ url_for('static', filename='coming_soon.jpg') }} ">
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}

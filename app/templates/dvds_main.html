@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}DVDs Library Main Page{% endblock %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <h1>DVDs Library Main Page</h1>
+</div>
+
+<table id="dvdlist" class="table table-striped">
+    <thead>
+      <tr>
+        <th class="th-sm">Title </th>
+        <th class="th-sm">Series</th>
+        <th class="th-sm">Year </th>
+        <th class="th-sm">Set </th>
+        <th class="th-sm">Media Type</th>
+        <th class="th-sm">Music DVD?</th>
+        <th class="th-sm">Music Artist</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!--
+    {% for dvd in dvds %}
+      <tr>
+        <td>{{ dvd.title }}</td>
+        <td>{{ dvd.series }}</td>
+        <td>{{ dvd.year }}</td>
+        <td>{{ dvd.set }}</td>
+        <td>{{ dvd.media_type }}</td>
+        <td>{{ dvd.music_type }}</td>
+        <td>{{ dvd.artist}}</td>
+      </tr>
+    -->
+    </tbody>
+      <!--
+    {% endfor %}
+    -->
+</table>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+<script>
+  $(document).ready(function(){
+    $('table#dvdlist').DataTable({
+      ajax: '/api/dvds',
+      columns: [
+        {data: 'title'},
+        {data: 'series'},
+        {data: 'year'},
+        {data: 'set', orderable: false, searchable: false},
+        {data: 'media_type', searchable: false},
+        {data: 'music_type', orderable: false, searchable: false},
+        {data: 'artist', searchable: false}],
+    });
+  });
+</script>
+<!--
+<script>
+  $(document).ready(function(){
+    $('#dvdlist').DataTable();
+  });
+</script>
+-->
+
+{% endblock %}
