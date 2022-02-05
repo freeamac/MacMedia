@@ -8,6 +8,15 @@ class Media_Type_Enum(enum.Enum):
     dvd = 1
     blueray = 2
 
+    @staticmethod
+    def from_string(s):
+        if s.lower() == 'dvd':
+            return Media_Type_Enum(1)
+        elif s.lower() == 'blueray':
+            return Media_Type_Enum(2)
+        else:
+            raise TypeError('{} is not a valid Media Type'.format(s))
+
 
 class DVDs(DB.Model):
     __tablename__ = 'DVDs'

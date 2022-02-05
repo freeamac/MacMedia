@@ -55,6 +55,9 @@ def create_app():
         db.create_all()
         load_demo_data(db)
 
+    # TODO - Securely inject into environment for production
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
+
     return app
 
 app = create_app()

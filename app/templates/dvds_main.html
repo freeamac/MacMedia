@@ -9,7 +9,9 @@
     <h1>DVDs Library Main Page</h1>
 </div>
 
-<table id="dvdlist" class="table table-striped">
+<h2><a href="{{ url_for('.add_dvd') }}" class="btn btn-success">Add New DVD To Library</a></h2>
+
+<table id="dvdlist" class="table table-striped" border="10">
     <thead>
       <tr>
         <th class="th-sm">Title </th>
@@ -22,22 +24,7 @@
       </tr>
     </thead>
     <tbody>
-      <!--
-    {% for dvd in dvds %}
-      <tr>
-        <td>{{ dvd.title }}</td>
-        <td>{{ dvd.series }}</td>
-        <td>{{ dvd.year }}</td>
-        <td>{{ dvd.set }}</td>
-        <td>{{ dvd.media_type }}</td>
-        <td>{{ dvd.music_type }}</td>
-        <td>{{ dvd.artist}}</td>
-      </tr>
-    -->
     </tbody>
-      <!--
-    {% endfor %}
-    -->
 </table>
 
 {% endblock %}
