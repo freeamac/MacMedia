@@ -1,4 +1,5 @@
 from datetime import date
+from pydoc import render_doc
 
 from flask_wtf import FlaskForm
 from wtforms import IntegerField, IntegerRangeField, SelectField, StringField, SubmitField
@@ -13,10 +14,9 @@ class DataRequiredNoFlags(DataRequired):
     """
     field_flags = ()
 
-
-class NewDVDForm(FlaskForm):
-    """ Form to define a new application """
-    dvd_title = StringField('New DVD Movie Title', validators=[DataRequiredNoFlags(), Length(0, 120)])
+class DVDForm(FlaskForm):
+    """ Form to defining a DVD """
+    dvd_title = StringField('DVD Movie Title', validators=[DataRequiredNoFlags(), Length(0, 120)])
     dvd_series = StringField('Movie Series', validators=[Length(0, 120)])
     dvd_year = IntegerField('Year Of Release', validators=[DataRequiredNoFlags()], default=date.today().year)
     dvd_set = StringField('From Set', validators=[Length(0, 120)])
@@ -24,5 +24,26 @@ class NewDVDForm(FlaskForm):
     dvd_music_type = SelectField('Music DVD?', choices=['No', 'Yes'])
     dvd_music_artist = StringField('Music DVD Artist', validators=[Length(0,120)])
 
+
+class NewDVDForm(DVDForm):
+    """ Form for creating a new DVD"""
     submit = SubmitField('Create')
     cancel = SubmitField('Cancel')
+
+class ModifyDVDForm(DVDForm):
+    """ Form for modifying a DVD"""
+    submit = SubmitField('Save')
+    cancel = SubmitField('Cancel')
+
+class DeleteDVDForm(FlaskForm):
+    """ Form for deleting a DVD"""
+    dvd_title = StringField('DVD Movie Title', render_kw={'readonly': True})
+    dvd_series = StringField('Movie Series', render_kw={'readonly': True})
+    dvd_year = StringField('Year Of Release', render_kw={'readonly': True})
+    dvd_set = StringField('From Set', render_kw={'readonly': True})
+    dvd_media_type = SelectField('DVD Type?', render_kw={'readonly': True})
+    dvd_music_type = StringField('Music DVD?', render_kw={'readonly': True})
+    dvd_music_artist = StringField('Music DVD Artist', render_kw={'readonly': True})
+
+    submit = SubmitField('Delete')
+    cancel = SubmitField('Cancel Deletion')

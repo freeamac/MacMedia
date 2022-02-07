@@ -1,12 +1,13 @@
 from flask import flash, redirect, render_template, request, url_for
 
-from app.creations import create_dvd
-
 from . import dvds
-from .forms import NewDVDForm
-from app.queries import get_all_dvds
-from app.exceptions import UniqueNameError, ModelNotFound
+from .forms import DeleteDVDForm, ModifyDVDForm, NewDVDForm
 from app import db
+from app.creations import db_create_dvd
+from app.deletions import db_delete_dvd
+from app.exceptions import UniqueNameError, ModelNotFound
+from app.queries import get_all_dvds, get_dvd_by_id
+from app.updates import db_update_dvd
 
 
 @dvds.route('/')
@@ -42,7 +43,7 @@ def add_dvd():
             data['artist'] = form.dvd_music_artist.data
 
             try:
-                new_dvd = create_dvd(db, data)
+                new_dvd = db_create_dvd(db, data)
                 if new_dvd is None:
                     flash('Error: Unable to add "{}" to the DVD library'.format(new_dvd.title))
                 else:
@@ -53,15 +54,102 @@ def add_dvd():
 
     return render_template('add_new_dvd.html', form=form)
 
-@dvds.route('/delete/<id>')
-def delete_dvd():
+@dvds.route('/delete/<id>', methods=['GET', 'POST'])
+def delete_dvd(id):
     """ Delete the DVD from the list """
-    return render_template('404.html')
 
-@dvds.route('/modify/<id>')
-def modify_dvd():
+    dvd_data = get_dvd_by_id(db, id)
+    if dvd_data is None:
+        flash('DVD with identifier "{}" not found'.format(id))
+        return redirect(url_for('.index'))
+
+    # Set up form
+    form = DeleteDVDForm()
+
+    if request.method == 'GET':
+        form.dvd_title.data = dvd_data.get('title')
+        form.dvd_series.data = dvd_data.get('series', '')
+        form.dvd_year.data = str(dvd_data.get('year'))
+        form.dvd_set.data = dvd_data.get('set', '')
+        form.dvd_media_type.data = dvd_data.get('media_type').capitalize()
+        dvd_music_type = dvd_data.get('music_type')
+        if dvd_music_type:
+            form.dvd_music_type.data = 'Yes'
+        else:
+            form.dvd_music_type.data = 'No'
+        form.dvd_music_artist.data = dvd_data.get('artist', '')
+
+    if request.method == 'POST':
+        # Take action based on the button pressed
+
+        if form.cancel.data:
+            # User cancels form submission
+            return redirect(url_for('.index'))
+        
+        db_delete_dvd(db, dvd_data['id'])
+
+        return redirect(url_for('.index'))
+
+    return render_template('delete_dvd.html', form=form)
+
+@dvds.route('/modify/<id>', methods=['GET', 'POST'])
+def modify_dvd(id):
     """ Modify the data of a DVD """
-    return render_template('404.html')
+
+    dvd_data = get_dvd_by_id(db, id)
+    if dvd_data is None:
+        flash('DVD with identifier "{}" not found'.format(id))
+        return redirect(url_for('.index'))
+
+    # Set up form
+    form = ModifyDVDForm()
+
+    if request.method == 'GET':
+        form.dvd_title.data = dvd_data.get('title')
+        form.dvd_series.data = dvd_data.get('series', '')
+        form.dvd_year.data = dvd_data.get('year')
+        form.dvd_set.data = dvd_data.get('set', '')
+        form.dvd_media_type.data = dvd_data.get('media_type').capitalize()
+        dvd_music_type = dvd_data.get('music_type')
+        if dvd_music_type:
+            form.dvd_music_type.data = 'Yes'
+        else:
+            form.dvd_music_type.data = 'No'
+        form.dvd_music_artist.data = dvd_data.get('artist', '')
+
+    if request.method == 'POST':
+        # Take action based on the button pressed
+
+        if form.cancel.data:
+            # User cancels form submission
+            return redirect(url_for('.index'))
+        
+        if form.validate():
+            dvd_data['id'] = int(id)
+            dvd_data['title'] = form.dvd_title.data.strip()
+            dvd_data['series'] = form.dvd_series.data.strip()
+            dvd_data['year'] = form.dvd_year.data
+            dvd_data['set'] = form.dvd_series.data.strip()
+            dvd_data['media_type'] = form.dvd_media_type.data.lower()
+            if form.dvd_music_type.data.upper() == 'YES':
+                dvd_data['music_type'] = True
+            else:
+                dvd_data['music_type'] = False
+            dvd_data['artist'] = form.dvd_music_artist.data.strip()
+
+            try:
+                dvd = db_update_dvd(db, dvd_data)
+                if dvd:
+                    flash('DVD titled "{}" updated'.format(dvd_data['title']))
+                else:
+                    flash('No changes made to DVD titled "{}"'.format(dvd_data['title']))
+            except (ModelNotFound, UniqueNameError) as err:
+                flash(str(err))
+
+            return redirect(url_for('.index'))
+
+    return render_template('modify_dvd.html', form=form)
+
 
 @dvds.route('/search/')
 def search_dvds():

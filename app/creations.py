@@ -6,7 +6,7 @@ from app.models import DVDs, Media_Type_Enum
 from app.queries import dvd_exists
 
 
-def create_dvd(db, data):
+def db_create_dvd(db, data):
     """ Create the specified new DVD in the library
 
     :param db:        The database instance

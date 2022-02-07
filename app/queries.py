@@ -1,3 +1,4 @@
+from statistics import mode
 from .models import DVDs
 
 def get_all_dvds(db):
@@ -19,6 +20,29 @@ def get_all_dvds(db):
 
     return [dvd.to_dict() for dvd in dvds]
     
+
+def get_dvd_by_id(db, id, model=False):
+    """ Return the DVD with the specified id. If not found, return None.
+
+    :param db:        The database instance
+    :type db:         :class:`SQLAlchemy`
+
+    :param model:     Indicate if the model instead of the dictionary representation
+                      should be returned
+    :type model:      `bool`
+
+    :returns:  All platforms information
+    :rtype:    `dict` or class:`models.DVDs`
+    """
+
+    dvd = db.session.query(DVDs).filter_by(id=id).first()
+    if dvd is None:
+        return None
+    elif model:
+        return dvd
+    else:
+        return dvd.to_dict()
+
 
 def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
     """ Returns True if the DVD already exists in the database
