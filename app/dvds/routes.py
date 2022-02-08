@@ -15,7 +15,6 @@ def index():
     """ Main landing page for the DVDs library """
     
     dvds = get_all_dvds(db)
-    print(len(dvds))
     # return render_template('dvds_main.html', dvds=dvds)
     return render_template('dvds_main.html')
 
@@ -72,11 +71,7 @@ def delete_dvd(id):
         form.dvd_year.data = str(dvd_data.get('year'))
         form.dvd_set.data = dvd_data.get('set', '')
         form.dvd_media_type.data = dvd_data.get('media_type').capitalize()
-        dvd_music_type = dvd_data.get('music_type')
-        if dvd_music_type:
-            form.dvd_music_type.data = 'Yes'
-        else:
-            form.dvd_music_type.data = 'No'
+        form.dvd_music_type.data = dvd_data.get('music_type')
         form.dvd_music_artist.data = dvd_data.get('artist', '')
 
     if request.method == 'POST':
@@ -110,11 +105,7 @@ def modify_dvd(id):
         form.dvd_year.data = dvd_data.get('year')
         form.dvd_set.data = dvd_data.get('set', '')
         form.dvd_media_type.data = dvd_data.get('media_type').capitalize()
-        dvd_music_type = dvd_data.get('music_type')
-        if dvd_music_type:
-            form.dvd_music_type.data = 'Yes'
-        else:
-            form.dvd_music_type.data = 'No'
+        form.dvd_music_type.data = dvd_data.get('music_type')
         form.dvd_music_artist.data = dvd_data.get('artist', '')
 
     if request.method == 'POST':

@@ -38,7 +38,10 @@ class DVDs(DB.Model):
         result['year'] = self.year
         result['set'] = self.set
         result['media_type'] = str(self.media_type.name)
-        result['music_type'] = self.music_type
+        if self.music_type:
+            result['music_type'] = 'Yes'
+        else:
+            result['music_type'] = 'No'
         result['artist'] = self.artist
         return result
 

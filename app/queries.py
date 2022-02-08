@@ -63,7 +63,7 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
     if year is not None:
         query_args['year'] = year
     if set is not None and set != '':
-        query_args['series'] = series
+        query_args['set'] = set
     if media_type is not None:
         query_args['media_type'] = media_type
 
