@@ -3,6 +3,7 @@ from flask import flash, redirect, render_template, request, url_for
 from . import dvds
 from .forms import DeleteDVDForm, ModifyDVDForm, NewDVDForm
 from app import db
+from app.auth import login_required
 from app.creations import db_create_dvd
 from app.deletions import db_delete_dvd
 from app.exceptions import UniqueNameError, ModelNotFound
@@ -11,6 +12,7 @@ from app.updates import db_update_dvd
 
 
 @dvds.route('/')
+@login_required
 def index():
     """ Main landing page for the DVDs library """
     
@@ -19,6 +21,7 @@ def index():
     return render_template('dvds_main.html')
 
 @dvds.route('/add/', methods=['GET', 'POST'])
+@login_required
 def add_dvd():
     """ Add a new DVD to the list of DVDs """
 
@@ -48,18 +51,19 @@ def add_dvd():
                 else:
                     flash('Added "{}" to the DVD library'.format(new_dvd.title))
             except (ModelNotFound, UniqueNameError) as err:
-                flash(str(err))
+                flash('ERROR: ' + str(err))
             return redirect(url_for('.index'))
 
     return render_template('add_new_dvd.html', form=form)
 
-@dvds.route('/delete/<id>', methods=['GET', 'POST'])
+@dvds.route('/delete/<int:id>', methods=['GET', 'POST'])
+@login_required
 def delete_dvd(id):
     """ Delete the DVD from the list """
 
     dvd_data = get_dvd_by_id(db, id)
     if dvd_data is None:
-        flash('DVD with identifier "{}" not found'.format(id))
+        flash('ERROR: DVD with identifier "{}" not found'.format(id))
         return redirect(url_for('.index'))
 
     # Set up form
@@ -87,13 +91,15 @@ def delete_dvd(id):
 
     return render_template('delete_dvd.html', form=form)
 
-@dvds.route('/modify/<id>', methods=['GET', 'POST'])
+
+@dvds.route('/modify/<int:id>', methods=['GET', 'POST'])
+@login_required
 def modify_dvd(id):
     """ Modify the data of a DVD """
 
     dvd_data = get_dvd_by_id(db, id)
     if dvd_data is None:
-        flash('DVD with identifier "{}" not found'.format(id))
+        flash('ERROR: DVD with identifier "{}" not found'.format(id))
         return redirect(url_for('.index'))
 
     # Set up form
@@ -120,7 +126,7 @@ def modify_dvd(id):
             dvd_data['title'] = form.dvd_title.data.strip()
             dvd_data['series'] = form.dvd_series.data.strip()
             dvd_data['year'] = form.dvd_year.data
-            dvd_data['set'] = form.dvd_series.data.strip()
+            dvd_data['set'] = form.dvd_set.data.strip()
             dvd_data['media_type'] = form.dvd_media_type.data.lower()
             if form.dvd_music_type.data.upper() == 'YES':
                 dvd_data['music_type'] = True
@@ -135,7 +141,7 @@ def modify_dvd(id):
                 else:
                     flash('No changes made to DVD titled "{}"'.format(dvd_data['title']))
             except (ModelNotFound, UniqueNameError) as err:
-                flash(str(err))
+                flash('ERROR: ' + str(err))
 
             return redirect(url_for('.index'))
 
@@ -143,11 +149,14 @@ def modify_dvd(id):
 
 
 @dvds.route('/search/')
+@login_required
 def search_dvds():
     """ Search for DVDs in the list """
     return render_template('404.html')
 
+
 @dvds.route('/results')
+@login_required
 def search_results():
     """ List of DVD search results """
     return render_template('404.html')

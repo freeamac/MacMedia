@@ -1,17 +1,19 @@
 import os
+from urllib import request
 
-from flask import Flask, render_template
+from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
+
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 moment = Moment()
 pagedown = PageDown()
 
-app_name = 'MacMovies'
+app_name = __name__
 
 def create_app():
     app = Flask(app_name)
@@ -20,7 +22,7 @@ def create_app():
     db_file = app_name + '_test.db'
 
     try:
-        os.unlink(db_file) # Forecefully remove any old debris
+        os.unlink(app.root_path + os.sep + db_file) # Forecefully remove any old debris
     except FileNotFoundError:
         pass
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
@@ -50,22 +52,15 @@ def create_app():
     from app.lps import lps as lps_blueprint
     app.register_blueprint(lps_blueprint)
 
+    # TODO - Securely inject into environment for production
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
+
     with app.app_context():
         from app.demo_helpers import load_demo_data
         db.create_all()
         load_demo_data(db)
-
-    # TODO - Securely inject into environment for production
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
+        from app.models import load_initial_users
+        load_initial_users(db)
 
     return app
 
-app = create_app()
-
-@app.route('/')
-def index():
-    """ Main landing page where the user gets a chance to choose the media library to examine """
-    print('Calling media_selection template')
-
-    return render_template('media_selection.html')
- 

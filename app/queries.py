@@ -1,5 +1,4 @@
-from statistics import mode
-from .models import DVDs
+from .models import DVDs, User
 
 def get_all_dvds(db):
     """ Return a list of all the DVDs in the database.
@@ -58,14 +57,32 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
         raise ModuleNotFoundError('DVD title must not be blank.')
 
     query_args = {'title': title}
-    if series is not None and series != '':
+    if series == '':
+        query_args['series'] = None
+    else:
         query_args['series'] = series
-    if year is not None:
-        query_args['year'] = year
-    if set is not None and set != '':
+    query_args['year'] = year
+    if set == '':
+        query_args['set'] = None
+    else:
         query_args['set'] = set
-    if media_type is not None:
-        query_args['media_type'] = media_type
+    query_args['media_type'] = media_type
 
     result = db.session.query(DVDs).filter_by(**query_args).first()
     return result is not None
+
+def get_user(db, username):
+    """ Return the specified username's information
+        
+    :param db:        The database instance
+    :type db:         :class:`SQLAlchemy`
+
+    :param username:  The username's information to return
+    :type username:   `str`
+
+    :returns:         The usernames' information or None
+    :rtye:            :class:`models.User`
+    """
+
+    user = db.session.query(User).filter_by(username=username).first()
+    return user

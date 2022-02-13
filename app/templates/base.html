@@ -26,6 +26,7 @@ $(function () {
             </button>
             <a href="{{ url_for('index') }}" class="navbar-brand">MacLeod's Media Library Home</a>
         </div>
+        {% if g.user %}
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
                 <li class="dropdown">
@@ -38,10 +39,15 @@ $(function () {
                             <li><a href="{{ url_for('cds.index') }}">MacLeod's Music CD Library</a></li>
                             <li><a href="{{ url_for('cassettes.index') }}">MacLeod's Music Cassette Library</a></li>
                             <li><a href="{{ url_for('lps.index') }}">MacLeod's Music LP Library</a></li>
+                            <li><hr></li>
+                            <li><a href="{{ url_for('change_password') }}">Change Password for {{ g.user }}</a></li>
+                            <li><hr></li>
+                            <li><a href="{{ url_for('logout') }}">Logout {{ g.user }}</a></li>
                     </ul>
                 </li>
             </ul>
         </div>
+        {% endif %}
     </div>
 </div>
 

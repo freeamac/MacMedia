@@ -1,9 +1,10 @@
 ###########
 # Handle updates of data objects in the model
 ###########
+from werkzeug.security import generate_password_hash
 
 from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound
-from app.models import DVDs, Media_Type_Enum
+from app.models import DVDs, Media_Type_Enum, User
 from app.queries import dvd_exists, get_dvd_by_id
 
 
@@ -20,7 +21,7 @@ def db_update_dvd(db, dvd_data):
     :type dvd_data:   `dict`
 
     :returns:         Updated model
-    :rtype:            class:`models.DVDs`
+    :rtype:           class:`models.DVDs`
     """
 
     # First ensure the modified data does not represent and existing DVD in the library
@@ -38,7 +39,7 @@ def db_update_dvd(db, dvd_data):
     query_args['media_type'] = dvd_data['media_type']
 
     if dvd_exists(db, ** query_args):
-        raise UniqueNameError('DVD "{}" already exists in library. Cannot save to an existing DVD'.format(dvd_data['title']))
+        raise UniqueNameError('DVD "{}" with this information already exists in library. Cannot save to an existing DVD'.format(dvd_data['title']))
 
     # Ensure there are changes to commit
     current_dvd = get_dvd_by_id(db, dvd_data['id'], model=True)
@@ -61,6 +62,19 @@ def db_update_dvd(db, dvd_data):
     return current_dvd
 
 
-    
+def db_update_user_password(db, username, password):
+    """ Update the hashed password for the specified username
 
-    
+    :param db:        The database instance
+    :type db:         :class:`SQLAlchemy`
+
+    :param username:  The username to update the password for
+    :type username:   `str`
+
+    :param password:  The new password
+    :type password:   `str`
+    """
+    user = db.session.query(User).filter_by(username=username).first()
+    if user is not None:
+        user.password = generate_password_hash(password)
+        db.session.commit()

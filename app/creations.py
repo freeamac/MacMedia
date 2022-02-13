@@ -26,7 +26,7 @@ def db_create_dvd(db, data):
 
     # Check DVD does not already exist
     if dvd_exists(db, title=data['title'], series=data['series'], year=data['year'], set=data['set'], media_type=media_type):
-        raise UniqueNameError('DVD "{}" already exists in the library'.format(data['title']))
+        raise UniqueNameError('DVD "{}" with this information already exists in the library'.format(data['title']))
 
     # Add the new DVD
     new_dvd = DVDs(title=data['title'], series=data['series'], year=data['year'], set=data['set'], media_type=media_type, music_type=data['music_type'], artist=data['artist'])
