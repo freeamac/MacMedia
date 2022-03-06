@@ -5,6 +5,7 @@ from flask import g, redirect, session, url_for
 from app import db
 from app.queries import get_user
 
+
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):

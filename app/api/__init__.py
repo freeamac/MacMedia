@@ -6,4 +6,4 @@ api = Blueprint('api', __name__, url_prefix='/api')
 # definition is imported into the app creation call and then
 # the following import registers all the routes found under this
 # blueprint.
-from . import routes # noqa: E402,F401
+from . import routes  # noqa: E402,F401

@@ -28,7 +28,7 @@ class DVDs(DB.Model):
     set = DB.Column(DB.String(60), default=None, nullable=True)
     media_type = DB.Column(DB.Enum(Media_Type_Enum), default=Media_Type_Enum.dvd, nullable=False)
     music_type = DB.Column(DB.Boolean, default=False, nullable=False)
-    artist =  DB.Column(DB.String(60), default=None, nullable=True)
+    artist = DB.Column(DB.String(60), default=None, nullable=True)
 
     def to_dict(self) -> dict:
         result = {}
@@ -63,14 +63,15 @@ class User(DB.Model):
         result['password'] = self.password
         return result
 
+
 def load_initial_users(db):
    user = User()
-   user.username = 'Andy' 
+   user.username = 'Andy'
    user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
    db.session.add(user)
    db.session.commit()
    user = User()
-   user.username = 'Tomomi' 
+   user.username = 'Tomomi'
    user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
    db.session.add(user)
    db.session.commit()

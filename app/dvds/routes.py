@@ -7,7 +7,7 @@ from app.auth import login_required
 from app.creations import db_create_dvd
 from app.deletions import db_delete_dvd
 from app.exceptions import UniqueNameError, ModelNotFound
-from app.queries import get_all_dvds, get_dvd_by_id
+from app.queries import get_dvd_by_id
 from app.updates import db_update_dvd
 
 
@@ -15,10 +15,11 @@ from app.updates import db_update_dvd
 @login_required
 def index():
     """ Main landing page for the DVDs library """
-    
-    dvds = get_all_dvds(db)
+
+    # dvds = get_all_dvds(db)
     # return render_template('dvds_main.html', dvds=dvds)
     return render_template('dvds_main.html')
+
 
 @dvds.route('/add/', methods=['GET', 'POST'])
 @login_required
@@ -56,6 +57,7 @@ def add_dvd():
 
     return render_template('add_new_dvd.html', form=form)
 
+
 @dvds.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_dvd(id):
@@ -84,7 +86,7 @@ def delete_dvd(id):
         if form.cancel.data:
             # User cancels form submission
             return redirect(url_for('.index'))
-        
+
         db_delete_dvd(db, dvd_data['id'])
 
         return redirect(url_for('.index'))
@@ -120,7 +122,7 @@ def modify_dvd(id):
         if form.cancel.data:
             # User cancels form submission
             return redirect(url_for('.index'))
-        
+
         if form.validate():
             dvd_data['id'] = int(id)
             dvd_data['title'] = form.dvd_title.data.strip()

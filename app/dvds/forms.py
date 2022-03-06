@@ -1,18 +1,18 @@
 from datetime import date
-from pydoc import render_doc
 
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, IntegerRangeField, SelectField, StringField, SubmitField
+from wtforms import IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length
-from wtforms.widgets import CheckboxInput
 
 from app.models import Media_Type_Enum
+
 
 class DataRequiredNoFlags(DataRequired):
     """
     Clears the HTML field flags to disable client side validation to avoid validation errors if form is cancelled.
     """
     field_flags = ()
+
 
 class DVDForm(FlaskForm):
     """ Form to defining a DVD """
@@ -22,7 +22,7 @@ class DVDForm(FlaskForm):
     dvd_set = StringField('From Set', validators=[Length(0, 120)])
     dvd_media_type = SelectField('DVD Type?', choices=[Media_Type_Enum.dvd.name.capitalize(), Media_Type_Enum.blueray.name.capitalize()])
     dvd_music_type = SelectField('Music DVD?', choices=['No', 'Yes'])
-    dvd_music_artist = StringField('Music DVD Artist', validators=[Length(0,120)])
+    dvd_music_artist = StringField('Music DVD Artist', validators=[Length(0, 120)])
 
 
 class NewDVDForm(DVDForm):
@@ -30,10 +30,12 @@ class NewDVDForm(DVDForm):
     submit = SubmitField('Create')
     cancel = SubmitField('Cancel')
 
+
 class ModifyDVDForm(DVDForm):
     """ Form for modifying a DVD"""
     submit = SubmitField('Save')
     cancel = SubmitField('Cancel')
+
 
 class DeleteDVDForm(FlaskForm):
     """ Form for deleting a DVD"""

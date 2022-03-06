@@ -4,15 +4,15 @@
 from werkzeug.security import generate_password_hash
 
 from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound
-from app.models import DVDs, Media_Type_Enum, User
+from app.models import Media_Type_Enum, User
 from app.queries import dvd_exists, get_dvd_by_id
 
 
 def db_update_dvd(db, dvd_data):
     """ Update the DVD with any new information in the passed DVD data dictionary
-    
+
     If there is no new information, None is returned.
-        
+
     :param db:        The database instance
     :type db:         :class:`SQLAlchemy`
 

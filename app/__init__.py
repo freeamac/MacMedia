@@ -1,5 +1,4 @@
 import os
-from urllib import request
 
 from flask import Flask
 from flask_bootstrap import Bootstrap
@@ -15,6 +14,7 @@ pagedown = PageDown()
 
 app_name = __name__
 
+
 def create_app():
     app = Flask(app_name)
 
@@ -22,7 +22,7 @@ def create_app():
     db_file = app_name + '_test.db'
 
     try:
-        os.unlink(app.root_path + os.sep + db_file) # Forecefully remove any old debris
+        os.unlink(app.root_path + os.sep + db_file)  # Forecefully remove any old debris
     except FileNotFoundError:
         pass
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
@@ -63,4 +63,3 @@ def create_app():
         load_initial_users(db)
 
     return app
-

@@ -1,4 +1,3 @@
-from typing_extensions import Required
 from flask import flash, g, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -76,12 +75,14 @@ def change_password():
 
     return render_template('change_password.html')
 
+
 @app.route('/main')
 @login_required
 def main():
     """ Main landing page where the user gets a chance to choose the media library to examine """
 
     return render_template('media_selection.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)

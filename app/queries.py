@@ -1,11 +1,12 @@
 from .models import DVDs, User
 
+
 def get_all_dvds(db):
     """ Return a list of all the DVDs in the database.
-    
+
     Each entry in the list will be a dictionary containing
     the returned information of one unique DVD in the database.
-    
+
     If no DVDs are found, an empty list will be returned.
 
     :param db:        The database instance
@@ -18,7 +19,7 @@ def get_all_dvds(db):
     dvds = db.session.query(DVDs).all()
 
     return [dvd.to_dict() for dvd in dvds]
-    
+
 
 def get_dvd_by_id(db, id, model=False):
     """ Return the DVD with the specified id. If not found, return None.
@@ -71,9 +72,10 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
     result = db.session.query(DVDs).filter_by(**query_args).first()
     return result is not None
 
+
 def get_user(db, username):
     """ Return the specified username's information
-        
+
     :param db:        The database instance
     :type db:         :class:`SQLAlchemy`
 
