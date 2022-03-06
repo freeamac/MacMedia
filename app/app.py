@@ -82,3 +82,6 @@ def main():
     """ Main landing page where the user gets a chance to choose the media library to examine """
 
     return render_template('media_selection.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
