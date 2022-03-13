@@ -1,5 +1,5 @@
 from flask import flash, g, redirect, render_template, request, session, url_for
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
 from app import create_app, db
 from app.auth import load_logged_in_user, login_required

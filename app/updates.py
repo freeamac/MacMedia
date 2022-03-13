@@ -3,7 +3,7 @@
 ###########
 from werkzeug.security import generate_password_hash
 
-from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound
+from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound  # noqa
 from app.models import Media_Type_Enum, User
 from app.queries import dvd_exists, get_dvd_by_id
 

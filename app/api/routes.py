@@ -1,5 +1,3 @@
-from flask import render_template
-
 from . import api
 from app.queries import get_all_dvds
 from app import db
