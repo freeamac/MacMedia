@@ -18,14 +18,19 @@ app_name = __name__
 def create_app():
     app = Flask(app_name)
 
-    # Set up sqlite database acess
-    db_file = app_name + '_test.db'
+    if app.env == "production":
+        app.config.from_pyfile('./appconfig/production_settings.py')
+    elif app.env == 'staging':
+        app.config.from_pyfile('./appconfig/staging_settings.py')
+    else:  # Assuming a development setup
+        # Set up sqlite database acess
+        db_file = app_name + '_test.db'
 
-    try:
-        os.unlink(app.root_path + os.sep + db_file)  # Forecefully remove any old debris
-    except FileNotFoundError:
-        pass
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
+        try:
+            os.unlink(app.root_path + os.sep + db_file)  # Forecefully remove any old debris
+        except FileNotFoundError:
+            pass
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
 
     bootstrap.init_app(app)
     db.init_app(app)
