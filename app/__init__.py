@@ -60,11 +60,13 @@ def create_app():
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
 
-    with app.app_context():
-        from app.demo_helpers import load_demo_data
-        db.create_all()
-        load_demo_data(db)
-        from app.models import load_initial_users
-        load_initial_users(db)
+    # Load in test/demo data in development environments
+    if app.env not in ['staging', 'production']:
+        with app.app_context():
+            from app.demo_helpers import load_demo_data
+            db.create_all()
+            load_demo_data(db)
+            from app.models import load_initial_users
+            load_initial_users(db)
 
     return app
