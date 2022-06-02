@@ -97,3 +97,6 @@ ENV/
 
 # Temporary files
 MacMovies_test.db
+
+# Sonarqube files
+.scannerwork/
