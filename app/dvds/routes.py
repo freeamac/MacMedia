@@ -14,7 +14,7 @@ from app.updates import db_update_dvd
 @dvds.route('/')
 @login_required
 def index():
-    """ Main landing page for the DVDs library """
+    """ Main landing page for the DVD library """
 
     # dvds = get_all_dvds(db)
     # return render_template('dvds_main.html', dvds=dvds)

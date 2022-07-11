@@ -1,4 +1,4 @@
-from .models import DVDs, User
+from .models import DVD, User
 
 
 def get_all_dvds(db):
@@ -16,7 +16,7 @@ def get_all_dvds(db):
     :rtype:    list(dict)
     """
 
-    dvds = db.session.query(DVDs).all()
+    dvds = db.session.query(DVD).all()
 
     return [dvd.to_dict() for dvd in dvds]
 
@@ -32,10 +32,10 @@ def get_dvd_by_id(db, id, model=False):
     :type model:      `bool`
 
     :returns:  All platforms information
-    :rtype:    `dict` or class:`models.DVDs`
+    :rtype:    `dict` or class:`models.DVD`
     """
 
-    dvd = db.session.query(DVDs).filter_by(id=id).first()
+    dvd = db.session.query(DVD).filter_by(id=id).first()
     if dvd is None:
         return None
     elif model:
@@ -69,7 +69,7 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
         query_args['set'] = set
     query_args['media_type'] = media_type
 
-    result = db.session.query(DVDs).filter_by(**query_args).first()
+    result = db.session.query(DVD).filter_by(**query_args).first()
     return result is not None
 
 

@@ -1,5 +1,5 @@
 import json
-from .models import DVDs, Media_Type_Enum
+from .models import DVD, Media_Type_Enum
 
 
 def load_dvds_data_from_json(db, json_data_file, data_dir=None, test=False):
@@ -39,12 +39,12 @@ def load_dvds_data_from_dict(db, data_dict, test=False):
     :type test:           bool
     """
     for dvd in data_dict:
-        Dvd = DVDs(title=(dvd.get('title')), series=(dvd.get('series', None)),
-                   year=(dvd.get('year')),
-                   set=(dvd.get('set', None)),
-                   media_type=(dvd.get('media_type', Media_Type_Enum.dvd)),
-                   music_type=(dvd.get('music_type', False)),
-                   artist=(dvd.get('artist', None)))
+        Dvd = DVD(title=(dvd.get('title')), series=(dvd.get('series', None)),
+                  year=(dvd.get('year')),
+                  set=(dvd.get('set', None)),
+                  media_type=(dvd.get('media_type', Media_Type_Enum.dvd)),
+                  music_type=(dvd.get('music_type', False)),
+                  artist=(dvd.get('artist', None)))
         db.session.add(Dvd)
         db.session.commit()
 

@@ -18,8 +18,8 @@ class Media_Type_Enum(enum.Enum):
             raise TypeError('{} is not a valid Media Type'.format(s))
 
 
-class DVDs(DB.Model):
-    __tablename__ = 'DVDs'
+class DVD(DB.Model):
+    __tablename__ = 'DVD'
 
     id = DB.Column(DB.Integer, primary_key=True)
     title = DB.Column(DB.String(60), nullable=False)

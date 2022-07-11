@@ -21,7 +21,7 @@ def db_update_dvd(db, dvd_data):
     :type dvd_data:   `dict`
 
     :returns:         Updated model
-    :rtype:           class:`models.DVDs`
+    :rtype:           class:`models.DVD`
     """
 
     # First ensure the modified data does not represent and existing DVD in the library

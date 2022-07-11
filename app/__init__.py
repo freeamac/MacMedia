@@ -41,7 +41,7 @@ def create_app():
     from app.api import api as api_blueprint
     app.register_blueprint(api_blueprint)
 
-    # Set up the routes to the DVDs library
+    # Set up the routes to the DVD library
     from app.dvds import dvds as dvds_blueprint
     app.register_blueprint(dvds_blueprint)
 
