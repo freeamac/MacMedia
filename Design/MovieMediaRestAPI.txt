@@ -1,0 +1,14 @@
+WIP
+
+/movies
+/movies/dvds
+/movies/dvds/search
+/movies/dvds/add
+/movies/dvds/modify/<id_#>    => includes delete
+/movies/dvd/results?title=
+                    series=
+                    year=
+                    set=
+                    media_type=
+                    category=
+                    music_artist=
