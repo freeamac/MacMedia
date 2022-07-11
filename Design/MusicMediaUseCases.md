@@ -62,7 +62,7 @@
   1. Return to MSS 6 with already entered information
 
   ---
-  Delete Album from collection
+  ## Delete Album from collection
   ---
 
   ### **Main Success Scenario:**
@@ -81,7 +81,7 @@
   1. Return to MSS 1
 
   ---
-  Modify Album information
+  ## Modify Album information
   ---
 
   ### **Main Succes Criteria:**
