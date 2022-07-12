@@ -1,4 +1,4 @@
-from .models import DVD, User
+from .models import DEFAULT_DVD_MEDIA_TYPE, DVD, User
 
 
 def get_all_dvds(db):
@@ -44,8 +44,11 @@ def get_dvd_by_id(db, id, model=False):
         return dvd.to_dict()
 
 
-def dvd_exists(db, title, series=None, year=None, set=None, media_type=None):
+def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_DVD_MEDIA_TYPE, **extras):
     """ Returns True if the DVD already exists in the database
+
+    *Note* we ignore extra parameters so we can send a whole dictionary of DVD info but only
+    search on the relevant keys.
 
     :param db:        The database instance
     :type db:         :class:`SQLAlchemy`

@@ -64,7 +64,8 @@ lint: ## Check code style with flake8
 .PHONY: test
 test: ## Run tests quickly with the default Python
 	@echo "+ $@"
-	@tox -e py
+	#@tox -e py
+	@pytest
 
 .PHONY: test-all
 test-all: ## Run tests on every Python version with tox

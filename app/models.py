@@ -18,6 +18,9 @@ class Media_Type_Enum(enum.Enum):
             raise TypeError('{} is not a valid Media Type'.format(s))
 
 
+DEFAULT_DVD_MEDIA_TYPE = Media_Type_Enum.dvd
+
+
 class DVD(DB.Model):
     __tablename__ = 'DVD'
 
@@ -26,7 +29,7 @@ class DVD(DB.Model):
     series = DB.Column(DB.String(60), default=None, nullable=True)
     year = DB.Column(DB.Integer, nullable=False)
     set = DB.Column(DB.String(60), default=None, nullable=True)
-    media_type = DB.Column(DB.Enum(Media_Type_Enum), default=Media_Type_Enum.dvd, nullable=False)
+    media_type = DB.Column(DB.Enum(Media_Type_Enum), default=DEFAULT_DVD_MEDIA_TYPE, nullable=False)
     music_type = DB.Column(DB.Boolean, default=False, nullable=False)
     artist = DB.Column(DB.String(60), default=None, nullable=True)
 

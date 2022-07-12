@@ -15,14 +15,17 @@ pagedown = PageDown()
 app_name = __name__
 
 
-def create_app():
-    app = Flask(app_name)
+def create_app(name=None):
+    if name is None:
+        app = Flask(app_name)
+    else:
+        app = Flask(name)
 
     if app.env == "production":
         app.config.from_pyfile('./appconfig/production_settings.py')
     elif app.env == 'staging':
         app.config.from_pyfile('./appconfig/staging_settings.py')
-    else:  # Assuming a development setup
+    else:  # Assuming a test or development setup
         # Set up sqlite database acess
         db_file = app_name + '_test.db'
 

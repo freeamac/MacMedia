@@ -19,9 +19,9 @@ def db_create_dvd(db, data):
     :rtype:    class:`models.DVD`
     """
 
-    # Conver the media type to the appropriate enum if it comes in as a string
-    print('We have a media type of {}'.format(data['media_type']))
-    if isinstance(data['media_type'], str):
+    # Convert the media type to the appropriate enum if it comes in as a string
+    media_type = data['media_type']
+    if isinstance(media_type, str):
         media_type = Media_Type_Enum.from_string(data['media_type'])
 
     # Check DVD does not already exist
