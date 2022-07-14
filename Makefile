@@ -16,11 +16,6 @@ BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
 .DEFAULT_GOAL := help
 
-.PHONY: clean-tox
-clean-tox: ## Remove tox testing artifacts
-	@echo "+ $@"
-	@rm -rf .tox/
-
 .PHONY: build
 build: ## Build a docker container containing the MacMedia flask app
 	@echo "+ $@"
@@ -64,24 +59,18 @@ lint: ## Check code style with flake8
 .PHONY: test
 test: ## Run tests quickly with the default Python
 	@echo "+ $@"
-	#@tox -e py
 	@pytest
-
-.PHONY: test-all
-test-all: ## Run tests on every Python version with tox
-	@echo "+ $@"
-	@tox
 
 .PHONY: coverage
 coverage: ## Check code coverage quickly with the default Python
 	@echo "+ $@"
-	@tox -e cov-report
-	@$(BROWSER) htmlcov/index.html
+	@export PYTHONPATH="."; pytest --cov-report=html:app/docs/htmlcov --cov=app tests/
+	@$(BROWSER) app/docs/htmlcov/index.html
 
 .PHONY: ci-coverage
 coverage-ci: ## Check code coverage in CI quickly with the default Python
 	@echo "+ $@"
-	@tox -e cov-report
+	@export PYTHONPATH="."; pytest --cov=app tests/
 
 .PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs

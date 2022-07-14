@@ -57,8 +57,6 @@ class CreationTestCase(unittest.TestCase):
 
     def _dvd_data_equal(self, new_dvd, existing_dvd, skip_id=False):
         """ Compare DVD data dictionaries are equal. Skip the id when it is data to be inserted. """
-        print(new_dvd)
-        print(existing_dvd)
         for key in new_dvd.keys():
             if key == 'music_type':
                 # Music type can be a string of values 'Yes' or 'No' which
