@@ -53,7 +53,12 @@ def db_update_dvd(db, dvd_data):
     current_dvd.set = query_args['set']
 
     current_dvd.media_type = Media_Type_Enum.from_string(dvd_data['media_type'])
-    current_dvd.music_type = dvd_data['music_type']
+    if dvd_data['music_type'] == 'No':
+        current_dvd.music_type = False
+    elif dvd_data['music_type'] == 'Yes':
+        current_dvd.music_type = True
+    else:
+        current_dvd.music_type = dvd_data['music_type']
     if dvd_data['artist'] == '':
         current_dvd.artist = None
     else:

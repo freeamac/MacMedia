@@ -4,14 +4,15 @@ import pytest
 
 from app import create_app, db
 from app.creations import db_create_dvd
-from app.exceptions import UniqueNameError
 from app.demo_helpers import load_demo_data
+from app.exceptions import UniqueNameError
 from app.models import DEFAULT_DVD_MEDIA_TYPE
 from app.queries import dvd_exists, get_all_dvds, get_dvd_by_id
+from app.updates import db_update_dvd
 
 
-class CreationTestCase(unittest.TestCase):
-    """ This class tests the creation functionality used by the POST routes and administrator forms. """
+class DvdOperationsTestCase(unittest.TestCase):
+    """ This class tests the functionality used to operate on DVDs. """
 
     valid_new_dvd = {'title': 'The Test DVD',
                      'series': None,
@@ -25,6 +26,7 @@ class CreationTestCase(unittest.TestCase):
                           'series': 'Riddick',
                           'set': None,
                           'media_type': DEFAULT_DVD_MEDIA_TYPE}
+    changed_dvd_title = 'The Chronicles Of Riddick Series'
 
     def _db_reset(self):
         """ Drop all tables and re-create them """
@@ -77,8 +79,8 @@ class CreationTestCase(unittest.TestCase):
             else:
                 self.assertEqual(new_dvd[key], existing_dvd[key])
 
-    def test_db_create_dvd(self):
-        """ Test creating an new DVD """
+    def test_db_create_and_query_dvd(self):
+        """ Test creating and querying DVDs """
 
         dvd_cnt = len(get_all_dvds(self.db))
 
@@ -98,3 +100,25 @@ class CreationTestCase(unittest.TestCase):
         # Test we cannot add an existing DVD
         with pytest.raises(UniqueNameError):
             new_dvd = db_create_dvd(self.db, self.valid_existing_dvd)
+
+    def test_update_dvd(self):
+        """ Test updating a DVD """
+
+        # Test cannot change an existing DVD with no changes
+        with pytest.raises(UniqueNameError):
+            _ = db_update_dvd(self.db, self.valid_existing_dvd)
+
+        # To change a DVD we need the id so we find the DVD we are looking
+        # for by searching through all DVDs for a matching title. This
+        # DVD to change will have a valid id in the database.
+        for dvd in get_all_dvds(self.db):
+            if dvd['title'] == self.valid_existing_dvd['title']:
+                dvd_to_change = dvd
+                break
+
+        # Change title and sure changes are in database
+        dvd_to_change['title'] = self.changed_dvd_title
+        changed_dvd = db_update_dvd(self.db, dvd_to_change)
+        self.assertTrue(dvd_exists(self.db, **dvd_to_change))
+        self.assertTrue(dvd_exists(self.db, **(changed_dvd.to_dict())))
+        self.assertEqual(self.changed_dvd_title, get_dvd_by_id(self.db, changed_dvd.id, model=True).title)
