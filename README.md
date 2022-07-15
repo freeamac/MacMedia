@@ -3,15 +3,42 @@ MacMedia Media Library Tracker
 
 # Development
 
-## Development Environment
-
 A virtual environment should be set up with the imports defined in the *requirements.txt* file.
+
+## Developer Linting
+
+[Flake8](https://flake8.pycqa.org/en/latest/) is utilized to enforce code style with a couple of 
+flags turned off as defined in the *setup.cfg* file. Linting can be invoke as:
+```
+    make lint
+```
+
+## Developer Testing
+
+[pytest](https://docs.pytest.org/en/7.1.x/) is utilized as the test runner for MacMedia test cases. Test
+cases are defined under the *tests* directory. Data required for test cases is stored in *tests/data*.
+Test case execution can be invoked as:
+```
+    make test
+```
+
+Additionally, [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) is utilized to generate test case
+coverage statistics. The html report is stored under *apps/docs/htmlcov*. It can be invoked with a browser 
+display of the results after running using:
+```
+    make coverage
+```
+
+If you just want a terminal text display of test case coverage, use the same target as used in the CI pipeline:
+```
+    make coverage-ci
+```
+
+## Development Deployment Environment
 
 For running the application, Docker containers are used. Docker Desktop should be installed and
 configured to use WSL 2. For example, in this case, the configuration is for Ubuntu:
 ![Configure WSL 2 Docker](app/docs/static/docker_wsl_config.png)
-
-## Developer Testing
 
 The application can be built into a docker image using the included `Dockerfile`. The image can be created
 and launched using the `Makefile` targets:
@@ -21,6 +48,11 @@ and launched using the `Makefile` targets:
 ```
 The running application in the Docker container can then be accessed at the url __http://localhost:5000/main__.
 
+## Github Workflows
+
+Upon a push to master, linting, code style checking, code coverage (which invokes the test cases), and security issues
+will all be checked. ![Bandit](https://bandit.readthedocs.io/en/latest/) is used to check for
+security issues in the code.
 
 ---
 
