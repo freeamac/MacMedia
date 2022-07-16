@@ -70,11 +70,11 @@ class User(DB.Model):
 def load_initial_users(db):
    user = User()
    user.username = 'Andy'
-   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
+   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
    db.session.add(user)
    db.session.commit()
    user = User()
    user.username = 'Tomomi'
-   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
+   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
    db.session.add(user)
    db.session.commit()

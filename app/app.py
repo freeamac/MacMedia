@@ -85,4 +85,5 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # TODO: Turn off debugging by default once production ready
+    app.run(debug=True)  # nosec
