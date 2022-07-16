@@ -83,3 +83,5 @@ def db_update_user_password(db, username, password):
     if user is not None:
         user.password = generate_password_hash(password)
         db.session.commit()
+    else:
+        raise ModelNotFound('{} does not exist in the database.'.format(username))

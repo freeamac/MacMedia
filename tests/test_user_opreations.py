@@ -3,7 +3,7 @@ import unittest
 import pytest
 
 from app import create_app, db
-from app.exceptions import ModelNotFound, UniqueNameError
+from app.exceptions import ModelNotFound
 from app.models import load_initial_users
 from app.queries import get_user
 from app.updates import db_update_user_password
@@ -16,8 +16,8 @@ class UserOperationsTestCase(unittest.TestCase):
     valid_user2 = 'Tomomi'
     invalid_user = 'andy'
     valid_user1_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
-    valid_user2_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e' 
-    new_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782934e' 
+    valid_user2_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
+    new_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782934e'
 
     def _db_reset(self):
         """ Drop all tables and re-create them """
