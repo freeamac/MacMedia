@@ -35,6 +35,9 @@ def create_app(name=None):
             pass
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
 
+    # Turn off SQL modificationt tracking
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
     bootstrap.init_app(app)
     db.init_app(app)
     moment.init_app(app)
