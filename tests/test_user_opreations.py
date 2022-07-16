@@ -15,9 +15,9 @@ class UserOperationsTestCase(unittest.TestCase):
     valid_user1 = 'Andy'
     valid_user2 = 'Tomomi'
     invalid_user = 'andy'
-    valid_user1_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
-    valid_user2_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'
-    new_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782934e'
+    valid_user1_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
+    valid_user2_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
+    new_password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782934e'  # nosec
 
     def _db_reset(self):
         """ Drop all tables and re-create them """
