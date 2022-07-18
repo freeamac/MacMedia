@@ -1,3 +1,4 @@
+from http import HTTPStatus
 import unittest
 
 from flask_login import FlaskLoginClient
@@ -52,7 +53,7 @@ class DvdRoutesTestCase(unittest.TestCase):
         self.new_testuser = User(username=self.testuser, password=self.testuser_password)
         self._populate_db()
         self.testing = True
-        self.app.config['WTF_CSRF_ENABLED'] = False
+        self.app.config['WTF_CSRF_ENABLED'] = False  # Avoid WTForms error
         self.app.test_client_class = FlaskLoginClient
         self.client = self.app.test_client(user=self.new_testuser)
 
@@ -62,7 +63,7 @@ class DvdRoutesTestCase(unittest.TestCase):
 
     def _check_dvd_form(self, response):
         # Check have all the fields in a standard full DVD form
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertIn(b'DVD Movie Title', response.data)
         self.assertIn(b'Movie Series', response.data)
         self.assertIn(b'Year Of Release', response.data)
@@ -75,7 +76,7 @@ class DvdRoutesTestCase(unittest.TestCase):
         """ Check the DVD main index page response """
 
         response = self.client.get('/dvds/', follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Note we cannot check the contents as the is produced through an Ajax api call
         self.assertIn(b'DVDs Library Main Page', response.data)
 
@@ -88,7 +89,7 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Check we can post a new DVD to the db
         response = self.client.post('/dvds/add/', follow_redirects=True, data=self.new_dvd)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Should have added dvd and redirected to DVD main index page
         self.assertIn(b'DVDs Library Main Page', response.data)
         self.assertTrue(dvd_exists(self.db, title=self.new_dvd['dvd_title'], series=self.new_dvd['dvd_series'],
@@ -111,7 +112,7 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Post a delete of the DVD
         response = self.client.post('/dvds/delete/{}'.format(dvd_to_delete_id), follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Should have added dvd and redirected to DVD main index page
         self.assertIn(b'DVDs Library Main Page', response.data)
 
@@ -147,7 +148,7 @@ class DvdRoutesTestCase(unittest.TestCase):
                        'dvd_music_type': dvd_to_modify['music_type'],
                        'dvd_music_artist': artist}
         response = self.client.post('/dvds/modify/{}'.format(dvd_to_modify_id), data=modify_data, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
         # Should have added dvd and redirected to DVD main index page
         self.assertIn(b'DVDs Library Main Page', response.data)
 

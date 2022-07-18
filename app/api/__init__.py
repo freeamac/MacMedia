@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-api = Blueprint('api', __name__, url_prefix='/api')
+api = Blueprint('api', __name__, url_prefix='/api/v1')
 
 # This must be imported after the Blueprint definition as the
 # definition is imported into the app creation call and then

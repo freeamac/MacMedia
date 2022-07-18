@@ -38,7 +38,7 @@
 <script>
   $(document).ready(function(){
     var table = $('#dvdlist').DataTable({
-      ajax: '/api/dvds',
+      ajax: '/api/v1/dvds',
       columns: [
         {data: 'id', visible: false, searchable: false},
         {data: 'title'},
