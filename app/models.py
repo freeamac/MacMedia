@@ -1,6 +1,8 @@
 import enum
 import pprint
 
+from flask_login import UserMixin
+
 from app import db as DB
 
 
@@ -52,7 +54,7 @@ class DVD(DB.Model):
         return pprint.pformat(self.to_dict())
 
 
-class User(DB.Model):
+class User(UserMixin, DB.Model):
     __tablename__ = 'USERS'
 
     id = DB.Column(DB.Integer, primary_key=True)

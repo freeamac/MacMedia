@@ -5,22 +5,12 @@ from flask import g, redirect, session, url_for
 from app import db
 from app.queries import get_user
 
+from urllib.parse import urlparse, urljoin
 
-def login_required(view):
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for('login'))
+from flask import request
 
-        return view(**kwargs)
-
-    return wrapped_view
-
-
-def load_logged_in_user():
-    user_id = session.get('user_id')
-
-    if user_id is None:
-        g.user = None
-    else:
-        g.user = get_user(db, user_id).to_dict()['username']
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and \
+           ref_url.netloc == test_url.netloc

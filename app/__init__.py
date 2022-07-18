@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 from flask_bootstrap import Bootstrap
+from flask_login import LoginManager
 from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
@@ -9,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
+login_manager = LoginManager()
 moment = Moment()
 pagedown = PageDown()
 
@@ -40,6 +42,7 @@ def create_app(name=None):
 
     bootstrap.init_app(app)
     db.init_app(app)
+    login_manager.init_app(app)
     moment.init_app(app)
     pagedown.init_app(app)
 

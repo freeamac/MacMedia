@@ -1,33 +1,49 @@
-from flask import flash, g, redirect, render_template, request, session, url_for
+from flask import (
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for
+)
+from flask_login import (
+    current_user,
+    login_required,
+    login_user,
+    logout_user
+)
 from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
-from app import create_app, db
-from app.auth import load_logged_in_user, login_required
+from app import create_app, db, login_manager
+from app.models import User
+from app.auth import is_safe_url
 from app.queries import get_user
 from app.updates import db_update_user_password
 
 app = create_app()
 
 
-@app.before_request
-def load_user():
-    load_logged_in_user()
-
-
 @app.route('/')
 def index():
     """ Top level """
-    if g.user is None:
-        return redirect(url_for('login'))
-    else:
+    if current_user.is_authenticated:
         return redirect(url_for('main'))
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main'))
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        remember_me = False
+        if 'remember_me' in request.form.keys():
+            remember_me = True
         error = None
         user = get_user(db, username)
 
@@ -37,8 +53,11 @@ def login():
             error = 'Incorrect password.'
 
         if error is None:
-            session.clear()
-            session['user_id'] = user.to_dict()['username']
+            login_user(user, remember=remember_me)
+            next = request.args.get('next')
+            if not is_safe_url(next):
+                return abort(400)
+
             return redirect(url_for('main'))
 
         flash(error)
@@ -48,8 +67,13 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()
+    logout_user()
     return redirect(url_for('login'))
+
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(id)
 
 
 @app.route('/change_password', methods=['GET', 'POST'])

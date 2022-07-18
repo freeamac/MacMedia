@@ -1,9 +1,9 @@
 from flask import flash, redirect, render_template, request, url_for
+from flask_login import login_required
 
 from . import dvds
 from .forms import DeleteDVDForm, ModifyDVDForm, NewDVDForm
 from app import db
-from app.auth import login_required
 from app.creations import db_create_dvd
 from app.deletions import db_delete_dvd
 from app.exceptions import UniqueNameError, ModelNotFound

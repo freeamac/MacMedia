@@ -1,4 +1,5 @@
 from .models import DEFAULT_DVD_MEDIA_TYPE, DVD, User
+from .exceptions import ModelNotFound
 
 
 def get_all_dvds(db):
@@ -58,7 +59,7 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_D
     """
 
     if title is None or title == '':
-        raise ModuleNotFoundError('DVD title must not be blank.')
+        raise ModelNotFound('DVD title must not be blank.')
 
     query_args = {'title': title}
     if series == '':
