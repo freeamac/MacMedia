@@ -138,7 +138,7 @@ def modify_dvd(id):
 
             try:
                 dvd = db_update_dvd(db, dvd_data)
-                if dvd:
+                if dvd is not None:
                     flash('DVD titled "{}" updated'.format(dvd_data['title']))
                 else:
                     flash('No changes made to DVD titled "{}"'.format(dvd_data['title']))

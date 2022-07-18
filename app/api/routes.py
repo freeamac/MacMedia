@@ -1,6 +1,6 @@
 from . import api
-from app.queries import get_all_dvds
 from app import db
+from app.queries import get_all_dvds
 
 
 @api.route('/dvds')
