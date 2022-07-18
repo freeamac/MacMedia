@@ -1,6 +1,5 @@
 from flask import Blueprint
 
-print(__package__)
 dvds = Blueprint('dvds', __name__, url_prefix='/dvds')
 
 # This must be imported after the Blueprint definition as the

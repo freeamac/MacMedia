@@ -17,7 +17,7 @@ class DvdRoutesTestCase(unittest.TestCase):
     """
 
     testuser = 'testuser'
-    testuser_password = 'testuser_password'
+    testuser_password = 'testuser_password'  # nosec
 
     new_dvd = {'dvd_title': 'New Dvd',
                'dvd_series': 'New Series',
@@ -53,7 +53,6 @@ class DvdRoutesTestCase(unittest.TestCase):
         self._populate_db()
         self.testing = True
         self.app.config['WTF_CSRF_ENABLED'] = False
-        self.app.config['SECRET_KEY'] = 'TEST_KEY'
         self.app.test_client_class = FlaskLoginClient
         self.client = self.app.test_client(user=self.new_testuser)
 
