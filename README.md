@@ -46,8 +46,8 @@ and launched using the `Makefile` targets:
     make build
     make run-dev
 ```
-The running application in the Docker container can then be accessed at the url __http://localhost:5000/main__ 
-although you may need to run the container as:
+The running application in the Docker container can then be accessed at the url __http://localhost:5000/main__.
+If running in a WSL and you want to access from windows, run the image as follows:
 ```
     docker run -p 5000:5000 macmedia:latest
 ```
