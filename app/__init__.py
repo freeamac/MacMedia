@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import Flask
@@ -7,6 +8,17 @@ from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
 
+import config
+
+
+# Set up logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(asctime)s]: {} %(levelname)s %(message)s'.format(os.getpid()),
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    handlers=[logging.StreamHandler()])
+
+logger = logging.getLogger()
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
@@ -18,16 +30,17 @@ app_name = __name__
 
 
 def create_app(name=None):
+    logger.info(f'Starting app in {config.APP_ENV} environment')
     if name is None:
         app = Flask(app_name)
     else:
         app = Flask(name)
+    app.env = config.APP_ENV
 
-    if app.env == "production":
-        app.config.from_pyfile('./appconfig/production_settings.py')
-    elif app.env == 'staging':
-        app.config.from_pyfile('./appconfig/staging_settings.py')
-    else:  # Assuming a test or development setup
+    # Import default settings
+    app.config.from_object('config.{0}Config'.format(app.env))
+
+    if app.env in ['Test', 'Dev']:
         # Set up sqlite database acess
         db_file = app_name + '_test.db'
 

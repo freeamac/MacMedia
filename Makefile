@@ -59,7 +59,7 @@ lint: ## Check code style with flake8
 .PHONY: test
 test: ## Run tests quickly with the default Python
 	@echo "+ $@"
-	@python -m pytest
+	@export APP_ENV=Test; python -m pytest
 
 .PHONY: coverage
 coverage: ## Check code coverage quickly with the default Python
