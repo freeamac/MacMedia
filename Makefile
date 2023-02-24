@@ -59,7 +59,7 @@ lint: ## Check code style with flake8
 .PHONY: test
 test: ## Run tests quickly with the default Python
 	@echo "+ $@"
-	@pytest
+	@python -m pytest
 
 .PHONY: coverage
 coverage: ## Check code coverage quickly with the default Python
