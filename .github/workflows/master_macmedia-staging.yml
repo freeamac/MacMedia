@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'macmedia-staging'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_782713A5E2A6488B9FFB28096BA9DA26 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_83B2E9782F654A16839D533BBCD7AD68 }}
