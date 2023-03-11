@@ -40,7 +40,7 @@ def create_app(name=None):
     # Import default settings
     logger.info('Loading config object config.{0}Config'.format(app.env))
     app.config.from_object('config.{0}Config'.format(app.env))
-    if 'SQLALCHEMY_DATABASE_URI' in list(app.config.keys):
+    if 'SQLALCHEMY_DATABASE_URI' in list(app.config.keys()):
         logger.info('SQLALCHEMY_DATABASE_URI set to {}'.format(app.config['SQLALCHEMY_DATABASE_URI']))
     else:
         logger.info('SQLALCHEMY_DATABASE_URI not set!!!')
