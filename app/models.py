@@ -59,7 +59,7 @@ class User(UserMixin, DB.Model):
 
     id = DB.Column(DB.Integer, primary_key=True)
     username = DB.Column(DB.String(60), nullable=False)
-    password = DB.Column(DB.String(60), nullable=False)
+    password = DB.Column(DB.String(256), nullable=False)
 
     def to_dict(self) -> dict:
         result = {}
