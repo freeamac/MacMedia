@@ -38,7 +38,12 @@ def create_app(name=None):
     app.env = config.APP_ENV
 
     # Import default settings
+    logger.info('Loading config object config.{0}Config'.format(app.env))
     app.config.from_object('config.{0}Config'.format(app.env))
+    if 'SQLALCHEMY_DATABASE_URI' in list(app.config.keys):
+        logger.info('SQLALCHEMY_DATABASE_URI set to {}'.format(app.config['SQLALCHEMY_DATABASE_URI']))
+    else:
+        logger.info('SQLALCHEMY_DATABASE_URI not set!!!')
 
     if app.env in ['Test', 'Dev']:
         # Set up sqlite database acess
