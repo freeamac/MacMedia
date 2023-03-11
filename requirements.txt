@@ -38,6 +38,7 @@ networkx==2.7
 packaging==21.3
 pbr==5.9.0
 pluggy==1.0.0
+psycopg2
 psutil==5.9.0
 ptyprocess==0.7.0
 py==1.11.0

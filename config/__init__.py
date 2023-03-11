@@ -31,7 +31,7 @@ class AzureConfig(BaseConfig):
 
    # Configure Postgres database based on connection string of the libpq keyword/value form:
    # https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
-   if 'AZURE_POSGRESQL_CONNECTIONSTRING' in os.environ:  # Needed since this is evaluated in all environments
+   if 'AZURE_POSTGRESQL_CONNECTIONSTRING' in os.environ:  # Needed since this is evaluated in all environments
       conn_str = os.environ['AZURE_POSTGRESQL_CONNECTIONSTRING']
       conn_str_params = {pair.split('=')[0]: pair.split('=')[1] for pair in conn_str.split(' ')}
 
