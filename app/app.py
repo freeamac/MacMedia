@@ -15,7 +15,7 @@ from flask_login import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
-from app import create_app, db, login_manager
+from app import create_app, db, logger, login_manager
 from app.models import User
 from app.auth import is_safe_url
 from app.queries import get_user
@@ -110,4 +110,5 @@ def main():
 
 if __name__ == '__main__':
     # TODO: Turn off debugging by default once production ready
+    logger.info('Running from app.app main')
     app.run(debug=True)  # nosec

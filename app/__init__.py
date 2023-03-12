@@ -97,4 +97,5 @@ def create_app(name=None):
             from app.models import load_initial_users
             load_initial_users(db)
 
+    logger.info('Flask application initialized: {0}'.format(app_name))
     return app
