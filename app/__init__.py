@@ -91,7 +91,13 @@ def create_app(name=None):
     if app.env not in ['staging', 'production']:
         with app.app_context():
             from app.demo_helpers import load_demo_data
-            db.drop_all()
+
+            # Start with a clean slate ignore pass issues
+            try:
+                db.drop_all()
+            except:
+                pass
+
             db.create_all()
             load_demo_data(db)
             from app.models import load_initial_users
