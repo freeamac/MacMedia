@@ -1,5 +1,4 @@
-from app import app as myapp
-app = myapp
+from appi.app import app
 
 if __name__ == 'main':
     app.run()
