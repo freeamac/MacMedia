@@ -99,7 +99,8 @@ def create_app(name=None):
                               'cdn.jsdelivr.net',
                               'cdn.datatables.net',
                               'code.jquery.com']}
-        Talisman(app, content_security_policy=csp)
+        logger.info(f'Setting security content policy to {csp}')
+        Talisman(app, content_security_policy=csp, content_security_policy_report_only=True)
 
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
