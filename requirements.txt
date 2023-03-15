@@ -17,6 +17,7 @@ Flask-Login==0.6.1
 Flask-Moment==1.0.2
 Flask-PageDown==0.4.0
 Flask-SQLAlchemy==2.5.1
+flask-talisman==1.0.0
 Flask-WTF==1.0.0
 gitdb==4.0.9
 GitPython==3.1.27
@@ -38,8 +39,8 @@ networkx==2.7
 packaging==21.3
 pbr==5.9.0
 pluggy==1.0.0
-psycopg2
 psutil==5.9.0
+psycopg2-binary==2.9.5
 ptyprocess==0.7.0
 py==1.11.0
 pycodestyle==2.8.0

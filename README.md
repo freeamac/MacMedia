@@ -4,6 +4,8 @@ MacMedia Media Library Tracker
 # Development
 
 A virtual environment should be set up with the imports defined in the *requirements.txt* file.
+Additionally it is helpful to install `gunicorn` to run the Flask application under this
+server to mimic the Azure deployed server environment.
 
 ## Developer Linting
 

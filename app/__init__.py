@@ -85,6 +85,11 @@ def create_app(name=None):
     from app.lps import lps as lps_blueprint
     app.register_blueprint(lps_blueprint)
 
+    # Force https in Azure deployed environments
+    if app.env in ['Staging', 'Production']:
+        from flask_talisman import Talisman
+        Talisman(app)
+
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
 
