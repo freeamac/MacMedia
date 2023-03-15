@@ -89,12 +89,16 @@ def create_app(name=None):
     if app.env in ['Staging', 'Production']:
         from flask_talisman import Talisman
         # Need to add boostrap cdn location as safe site
-        csp = {'default-src': [
-            '\'self\'',
-            'cdnjs.cloudflare.com',
-            'cdn.jsdelivr.net',
-            'cdn.datatables.net',
-            'code.jquery.com']}
+        csp = {'default-src': ['\'self\'',
+                               'cdnjs.cloudflare.com',
+                               'cdn.jsdelivr.net',
+                               'cdn.datatables.net',
+                               'code.jquery.com'],
+               'script-src': ['\'self\'',
+                              'cdnjs.cloudflare.com',
+                              'cdn.jsdelivr.net',
+                              'cdn.datatables.net',
+                              'code.jquery.com']}
         Talisman(app, content_security_policy=csp)
 
     # TODO - Securely inject into environment for production
