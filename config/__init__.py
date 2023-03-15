@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 #import sys
-#import config.settings
 
 # Build paths inside the project like this: BASE_DIR / <subdir>
 #BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,10 +58,9 @@ class StagingConfig(AzureConfig):
 
 
 class ProductionConfig(AzureConfig):
-   FLASK_ENV = 'staging'
+   FLASK_ENV = 'production'
    DEBUG = False
 
 class TestConfig(BaseConfig):
    FLASK_ENV = 'testing'
    TESTING = True
-#SQLALCHEMY_DATABASE_URI = 'postgresql://db_user:db_password@db-postgres:5432/flask-deploy'
