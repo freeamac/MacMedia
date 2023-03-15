@@ -88,12 +88,13 @@ def create_app(name=None):
     # Force https in Azure deployed environments
     if app.env in ['Staging', 'Production']:
         from flask_talisman import Talisman
-        csp = {
-            'default-src': [
+        # Need to add boostrap cdn location as safe site
+        csp = {'default-src': [
             '\'self\'',
-            'cdnjs.cloudflare.com'
-            ]
-        }
+            'cdnjs.cloudflare.com',
+            'cdn.jsdelivr.net',
+            'cdn.datatables.net',
+            'code.jquery.com']}
         Talisman(app, content_security_policy=csp)
 
     # TODO - Securely inject into environment for production
