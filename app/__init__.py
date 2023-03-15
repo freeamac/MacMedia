@@ -88,7 +88,13 @@ def create_app(name=None):
     # Force https in Azure deployed environments
     if app.env in ['Staging', 'Production']:
         from flask_talisman import Talisman
-        Talisman(app)
+        csp = {
+            'default-src': [
+            '\'self\'',
+            'cdnjs.cloudflare.com'
+            ]
+        }
+        Talisman(app, content_security_policy=csp)
 
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
