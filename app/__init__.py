@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import inspect
 
 import config
 
@@ -87,21 +88,18 @@ def create_app(name=None):
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
 
-    # Load in test/demo data in development environments
-    if app.env not in ['staging', 'production']:
-        with app.app_context():
+    # Load in test/demo data if we do not have tables set up.
+    # This is required in all in memory db environments and
+    # first time instantiation of other persistent db engines
+    with app.app_context():
+        inspector = inspect(db.engine)
+        if not inspector.has_table('USERS'):
             from app.demo_helpers import load_demo_data
-
-            # Start with a clean slate ignore pass issues
-            try:
-                db.drop_all()
-            except:
-                pass
-
             db.create_all()
             load_demo_data(db)
             from app.models import load_initial_users
             load_initial_users(db)
 
     logger.info('Flask application initialized: {0}'.format(app_name))
+    app.logger = logger
     return app
