@@ -162,3 +162,10 @@ div.flask-pagedown-preview h3 {
 
 .top5 { margin-top:5px; }
 .top10 { margin-top:10px; }
+
+@media (max-width: 480px) {
+        .landing-page-header ul{  
+           position: static;
+           width:100%;
+        }
+}
