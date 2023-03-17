@@ -35,7 +35,7 @@
 {% block scripts %}
 {{ super() }}
 {{ pagedown.include_pagedown() }}
-<script>
+<script nonce="{{ csp_nonce() }}">
   $(document).ready(function(){
     var table = $('#dvdlist').DataTable({
       ajax: '/api/v1/dvds',
