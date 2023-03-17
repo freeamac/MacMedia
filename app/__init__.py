@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
+from flask_talisman import Talisman
 from sqlalchemy import inspect
 
 import config
@@ -85,22 +86,24 @@ def create_app(name=None):
     from app.lps import lps as lps_blueprint
     app.register_blueprint(lps_blueprint)
 
-    # Force https in Azure deployed environments
-    if app.env in ['Staging', 'Production']:
-        from flask_talisman import Talisman
-        # Need to add boostrap cdn location as safe site
-        csp = {'default-src': ['\'self\'',
-                               'cdnjs.cloudflare.com',
-                               'cdn.jsdelivr.net',
-                               'cdn.datatables.net',
-                               'code.jquery.com'],
-               'script-src': ['\'self\'',
-                              'cdnjs.cloudflare.com',
-                              'cdn.jsdelivr.net',
-                              'cdn.datatables.net',
-                              'code.jquery.com']}
-        logger.info(f'Setting security content policy to {csp}')
-        Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src'])  # content_security_policy_report_only=True)
+    # Setting up the security policay which, besides reasons of safety,
+    # is used to force https.
+    #   1. Note that need to add boostrap and other
+    #      required external resources to the list of safe sites
+    #   2. Inline scripts will require a "nonce" tag (see templates
+    #      for examples)
+    csp = {'default-src': ['\'self\'',
+                           'cdnjs.cloudflare.com',
+                           'cdn.jsdelivr.net',
+                           'cdn.datatables.net',
+                           'code.jquery.com'],
+           'script-src': ['\'self\'',
+                          'cdnjs.cloudflare.com',
+                          'cdn.jsdelivr.net',
+                          'cdn.datatables.net',
+                          'code.jquery.com']}
+    logger.info(f'Setting security content policy to {csp}')
+    Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src'])
 
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')

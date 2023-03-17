@@ -7,6 +7,7 @@ COPY requirements.txt /app/requirements.txt
 WORKDIR /app
 
 ENV FLASK_ENV development
+ENV APP_ENV Dev
 
 #RUN apt update && apt install -y python3 && apt install -y python3-pip 
 RUN pip3 install -r requirements.txt
