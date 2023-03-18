@@ -127,6 +127,7 @@ div.flask-pagedown-preview h3 {
 }
 
 .navbar-header {
+    position: static;
     float: left;
     padding: 15px;
     text-align: center;
