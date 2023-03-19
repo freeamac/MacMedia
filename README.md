@@ -49,9 +49,9 @@ and launched using the `Makefile` targets:
     make run-dev
 ```
 The running application in the Docker container can then be accessed at the url __http://localhost:5000/main__.
-If running in a WSL and you want to access from windows, run the image as follows:
+`make run-dev` essentially runs the below which you could also run in a terminal:
 ```
-    docker run -p 5000:5000 macmedia:latest
+    docker run -p 5000:5000 --env FLASK_ENV=development macmedia:latest
 ```
 
 ## Github Workflows
