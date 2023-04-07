@@ -104,7 +104,11 @@ def create_app(name=None):
                           'cdnjs.cloudflare.com',
                           'cdn.jsdelivr.net',
                           'cdn.datatables.net',
-                          'code.jquery.com']}
+                          'code.jquery.com'],
+            'script-src-elem': ['\'self\''],
+            'script-src-attr': ['\'self\''],
+            'style-src-attr': ['\'self\''],
+            }
     logger.info(f'Setting security content policy to {csp}')
     Talisman(app,
              content_security_policy=csp,
