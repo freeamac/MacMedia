@@ -1,6 +1,10 @@
+from http import HTTPStatus
+import json
+
 from flask import (
     abort,
     flash,
+    make_response,
     redirect,
     render_template,
     request,
@@ -15,7 +19,14 @@ from flask_login import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
-from app import create_app, db, logger, login_manager
+from app import (
+    CSP_VIOLATIONS_REPORT_HEADER,
+    MAX_CSP_VIOLATIONS_REPORT_LENGTH,
+    create_app,
+    db,
+    logger,
+    login_manager
+)
 from app.models import User
 from app.auth import is_safe_url
 from app.queries import get_user
@@ -56,7 +67,7 @@ def login():
             login_user(user, remember=remember_me)
             next = request.args.get('next')
             if not is_safe_url(next):
-                return abort(400)
+                return abort(HTTPStatus.BAD_REQUEST)
 
             return redirect(url_for('main'))
 
@@ -98,6 +109,28 @@ def change_password():
         flash(error)
 
     return render_template('change_password.html')
+
+
+@app.route('/csp-report', methods=['POST', 'GET'])
+def csp_report():
+    """ Page to save and display content security policy violations """
+    if request.method == 'POST':
+        content = request.get_json(force=True)
+        app.csp_violations.extend(json.dumps(content, indent=4, sort_keys=True).split('\n'))
+        # Only keep last specified lines of violations
+        if len(app.csp_violations) > MAX_CSP_VIOLATIONS_REPORT_LENGTH:
+            app.logger.info('Trimming CSP violations report')
+            tail = app.csp_violations[-MAX_CSP_VIOLATIONS_REPORT_LENGTH:]
+            app.csp_violations = [CSP_VIOLATIONS_REPORT_HEADER]
+            app.csp_violations.extend(tail)
+        app.logger.info('Posting CSP violation: {}'.format(json.dumps(content, indent=4, sort_keys=True)))
+        response = make_response()
+        response.status_code = HTTPStatus.CREATED
+        return response
+    elif request.method == 'GET':
+        response = make_response('\n'.join(app.csp_violations))
+        response.status_code = HTTPStatus.OK
+        return response
 
 
 @app.route('/main')

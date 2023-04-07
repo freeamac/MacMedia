@@ -12,6 +12,8 @@ from sqlalchemy import inspect
 
 import config
 
+MAX_CSP_VIOLATIONS_REPORT_LENGTH = 1000
+CSP_VIOLATIONS_REPORT_HEADER = 'CSP Violations Report'
 
 # Set up logging
 
@@ -104,7 +106,13 @@ def create_app(name=None):
                           'cdn.datatables.net',
                           'code.jquery.com']}
     logger.info(f'Setting security content policy to {csp}')
-    Talisman(app, content_security_policy=csp, content_security_policy_nonce_in=['script-src'])
+    Talisman(app,
+             content_security_policy=csp,
+             content_security_policy_nonce_in=['script-src'],
+             content_security_policy_report_only=True,
+             content_security_policy_report_uri='/csp-report'
+             )
+    app.csp_violations = [CSP_VIOLATIONS_REPORT_HEADER]
 
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
