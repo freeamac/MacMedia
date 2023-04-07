@@ -8,6 +8,7 @@ from flask_moment import Moment
 from flask_pagedown import PageDown
 from flask_sqlalchemy import SQLAlchemy
 from flask_talisman import Talisman
+from flask_wtf import CSRFProtect
 from sqlalchemy import inspect
 
 import config
@@ -25,6 +26,7 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger()
 
 bootstrap = Bootstrap()
+csrf = CSRFProtect()
 db = SQLAlchemy()
 login_manager = LoginManager()
 moment = Moment()
@@ -132,6 +134,8 @@ def create_app(name=None):
 
     # TODO - Securely inject into environment for production
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
+    app.config['WTF_CSRF_SECRET_KEY'] = app.config['SECRET_KEY']
+    csrf.init_app(app)
 
     # Load in test/demo data if we do not have tables set up.
     # This is required in all in memory db environments and
