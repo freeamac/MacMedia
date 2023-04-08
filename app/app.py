@@ -95,7 +95,7 @@ def change_password():
         confirm_password = request.form['confirm_password']
         error = None
 
-        user = get_user(db, session.get('user_id'))
+        user = get_user(db, current_user.username)
         if not check_password_hash(user.to_dict()['password'], old_password):
             error = 'Incorrect current password'
         elif new_password != confirm_password:
