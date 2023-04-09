@@ -13,7 +13,7 @@ from sqlalchemy import inspect
 
 import config
 
-DEFAULT_SECRET_KEY = 'you-will-never-guess'
+DEFAULT_SECRET_KEY = 'you-will-never-guess'  # nosec
 MAX_CSP_VIOLATIONS_REPORT_LENGTH = 1000
 CSP_VIOLATIONS_REPORT_HEADER = 'CSP Violations Report'
 
