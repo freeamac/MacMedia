@@ -13,6 +13,7 @@ from sqlalchemy import inspect
 
 import config
 
+DEFAULT_SECRET_KEY = 'you-will-never-guess'
 MAX_CSP_VIOLATIONS_REPORT_LENGTH = 1000
 CSP_VIOLATIONS_REPORT_HEADER = 'CSP Violations Report'
 
@@ -133,8 +134,10 @@ def create_app(name=None):
     app.csp_violations = [CSP_VIOLATIONS_REPORT_HEADER]
 
     # TODO - Securely inject into environment for production
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'you-will-never-guess')
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', DEFAULT_SECRET_KEY)
     app.config['WTF_CSRF_SECRET_KEY'] = app.config['SECRET_KEY']
+    if app.config['SECRET_KEY'] == DEFAULT_SECRET_KEY:
+        logger.info('Secret key set to default value!')
     csrf.init_app(app)
 
     # Load in test/demo data if we do not have tables set up.
