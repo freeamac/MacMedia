@@ -44,7 +44,6 @@ class ApiRoutesTestCase(unittest.TestCase):
         self.new_testuser = User(username=self.testuser, password=self.testuser_password)
         self._populate_db()
         self.testing = True
-        self.app.config['WTF_CSRF_ENABLED'] = False
         self.app.test_client_class = FlaskLoginClient
         self.client = self.app.test_client(user=self.new_testuser)
 
