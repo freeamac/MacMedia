@@ -64,3 +64,4 @@ class ProductionConfig(AzureConfig):
 class TestConfig(BaseConfig):
    FLASK_ENV = 'testing'
    TESTING = True
+   WTF_CSRF_ENABLED = False

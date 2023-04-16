@@ -32,7 +32,7 @@ def add_dvd():
         if form.cancel.data:
             return redirect(url_for('.index'))
 
-        if form.validate:
+        if form.validate():
             data = {}
             data['title'] = form.dvd_title.data
             data['series'] = form.dvd_series.data

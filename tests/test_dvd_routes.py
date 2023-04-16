@@ -24,9 +24,10 @@ class DvdRoutesTestCase(unittest.TestCase):
                'dvd_series': 'New Series',
                'dvd_year': 2022,
                'dvd_set': 'New Set',
-               'dvd_media_type': 'dvd',
-               'dvd_music_type': 'no',
-               'dvd_music_artist': ''}
+               'dvd_media_type': 'Dvd',
+               'dvd_music_type': 'No',
+               'dvd_music_artist': '',
+               'submit': True}
 
     def _db_reset(self):
         """ Drop all tables and re-create them """
@@ -53,7 +54,6 @@ class DvdRoutesTestCase(unittest.TestCase):
         self.new_testuser = User(username=self.testuser, password=self.testuser_password)
         self._populate_db()
         self.testing = True
-        self.app.config['WTF_CSRF_ENABLED'] = False  # Avoid WTForms error
         self.app.test_client_class = FlaskLoginClient
         self.client = self.app.test_client(user=self.new_testuser)
 
