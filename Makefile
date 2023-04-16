@@ -64,13 +64,13 @@ test: ## Run tests quickly with the default Python
 .PHONY: coverage
 coverage: ## Check code coverage quickly with the default Python
 	@echo "+ $@"
-	@export PYTHONPATH="."; pytest --cov-report=html:app/docs/htmlcov --cov=app tests/
+	@export PYTHONPATH="."; export APP_ENV=Test; pytest --cov-report=html:app/docs/htmlcov --cov=app tests/
 	@$(BROWSER) app/docs/htmlcov/index.html
 
 .PHONY: ci-coverage
 coverage-ci: ## Check code coverage in CI quickly with the default Python
 	@echo "+ $@"
-	@export PYTHONPATH="."; pytest --cov=app tests/
+	@export PYTHONPATH="."; export APP_ENV=Test; pytest --cov=app tests/
 
 .PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs
