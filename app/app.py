@@ -23,7 +23,6 @@ from app import (
     MAX_CSP_VIOLATIONS_REPORT_LENGTH,
     create_app,
     db,
-    logger,
     login_manager
 )
 from app.models import User

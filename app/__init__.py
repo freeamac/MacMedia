@@ -48,7 +48,6 @@ def create_app(name=None):
     logger.info('Loading config object config.{0}Config'.format(app.env))
     app.config.from_object('config.{0}Config'.format(app.env))
 
-    #if app.env in ['Test', 'Dev']:
     if app.env == 'Test' or app.config['SQLALCHEMY_DATABASE_URI'] == '':
         # Set up sqlite database acess
         logger.info('Using SQLite Database')
