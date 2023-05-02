@@ -48,8 +48,10 @@ def create_app(name=None):
     logger.info('Loading config object config.{0}Config'.format(app.env))
     app.config.from_object('config.{0}Config'.format(app.env))
 
-    if app.env in ['Test', 'Dev']:
+    #if app.env in ['Test', 'Dev']:
+    if app.env == 'Test' or app.config['SQLALCHEMY_DATABASE_URI'] == '':
         # Set up sqlite database acess
+        logger.info('Using SQLite Database')
         db_file = app_name + '_test.db'
 
         try:
@@ -59,7 +61,7 @@ def create_app(name=None):
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_file
 
     if 'SQLALCHEMY_DATABASE_URI' in list(app.config.keys()):
-        logger.info('SQLALCHEMY_DATABASE_URI set to {}'.format(app.config['SQLALCHEMY_DATABASE_URI']))
+        logger.info('SQLALCHEMY_DATABASE_URI set')
     else:
         logger.info('SQLALCHEMY_DATABASE_URI not set!!!')
 
@@ -146,6 +148,7 @@ def create_app(name=None):
     with app.app_context():
         inspector = inspect(db.engine)
         if not inspector.has_table('USERS'):
+            logger.info('In DB change code chanegs')
             from app.demo_helpers import load_demo_data
             db.create_all()
             load_demo_data(db)

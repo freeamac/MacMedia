@@ -36,6 +36,24 @@ If you just want a terminal text display of test case coverage, use the same tar
     make coverage-ci
 ```
 
+## Running On Localhost
+
+You can install a local Postgres server and connect to a development MacMedia database on PostgreSQL instance.
+You need to define all of the following environment variables:
+
+| Environment Variable | Purpose |
+|----------------------|---------|
+| DB_USER              | Database user privileged to access the MacMedia database |
+| DB_PASSWORD          | The password of the database user accessing the MacMedia database |
+| DATABASE             | The name of the MacMedia database |
+
+The host value of the connection string will be "127.0.0.1", the localhost. Then to run:
+```
+    flask --app app/app.py run --debug
+```
+
+
+
 ## Development Deployment Environment
 
 For running the application, Docker containers are used. Docker Desktop should be installed and
@@ -53,6 +71,19 @@ The running application in the Docker container can then be accessed at the url 
 ```
     docker run -p 5000:5000 --env FLASK_ENV=development macmedia:latest
 ```
+
+## Setting The Application Environment
+
+The running environment and configuration is determined by the setting of the environment variable
+*APP_ENV*. The default value is "Dev". The following settings equate to specific configurations:
+
+| Value | Configuration Used | Database Used |
+|-------|--------------------|---------------|
+| "Test"  | Test runner | Local pre-loaded SQLite |
+| "Dev"   | Development | Local pre-loaded SQLite unless over ridden as decribed above in "Running On Localhost"|
+| "Staging" | Azure Staging | Azure persistant staging PostgreSQL database instance |
+| "Production" | Azure Production | Azure persistant production PostgreSQL database instance |
+
 
 ## Github Workflows
 

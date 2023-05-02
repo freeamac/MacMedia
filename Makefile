@@ -19,12 +19,12 @@ BROWSER := python -c "$$BROWSER_PYSCRIPT"
 .PHONY: build
 build: ## Build a docker container containing the MacMedia flask app
 	@echo "+ $@"
-	@docker build --pull --rm -f "Dockerfile" -t macmovies:latest "."
+	@docker build --pull --rm -f "Dockerfile" -t macmedia:latest "."
 
 .PHONY: run-dev
 run-dev:  ## Run MacMedia in a local docker container in development mode
 	@echo "+ $@"
-	@docker run -d -p 5000:5000 --env FLASK_ENV=development macmovies
+	@docker run -d -p 5000:5000 --env FLASK_ENV=development macmedia
 
 .PHONY: deploy-staging
 deploy-staging:  ## Deploy the MacMedia docker container into the staging environment and run it in staging mode

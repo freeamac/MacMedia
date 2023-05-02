@@ -141,6 +141,5 @@ def main():
 
 
 if __name__ == '__main__':
-    # TODO: Turn off debugging by default once production ready
-    logger.info('Running from app.app main')
-    app.run(debug=True)  # nosec
+    app.logger.info('Running from app.app main')
+    app.run()

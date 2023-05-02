@@ -19,8 +19,24 @@ class BaseConfig():
    TESTING = False
 
 
+LOCAL_DEVELOPMENT = 'DB_USER' in os.environ and 'DB_PASSWORD' in os.environ and 'DATABSE' in os.environ and os.environ['APP_ENV'] != 'Test'
+
 class DevConfig(BaseConfig):
    FLASK_ENV = 'development'
+   ALLOWED_HOSTS = ['127.0.0.1'] if LOCAL_DEVELOPMENT else []
+   CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1'] if LOCAL_DEVELOPMENT else []
+   if LOCAL_DEVELOPMENT:
+      # Set up to connection to local postgreSQL database
+      DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
+         dbuser=os.environ['DB_USER'],
+         dbpass=os.environ['DB_PASSWORD'],
+         dbhost='127.0.0.1:5432',
+         dbname=os.environ['DATABASE']
+      )
+   else:
+      DATABASE_URI = ''
+   SQLALCHEMY_DATABASE_URI = DATABASE_URI
+
 
 
 class AzureConfig(BaseConfig):
