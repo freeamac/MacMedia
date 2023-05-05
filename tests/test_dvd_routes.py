@@ -27,6 +27,7 @@ class DvdRoutesTestCase(unittest.TestCase):
                'dvd_media_type': 'Dvd',
                'dvd_music_type': 'No',
                'dvd_music_artist': '',
+               'dvd_location': 'Home',
                'submit': True}
 
     def _db_reset(self):
@@ -71,6 +72,7 @@ class DvdRoutesTestCase(unittest.TestCase):
         self.assertIn(b'DVD Type?', response.data)
         self.assertIn(b'Music DVD?', response.data)
         self.assertIn(b'Music DVD Artist', response.data)
+        self.assertIn(b'DVD Location', response.data)
 
     def test_index(self):
         """ Check the DVD main index page response """
@@ -93,7 +95,8 @@ class DvdRoutesTestCase(unittest.TestCase):
         # Should have added dvd and redirected to DVD main index page
         self.assertIn(b'DVDs Library Main Page', response.data)
         self.assertTrue(dvd_exists(self.db, title=self.new_dvd['dvd_title'], series=self.new_dvd['dvd_series'],
-                                   year=self.new_dvd['dvd_year'], set=self.new_dvd['dvd_set']))
+                                   year=self.new_dvd['dvd_year'], set=self.new_dvd['dvd_set'],
+                                   location=self.new_dvd['dvd_location'].lower()))
 
     def test_delete_dvd(self):
         """ Check the delete DVD page response """
@@ -104,7 +107,8 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Dbl check the DVD exists
         self.assertTrue(dvd_exists(self.db, title=dvd_to_delete['title'], series=dvd_to_delete['series'],
-                                   year=dvd_to_delete['year'], set=dvd_to_delete['set']))
+                                   year=dvd_to_delete['year'], set=dvd_to_delete['set'],
+                                   location=dvd_to_delete['location']))
 
         # Check we have the proper form
         response = self.client.get('/dvds/delete/{}'.format(dvd_to_delete_id), follow_redirects=True)
@@ -118,7 +122,8 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Check it has been deleted
         self.assertFalse(dvd_exists(self.db, title=dvd_to_delete['title'], series=dvd_to_delete['series'],
-                                    year=dvd_to_delete['year'], set=dvd_to_delete['set']))
+                                    year=dvd_to_delete['year'], set=dvd_to_delete['set'],
+                                    location=dvd_to_delete['location']))
 
     def test_modify_dvd(self):
         """ Check the modify DVD page response """
@@ -129,7 +134,8 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Dbl check the DVD exists
         self.assertTrue(dvd_exists(self.db, title=dvd_to_modify['title'], series=dvd_to_modify['series'],
-                                   year=dvd_to_modify['year'], set=dvd_to_modify['set']))
+                                   year=dvd_to_modify['year'], set=dvd_to_modify['set'],
+                                   location=dvd_to_modify['location']))
 
         # Check we have the proper form
         response = self.client.get('/dvds/modify/{}'.format(dvd_to_modify_id), follow_redirects=True)
@@ -146,7 +152,8 @@ class DvdRoutesTestCase(unittest.TestCase):
                        'dvd_set': dvd_to_modify['set'],
                        'dvd_media_type': dvd_to_modify['media_type'].capitalize(),
                        'dvd_music_type': dvd_to_modify['music_type'],
-                       'dvd_music_artist': artist}
+                       'dvd_music_artist': artist,
+                       'dvd_location': dvd_to_modify['location'].capitalize()}
         response = self.client.post('/dvds/modify/{}'.format(dvd_to_modify_id), data=modify_data, follow_redirects=True)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         # Should have added dvd and redirected to DVD main index page
@@ -154,4 +161,5 @@ class DvdRoutesTestCase(unittest.TestCase):
 
         # Check it has been modified
         self.assertTrue(dvd_exists(self.db, title='New Title', series=dvd_to_modify['series'],
-                                   year=dvd_to_modify['year'], set=dvd_to_modify['set']))
+                                   year=dvd_to_modify['year'], set=dvd_to_modify['set'],
+                                   location=dvd_to_modify['location']))

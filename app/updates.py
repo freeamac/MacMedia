@@ -4,7 +4,7 @@
 from werkzeug.security import generate_password_hash
 
 from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound  # noqa
-from app.models import Media_Type_Enum, User
+from app.models import Location_Type_Enum, Media_Type_Enum, User
 from app.queries import dvd_exists, get_dvd_by_id
 
 
@@ -37,6 +37,7 @@ def db_update_dvd(db, dvd_data):
     else:
         query_args['set'] = dvd_data['set']
     query_args['media_type'] = dvd_data['media_type']
+    query_args['location'] = dvd_data['location']
 
     if dvd_exists(db, ** query_args):
         raise UniqueNameError('DVD "{}" with this information already exists in library. Cannot save to an existing DVD'.format(dvd_data['title']))
@@ -63,6 +64,7 @@ def db_update_dvd(db, dvd_data):
         current_dvd.artist = None
     else:
         current_dvd.artist = dvd_data['artist']
+    current_dvd.location = Location_Type_Enum.from_string(dvd_data['location'])
     db.session.commit()
     return current_dvd
 
