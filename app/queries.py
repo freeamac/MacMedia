@@ -1,4 +1,4 @@
-from .models import DEFAULT_DVD_MEDIA_TYPE, DVD, User
+from .models import DEFAULT_DVD_MEDIA_TYPE, DEFAULT_LOCATION_TYPE, DVD, User
 from .exceptions import ModelNotFound
 
 
@@ -45,7 +45,7 @@ def get_dvd_by_id(db, id, model=False):
         return dvd.to_dict()
 
 
-def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_DVD_MEDIA_TYPE, **extras):
+def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_DVD_MEDIA_TYPE, location=DEFAULT_LOCATION_TYPE, **extras):
     """ Returns True if the DVD already exists in the database
 
     *Note* we ignore extra parameters so we can send a whole dictionary of DVD info but only
@@ -67,13 +67,13 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_D
     else:
         query_args['series'] = series
     query_args['year'] = year
-    if set == '':
-        query_args['set'] = None
-    else:
+    if set != '' and set is not None:
         query_args['set'] = set
     query_args['media_type'] = media_type
+    query_args['location'] = location
 
     result = db.session.query(DVD).filter_by(**query_args).first()
+
     return result is not None
 
 

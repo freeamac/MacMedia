@@ -6,7 +6,7 @@ from app import create_app, db
 from app.creations import db_create_dvd
 from app.demo_helpers import load_demo_data
 from app.exceptions import UniqueNameError
-from app.models import DEFAULT_DVD_MEDIA_TYPE
+from app.models import DEFAULT_DVD_MEDIA_TYPE, DEFAULT_LOCATION_TYPE
 from app.queries import dvd_exists, get_all_dvds, get_dvd_by_id
 from app.updates import db_update_dvd
 
@@ -20,12 +20,14 @@ class DvdOperationsTestCase(unittest.TestCase):
                      'set': None,
                      'media_type': 'dvd',
                      'music_type': False,
-                     'artist': None}
+                     'artist': None,
+                     'location': 'home'}
     valid_existing_dvd = {'title': 'The Chronicles Of Riddick',
                           'year': 2004,
                           'series': 'Riddick',
                           'set': None,
-                          'media_type': DEFAULT_DVD_MEDIA_TYPE}
+                          'media_type': DEFAULT_DVD_MEDIA_TYPE,
+                          'location': DEFAULT_LOCATION_TYPE}
     changed_dvd_title = 'The Chronicles Of Riddick Series'
 
     def _db_reset(self):

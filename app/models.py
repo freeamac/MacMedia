@@ -6,6 +6,20 @@ from flask_login import UserMixin
 from app import db as DB
 
 
+class Location_Type_Enum(enum.Enum):
+    home = "home"
+    away = "away"
+
+    @staticmethod
+    def from_string(s):
+        if s.lower() == 'home':
+            return Location_Type_Enum.home
+        elif s.lower() == 'away':
+            return Location_Type_Enum.away
+        else:
+            raise TypeError('{} is not a valid Location Type'.format(s))
+
+
 class Media_Type_Enum(enum.Enum):
     dvd = 1
     blueray = 2
@@ -21,6 +35,7 @@ class Media_Type_Enum(enum.Enum):
 
 
 DEFAULT_DVD_MEDIA_TYPE = Media_Type_Enum.dvd
+DEFAULT_LOCATION_TYPE = Location_Type_Enum.home
 
 
 class DVD(DB.Model):
@@ -34,6 +49,7 @@ class DVD(DB.Model):
     media_type = DB.Column(DB.Enum(Media_Type_Enum), default=DEFAULT_DVD_MEDIA_TYPE, nullable=False)
     music_type = DB.Column(DB.Boolean, default=False, nullable=False)
     artist = DB.Column(DB.String(60), default=None, nullable=True)
+    location = DB.Column(DB.Enum(Location_Type_Enum), default=DEFAULT_LOCATION_TYPE, nullable=False)
 
     def to_dict(self) -> dict:
         result = {}
@@ -48,6 +64,7 @@ class DVD(DB.Model):
         else:
             result['music_type'] = 'No'
         result['artist'] = self.artist
+        result['location'] = str(self.location.name)
         return result
 
     def __repr__(self) -> str:

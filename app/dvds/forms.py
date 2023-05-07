@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import IntegerField, SelectField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length
 
-from app.models import Media_Type_Enum
+from app.models import Location_Type_Enum, Media_Type_Enum
 
 
 class DataRequiredNoFlags(DataRequired):
@@ -23,6 +23,7 @@ class DVDForm(FlaskForm):
     dvd_media_type = SelectField('DVD Type?', choices=[Media_Type_Enum.dvd.name.capitalize(), Media_Type_Enum.blueray.name.capitalize()])
     dvd_music_type = SelectField('Music DVD?', choices=['No', 'Yes'])
     dvd_music_artist = StringField('Music DVD Artist', validators=[Length(0, 120)])
+    dvd_location = SelectField('DVD Location?', choices=[Location_Type_Enum.home.name.capitalize(), Location_Type_Enum.away.name.capitalize()])
 
 
 class NewDVDForm(DVDForm):
@@ -43,9 +44,10 @@ class DeleteDVDForm(FlaskForm):
     dvd_series = StringField('Movie Series', render_kw={'readonly': True})
     dvd_year = StringField('Year Of Release', render_kw={'readonly': True})
     dvd_set = StringField('From Set', render_kw={'readonly': True})
-    dvd_media_type = SelectField('DVD Type?', render_kw={'readonly': True})
+    dvd_media_type = StringField('DVD Type?', render_kw={'readonly': True})
     dvd_music_type = StringField('Music DVD?', render_kw={'readonly': True})
     dvd_music_artist = StringField('Music DVD Artist', render_kw={'readonly': True})
+    dvd_location = StringField('DVD Location?', render_kw={'readonly': True})
 
     submit = SubmitField('Delete')
     cancel = SubmitField('Cancel Deletion')
