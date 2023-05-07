@@ -38,7 +38,6 @@ def db_update_dvd(db, dvd_data):
         query_args['set'] = dvd_data['set']
     query_args['media_type'] = dvd_data['media_type']
     query_args['location'] = dvd_data['location']
-    print('In db_update_dvd location: {}'.format(dvd_data['location']))
 
     if dvd_exists(db, ** query_args):
         raise UniqueNameError('DVD "{}" with this information already exists in library. Cannot save to an existing DVD'.format(dvd_data['title']))
