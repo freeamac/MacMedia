@@ -16,16 +16,14 @@ config = context.config
 # on application environment. See this app's
 # initialization code for more information
 my_app_config_class = '{0}Config'.format(os.environ.get('APP_ENV', 'Test'))
-print('Loading configuration {}'.format(my_app_config_class))
+print('Loading configuration {} for Alembic'.format(my_app_config_class))
 my_app_config_settings = getattr(my_app_config, my_app_config_class)
-print(my_app_config_settings.SQLALCHEMY_DATABASE_URI)
 if my_app_config_settings.SQLALCHEMY_DATABASE_URI == '':
     print('Not using a permanent database instance. No migration required')
     exit(0)
 else:
     config.set_main_option('sqlalchemy.url', my_app_config_settings.SQLALCHEMY_DATABASE_URI)
-    print('Setting database connection string to {}'.format(config.get_main_option('sqlalchemy.url')))
-    #print('Setting database configuration string from application configuration')
+    print('Setting database configuration string from application configuration')
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
