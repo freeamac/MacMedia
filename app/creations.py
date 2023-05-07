@@ -2,7 +2,7 @@
 # Handle creation of data objects in the model
 ###########
 from app.exceptions import UniqueNameError
-from app.models import DVD, Location_Type_Enum, Media_Type_Enum
+from app.models import DVD
 from app.queries import dvd_exists
 
 
@@ -19,23 +19,13 @@ def db_create_dvd(db, data):
     :rtype:    class:`models.DVD`
     """
 
-    # Convert the media type to the appropriate enum if it comes in as a string
-    media_type = data['media_type']
-    if isinstance(media_type, str):
-        media_type = Media_Type_Enum.from_string(data['media_type'])
-
-    # Convert the location to the appropriate enum if it comes in as a string
-    location = data['location']
-    if isinstance(location, str):
-        location = Location_Type_Enum.from_string(data['location'])
-
     # Check DVD does not already exist
     if dvd_exists(db, title=data['title'],
                   series=data['series'],
                   year=data['year'],
                   set=data['set'],
-                  media_type=media_type,
-                  location=location):
+                  media_type=data['media_type'],
+                  location=data['location']):
         raise UniqueNameError('DVD "{}" with this information already exists in the library'.format(data['title']))
 
     # Add the new DVD
@@ -43,10 +33,10 @@ def db_create_dvd(db, data):
                   series=data['series'],
                   year=data['year'],
                   set=data['set'],
-                  media_type=media_type,
+                  media_type=data['media_type'],
                   music_type=data['music_type'],
                   artist=data['artist'],
-                  location=location)
+                  location=data['location'])
     db.session.add(new_dvd)
     db.session.commit()
 

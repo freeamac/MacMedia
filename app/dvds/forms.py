@@ -44,10 +44,10 @@ class DeleteDVDForm(FlaskForm):
     dvd_series = StringField('Movie Series', render_kw={'readonly': True})
     dvd_year = StringField('Year Of Release', render_kw={'readonly': True})
     dvd_set = StringField('From Set', render_kw={'readonly': True})
-    dvd_media_type = SelectField('DVD Type?', render_kw={'readonly': True})
+    dvd_media_type = StringField('DVD Type?', render_kw={'readonly': True})
     dvd_music_type = StringField('Music DVD?', render_kw={'readonly': True})
     dvd_music_artist = StringField('Music DVD Artist', render_kw={'readonly': True})
-    dvd_location = SelectField('DVD Location?', render_kw={'readonly': True})
+    dvd_location = StringField('DVD Location?', render_kw={'readonly': True})
 
     submit = SubmitField('Delete')
     cancel = SubmitField('Cancel Deletion')

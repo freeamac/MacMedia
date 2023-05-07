@@ -7,15 +7,15 @@ from app import db as DB
 
 
 class Location_Type_Enum(enum.Enum):
-    home = 1
-    away = 2
+    home = "home"
+    away = "away"
 
     @staticmethod
     def from_string(s):
         if s.lower() == 'home':
-            return Location_Type_Enum(1)
+            return Location_Type_Enum.home
         elif s.lower() == 'away':
-            return Location_Type_Enum(2)
+            return Location_Type_Enum.away
         else:
             raise TypeError('{} is not a valid Location Type'.format(s))
 

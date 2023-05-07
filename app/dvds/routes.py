@@ -38,13 +38,13 @@ def add_dvd():
             data['series'] = form.dvd_series.data
             data['year'] = form.dvd_year.data
             data['set'] = form.dvd_set.data
-            data['media_type'] = form.dvd_media_type.data
+            data['media_type'] = form.dvd_media_type.data.lower()
             if form.dvd_music_type.data == 'No':
                 data['music_type'] = False
             else:
                 data['music_type'] = True
             data['artist'] = form.dvd_music_artist.data
-            data['location'] = form.dvd_location.data
+            data['location'] = form.dvd_location.data.lower()
 
             try:
                 new_dvd = db_create_dvd(db, data)
@@ -138,7 +138,7 @@ def modify_dvd(id):
             else:
                 dvd_data['music_type'] = False
             dvd_data['artist'] = form.dvd_music_artist.data.strip()
-            dvd_data['location'] = form.dvd_location.data.strip()
+            dvd_data['location'] = form.dvd_location.data.lower()
 
             try:
                 dvd = db_update_dvd(db, dvd_data)

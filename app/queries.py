@@ -67,14 +67,13 @@ def dvd_exists(db, title, series=None, year=None, set=None, media_type=DEFAULT_D
     else:
         query_args['series'] = series
     query_args['year'] = year
-    if set == '':
-        query_args['set'] = None
-    else:
+    if set != '' and set is not None:
         query_args['set'] = set
     query_args['media_type'] = media_type
     query_args['location'] = location
 
     result = db.session.query(DVD).filter_by(**query_args).first()
+
     return result is not None
 
 

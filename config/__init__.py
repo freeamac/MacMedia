@@ -19,7 +19,8 @@ class BaseConfig():
    TESTING = False
 
 
-LOCAL_DEVELOPMENT = 'DB_USER' in os.environ and 'DB_PASSWORD' in os.environ and 'DATABSE' in os.environ and os.environ['APP_ENV'] != 'Test'
+LOCAL_DEVELOPMENT = 'DB_USER' in os.environ and 'DB_PASSWORD' in os.environ and 'DATABASE' in os.environ and os.environ['APP_ENV'] != 'Test'
+
 
 class DevConfig(BaseConfig):
    FLASK_ENV = 'development'
@@ -36,7 +37,6 @@ class DevConfig(BaseConfig):
    else:
       DATABASE_URI = ''
    SQLALCHEMY_DATABASE_URI = DATABASE_URI
-
 
 
 class AzureConfig(BaseConfig):
