@@ -92,6 +92,10 @@ class Artists():
             cls._instance = super(Artists, cls).__new__(cls)
         return cls._instance
 
+    def _clean_artists(self):
+        """ Private method to remove all artists from the collection. Useful in testing. """
+        self._artists = set()
+
     def create_Artist(self, name, skip_adding_to_artists_list=False) -> _Artist:
         if name is None:
             raise ArtistException('An artist must have a name')
@@ -128,6 +132,11 @@ class Artists():
         string = ''
         for artist in self.artists:
             string += '{}\n'.format(artist)
+            string += '  Albums\n'
+            string += '  ------\n'
+            for lp in artist.lps:
+                string += '  {}\n'.format(lp.title)
+            string += '\n'
         return string
 
 
@@ -295,6 +304,7 @@ class _LP():
         string += '{}'.format(self.date)
         for track in self.tracks:
             string += str(track)
+        string += '\n'
         return string
 
 
@@ -310,6 +320,10 @@ class LPs():
         if cls._instance is None:
             cls._instance = super(LPs, cls).__new__(cls)
         return cls._instance
+
+    def _clean_lps(self):
+        """ Private method to remove all albums from the collection. Useful in testing. """
+        self._lps = list()
 
     def create_LP(self, title, artist, date, mixer=None, skip_adding_to_lp_list=False) -> _LP:
         result = self.find_lp_by_title(title)
