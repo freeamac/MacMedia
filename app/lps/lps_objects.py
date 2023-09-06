@@ -123,7 +123,7 @@ class Artists():
         """ Private method to remove all artists from the collection. Useful in testing. """
         self._artists = set()
 
-    def create_Artist(self, name: str, skip_adding_to_artists_list: bool = False) -> _Artist:
+    def create_Artist(self, name: str, skip_adding_to_artists_set: bool = False) -> _Artist:
         """ Return the named artist if they exist or create a new artist.
 
             By default a new artist is added to the set of all artists.
@@ -131,8 +131,8 @@ class Artists():
             :param name:                          The name of the new artist
             :type name:                           str
 
-            :param skip_addiing_to_artists_list:  If true, do not add new artist to artists set
-            :type skip_adding_to_artists_list:    bool
+            :param skip_addiing_to_artists_set:  If true, do not add new artist to artists set
+            :type skip_adding_to_artists_set:    bool
 
             :raises ArtistException:              If there is no passed name
 
@@ -145,7 +145,7 @@ class Artists():
         if result is not None:
             return result
         new_artist = _Artist(name)
-        if not skip_adding_to_artists_list:
+        if not skip_adding_to_artists_set:
             self.add_artist(new_artist)
         return new_artist
 
@@ -170,7 +170,7 @@ class Artists():
             :param artist:            The artist to delete
             :type artist:             :class:`_Artist`
 
-            :raises ArtistException:  If artist does not exist in the list
+            :raises ArtistException:  If artist does not exist in the set
         """
         if artist not in self.artists:
             raise ArtistException('Artist {} does not exist'.format(artist))
@@ -485,12 +485,12 @@ class _LP():
 
 
 class LPs():
-    """ A singleton list of all music albums. """
+    """ A singleton set of all music albums. """
     _instance = None
-    _lps = list()
+    _lps = set()
 
     @property
-    def lps(self) -> List[_LP]:
+    def lps(self) -> Set[_LP]:
         return self._lps
 
     def __new__(cls):
@@ -500,12 +500,12 @@ class LPs():
 
     def _clean_lps(self):
         """ Private method to remove all albums from the collection. Useful in testing. """
-        self._lps = list()
+        self._lps = set()
 
     def create_LP(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist] = None, skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
-            By default a new album is added to the list of all albums.
+            By default a new album is added to the set of all albums.
 
             :param title:                    The title of the new album
             :type name:                      str
@@ -519,7 +519,7 @@ class LPs():
             :param artist:                   Optional album mixer
             :type artist:                    :class:`_Artist`
 
-            :param skip_addiing_to_lp_list:  If true, do not add new album to albums list
+            :param skip_addiing_to_lp_list:  If true, do not add new album to albums set
             :type skip_adding_to_lp_list:    bool
 
             :returns:                        The located or newly created album
@@ -537,23 +537,23 @@ class LPs():
         return new_lp
 
     def add_lp(self, lp: _LP) -> None:
-        """ Add an album to the list of albums.
+        """ Add an album to the set of all albums.
 
             :param lp:            The album to add
             :type lp:             :class:`_LP`
 
-            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the list
+            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the set
         """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
         if lp in self._lps:
             raise LPException('LP {} already exists'.format(lp))
-        self._lps.append(lp)
+        self._lps.add(lp)
 
     def delete_lp(self, lp: _LP) -> None:
-        """ Remove the album from the list of albums.
+        """ Remove the album from the set of all albums.
 
-            Also remove the album from the list of albums owned by
+            Also remove the album from the set of all albums owned by
             the album artist and album mixer (if they exist)
 
             :param lp:  The album to add
@@ -566,18 +566,18 @@ class LPs():
             self._lps.remove(lp)
 
     def lp_exists(self, lp: _LP) -> bool:
-        """ Returns true of the album exists in the list of albums.
+        """ Returns true of the album exists in the set of albums.
 
             :param lp:  The album to add
             :type lp:   :class:`_LP`
 
-            :returns:   True if the album exists in the list of all albums
+            :returns:   True if the album exists in the set of all albums
             :rtype:     bool
         """
         return lp in self.lps
 
     def find_lp_by_title(self, title: str) -> Optional[_LP]:
-        """ Returns the album in the list of all albums that matches the passed album title. Otherwise, None.
+        """ Returns the album in the set of all albums that matches the passed album title. Otherwise, None.
 
             :param title:  The album title to search for
             :type title:   str

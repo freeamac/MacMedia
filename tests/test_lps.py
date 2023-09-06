@@ -31,7 +31,7 @@ class LPTestCase(unittest.TestCase):
     def test_Artists(self):
         artist_1 = Artists().create_Artist('VArious Artists')
         artist_2 = Artists().create_Artist('Disco D')
-        artist_3 = Artists().create_Artist('Joe Cocker', skip_adding_to_artists_list=True)
+        artist_3 = Artists().create_Artist('Joe Cocker', skip_adding_to_artists_set=True)
         artists_1 = Artists()
         artists_2 = Artists()
 
@@ -228,7 +228,7 @@ class LPTestCase(unittest.TestCase):
 
         # Test existence
         self.assertTrue(all_lps.lp_exists(album_2))
-        missing_album = LPs().create_LP('Missing Gold', artist=Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_list=True), date=1920, skip_adding_to_lp_list=True)
+        missing_album = LPs().create_LP('Missing Gold', artist=Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_set=True), date=1920, skip_adding_to_lp_list=True)
         self.assertFalse(all_lps.lp_exists(missing_album))
 
         # Test we can only add valid albums
@@ -247,20 +247,24 @@ class LPTestCase(unittest.TestCase):
         self.assertIsNone(all_lps.find_lp_by_title('Missing Gold'))
         self.assertEqual(album_1, all_lps.find_lp_by_title('Club Cutz Volume 3'))
 
-        # Test string output
-        expected_string = 'Club Cutz Volume 3\n'
-        expected_string += 'Various Artists\n'
-        expected_string += '1992\n'
-        expected_string += ' 1. Jump To The Beat\nDannii Minogue\n(12" Mix)\n'
-        expected_string += ' 2. Jump!\nThe Movement\n(Everybody Mix)\n'
-        expected_string += ' 3. Pull Our Love Together\nPandella\n(Komix Club Mix)\n\n'
-        expected_string += 'Various: 01 Dance Music: Modernlife\n'
-        expected_string += 'Various Artists\n'
-        expected_string += '2000\n'
-        expected_string += ' 1. He\'s All I Want\nAngelmoon\n(Cappery Mix)\n'
-        expected_string += ' 2. Push Upstaires\nUnderworld\n(Roger\'s Blue Plastic People Mix)\n'
-        expected_string += ' 3. Freakin\' You\nJungle Brothers\n(Caribbean Sunshine Remix By The Buffalo Bunch)\n\n'
-        self.assertEqual(expected_string, str(all_lps))
+        # Test string output. Since the albums are in a set, the output
+        # can come in one of two permutations
+        album_string_1 = 'Club Cutz Volume 3\n'
+        album_string_1 += 'Various Artists\n'
+        album_string_1 += '1992\n'
+        album_string_1 += ' 1. Jump To The Beat\nDannii Minogue\n(12" Mix)\n'
+        album_string_1 += ' 2. Jump!\nThe Movement\n(Everybody Mix)\n'
+        album_string_1 += ' 3. Pull Our Love Together\nPandella\n(Komix Club Mix)\n\n'
+        album_string_2 = 'Various: 01 Dance Music: Modernlife\n'
+        album_string_2 += 'Various Artists\n'
+        album_string_2 += '2000\n'
+        album_string_2 += ' 1. He\'s All I Want\nAngelmoon\n(Cappery Mix)\n'
+        album_string_2 += ' 2. Push Upstaires\nUnderworld\n(Roger\'s Blue Plastic People Mix)\n'
+        album_string_2 += ' 3. Freakin\' You\nJungle Brothers\n(Caribbean Sunshine Remix By The Buffalo Bunch)\n\n'
+        album_perm_1 = album_string_1 + album_string_2
+        album_perm_2 = album_string_2 + album_string_1
+        all_lps_string = str(all_lps)
+        self.assertTrue((album_perm_1 == all_lps_string) or (album_perm_2 == all_lps_string))
 
         # Now we have some artist data collected as collateral to creating albums, test that
         self.assertEqual(7, len(artists.artists))
