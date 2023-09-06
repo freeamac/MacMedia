@@ -189,7 +189,7 @@ class LPTestCase(unittest.TestCase):
         artists = Artists()
         artists._clean_artists()
 
-        self.assertIsNone(all_lps.find_lp_by_title('Club Cutz Volume 3'))
+        self.assertEqual([], all_lps.find_lp_by_title('Club Cutz Volume 3'))
         self.assertEqual(0, len(all_lps.lps))
 
         artist_1 = artists.create_Artist('Various Artists')
@@ -244,8 +244,10 @@ class LPTestCase(unittest.TestCase):
         self.assertFalse(all_lps.lp_exists(missing_album))
 
         # Test finding an album by title
-        self.assertIsNone(all_lps.find_lp_by_title('Missing Gold'))
-        self.assertEqual(album_1, all_lps.find_lp_by_title('Club Cutz Volume 3'))
+        self.assertEqual([], all_lps.find_lp_by_title('Missing Gold'))
+        search_results = all_lps.find_lp_by_title('Club Cutz Volume 3')
+        self.assertEqual(1, len(search_results))
+        self.assertEqual(album_1, search_results[0])
 
         # Test string output. Since the albums are in a set, the output
         # can come in one of two permutations

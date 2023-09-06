@@ -22,6 +22,7 @@ there last lp being deleted or they are only associated with a song(s) on
 an lp.
 """
 
+from hashlib import md5
 from typing import List, Optional, Set
 
 
@@ -420,6 +421,21 @@ class _LP():
     def tracks(self) -> List[TrackList]:
         return self._tracks
 
+    @staticmethod
+    def to_hash(title: str, artist_name: str) -> str:
+        """ Create a hash for the album based on title and artist_name.
+        
+            :param title:        The album title
+            :type title:         str
+            
+            :param artist_name:  The name of the artist of the album
+            :type artist_name:   str
+            
+            :returns:            md5 has string
+            :rtype:              str
+        """
+        return md5(bytes(title+artist_name, 'utf-8')).hexdigest()
+
     def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist]) -> None:
         self._title = title
         if type(artist) is not _Artist:
@@ -431,7 +447,7 @@ class _LP():
         if mixer is not None and type(mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(mixer))
         self._mixer = mixer
-        # self.id = 'a hash'
+        self._id = self.to_hash(title, artist.name)
 
         # Tracks must be set at this level or a reference will exist in the
         # singleton and keep being appended to through "add_track()". Ensure
@@ -534,9 +550,22 @@ class LPs():
             :returns:                        The located or newly created album
             :rtype:                          :class:`_LP`
         """
-        result = self.find_lp_by_title(title)
-        if result is not None:
-            return result
+        # We need to perform this check before searching for an existing album as we need a valid
+        # artist name to search
+        if type(artist) is not _Artist:
+            raise ArtistException('{} is not an artist'.format(artist))
+
+        results = self.find_lp_by_title(title)
+        if len(results) == 1:
+            # Found exact match, return it
+            return results[0]
+        else:
+            # Multiple potential matches. Need to check hash id
+            new_album_id = _LP.to_hash(title, artist.name)
+            for result in results:
+                if result.id == new_album_id:
+                    return result
+        # Create the new album
         new_lp = _LP(title, artist, date, mixer)
         artist.add_lp(new_lp)
         if mixer is not None:
@@ -585,19 +614,21 @@ class LPs():
         """
         return lp in self.lps
 
-    def find_lp_by_title(self, title: str) -> Optional[_LP]:
-        """ Returns the album in the set of all albums that matches the passed album title. Otherwise, None.
+    def find_lp_by_title(self, title: str) -> List[_LP]:
+        """ Returns the albums in the set of all albums that matches the passed album title. Otherwise, empty list.
 
             :param title:  The album title to search for
             :type title:   str
 
             :returns:      The album if found. None, otherwise
-            :rtype:       :class:`_LP` | None
+            :rtype:        list(:class:`_LP` )
          """
         # TODO: Return a list since titles might be repeated
+        result = []
         for lp in self.lps:
             if lp.title == title:
-                return lp
+                result.append(lp)
+        return result
 
     def __str__(self) -> str:
         string = ''
