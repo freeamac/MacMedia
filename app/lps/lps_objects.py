@@ -424,17 +424,17 @@ class _LP():
     @staticmethod
     def to_hash(title: str, artist_name: str) -> str:
         """ Create a hash for the album based on title and artist_name.
-        
+
             :param title:        The album title
             :type title:         str
-            
+
             :param artist_name:  The name of the artist of the album
             :type artist_name:   str
-            
+
             :returns:            md5 has string
             :rtype:              str
         """
-        return md5(bytes(title+artist_name, 'utf-8')).hexdigest()
+        return md5(bytes(title + artist_name, 'utf-8')).hexdigest()
 
     def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist]) -> None:
         self._title = title
@@ -556,14 +556,11 @@ class LPs():
             raise ArtistException('{} is not an artist'.format(artist))
 
         results = self.find_lp_by_title(title)
-        if len(results) == 1:
-            # Found exact match, return it
-            return results[0]
-        else:
-            # Multiple potential matches. Need to check hash id
+        if len(results) > 0:
+            # Need to check hash id
             new_album_id = _LP.to_hash(title, artist.name)
             for result in results:
-                if result.id == new_album_id:
+                if result._id == new_album_id:
                     return result
         # Create the new album
         new_lp = _LP(title, artist, date, mixer)

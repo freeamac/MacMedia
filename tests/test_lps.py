@@ -268,10 +268,17 @@ class LPTestCase(unittest.TestCase):
         all_lps_string = str(all_lps)
         self.assertTrue((album_perm_1 == all_lps_string) or (album_perm_2 == all_lps_string))
 
+        # Test that we correctly create a new album when the title matches an
+        # existing album
+        new_album = LPs().create_LP('Club Cutz Volume 3', artist=artist_2, date=1992)
+        self.assertNotEqual(album_1, new_album)
+        search_results = all_lps.find_lp_by_title('Club Cutz Volume 3')
+        self.assertEqual(2, len(search_results))
+
         # Now we have some artist data collected as collateral to creating albums, test that
         self.assertEqual(7, len(artists.artists))
         self.assertTrue(artist_6, artists.artist_exists(artist_6))
-        self.assertEqual(0, len(artist_2.lps))
+        self.assertEqual(1, len(artist_2.lps))  # Club Cutz Volume 3 created directly above
         self.assertEqual(2, len(artist_1.lps))
         self.assertIsNotNone(artists.find_artist('The Movement'))
         self.assertEqual(artist_2, artists.find_artist('Dannii Minogue'))
