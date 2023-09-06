@@ -22,26 +22,31 @@ there last lp being deleted or they are only associated with a song(s) on
 an lp.
 """
 
-from typing import Optional
+from typing import List, Optional, Set
 
 
 class LPException(Exception):
+    """ Indicates an error using an LP object. """
     pass
 
 
 class ArtistException(Exception):
+    """ Indicates an error using and Artist object. """
     pass
 
 
 class SongException(Exception):
+    """ Indicates an error using a Song object. """
     pass
 
 
 class TrackListException(Exception):
+    """ Indicates an error using a TrackList object. """
     pass
 
 
 class _Artist():
+    """ Defines a music artist. Should only be instantiated by calling :func:`Artists().create_Artists`. """
 
     @property
     def lps(self) -> set:
@@ -51,11 +56,19 @@ class _Artist():
     def name(self) -> str:
         return self._name
 
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         self._name = name
         self._lps = set()
 
-    def add_lp(self, lp) -> None:
+    def add_lp(self, lp: '_LP') -> None:
+        """ Add an album associated with the artist as the main artist or mixer of the album.
+
+            :param lp:            The album to associate with the artist
+            :type param_lp:       :class:`LP`
+
+            :raises LPException:  If passed parameter is not an :class:`_LP` or the album already
+                                  associated with the artist
+        """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
         if lp in self._lps:
@@ -63,13 +76,25 @@ class _Artist():
         else:
             self._lps.add(lp)
 
-    def delete_lp(self, lp) -> None:
+    def delete_lp(self, lp: '_LP') -> None:
+        """ Remove an album associated with an artist.
+
+            :param lp:             The album to associate with the artist
+            :type param_lp:       :class:`LP`
+
+            :raises LPException:  If passed parameter is not an :class:`_LP`
+        """
         if lp not in self._lps:
             raise LPException('{} not in list of LPs for {}'.format(lp.title, self.name))
         else:
             self._lps.remove(lp)
 
-    def update_name(self, new_name) -> None:
+    def update_name(self, new_name: str) -> None:
+        """ Update the name of the artist.
+
+            :param new_name:  The new name of the artist
+            :type new_name:   str
+        """
         self._name = new_name
 
     def __str__(self) -> str:
@@ -80,11 +105,13 @@ class _Artist():
 
 
 class Artists():
+    """ A singleton set of all music artists. """
     _instance = None
     _artists = set()
 
     @property
-    def artists(self) -> list:
+    def artists(self) -> Set[_Artist]:
+        """ Set of all artists. """
         return self._artists
 
     def __new__(cls):
@@ -96,8 +123,23 @@ class Artists():
         """ Private method to remove all artists from the collection. Useful in testing. """
         self._artists = set()
 
-    def create_Artist(self, name, skip_adding_to_artists_list=False) -> _Artist:
-        if name is None:
+    def create_Artist(self, name: str, skip_adding_to_artists_list: bool = False) -> _Artist:
+        """ Return the named artist if they exist or create a new artist.
+
+            By default a new artist is added to the set of all artists.
+
+            :param name:                          The name of the new artist
+            :type name:                           str
+
+            :param skip_addiing_to_artists_list:  If true, do not add new artist to artists set
+            :type skip_adding_to_artists_list:    bool
+
+            :raises ArtistException:              If there is no passed name
+
+            :returns:                             The located or newly created artist
+            :rtype:                               :class:`_Artist`
+        """
+        if name is None or '':
             raise ArtistException('An artist must have a name')
         result = self.find_artist(name)
         if result is not None:
@@ -107,23 +149,54 @@ class Artists():
             self.add_artist(new_artist)
         return new_artist
 
-    def add_artist(self, artist) -> None:
+    def add_artist(self, artist: _Artist) -> None:
+        """ Add an artist to the set of all artists.
+
+            :param artist:            The artist to add
+            :type artist:             :class:`_Artist`
+
+            :raises ArtistException:  If a :class:`_Artist` is not passed or the artist
+                                      already exists in the set
+        """
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         if artist in self.artists or self.find_artist(artist.name) is not None:
             raise ArtistException('Artist {} already exists'.format(artist))
         self._artists.add(artist)
 
-    def delete_artist(self, artist) -> None:
+    def delete_artist(self, artist: _Artist) -> None:
+        """ Delete an artist from the set of all artists.
+
+            :param artist:            The artist to delete
+            :type artist:             :class:`_Artist`
+
+            :raises ArtistException:  If artist does not exist in the list
+        """
         if artist not in self.artists:
             raise ArtistException('Artist {} does not exist'.format(artist))
         else:
             self._artists.remove(artist)
 
-    def artist_exists(self, artist) -> bool:
+    def artist_exists(self, artist: _Artist) -> bool:
+        """ True if the artist is in the set of artists.
+
+            :param artist:  The artist to add
+            :type artist:   :class:`_Artist`
+
+            :returns:       True if the artist exists in the set of all artists
+            :rtype:         bool
+        """
         return artist in self.artists
 
-    def find_artist(self, artist_name) -> Optional[_Artist]:
+    def find_artist(self, artist_name: str) -> Optional[_Artist]:
+        """ Returns the artist if an artist of that name exists in the set of all artists.
+
+            :param artist_name:  Name of the artist to find
+            :type artist_name:   str
+
+            :returns:            The artist if an artist of that name is found. Otherwise None
+            :rtype:              :class:`_Artist` if found, otherwise None
+        """
         for artist in self._artists:
             if artist.name == artist_name:
                 return artist
@@ -141,8 +214,29 @@ class Artists():
 
 
 class Additional_Artist():
+    """ Formatting structure used for additional artists associated with a :class:`Song`. """
 
-    def __init__(self, artist, prequel=None, sequel=None) -> None:
+    def __init__(self, artist: _Artist, prequel: Optional[str] = None, sequel: Optional[str] = None) -> None:
+        """ Create formatting structure for an addition artist.
+
+            An additional artist may have an optional prequel string and
+            optional sequel string which is used when formatting their
+            association with a song.
+
+            For example, a song my have a tagline of "<main artist> with <additional artist> (backing vovals)"
+            where the string "with" is the prequel and "(backing vocals)" the sequel.
+
+            :param artist:            The additional artist
+            :type artist:             :class:`_Artist`
+
+            :param prequel:           The prequel string
+            :type prequel:            str | None
+
+            :param sequel:            The sequel string
+            :type sequel:             str | None
+
+            :raises ArtistException:  If the addition artist is not a :class:`_Artist`
+        """
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         self.artist = artist
@@ -160,8 +254,27 @@ class Additional_Artist():
 
 
 class Song():
+    """ A song found on an album. """
 
-    def __init__(self, title, main_artist=None, additional_artists=[], mix=None) -> None:
+    def __init__(self, title: str, main_artist: Optional[_Artist] = None, additional_artists: List[_Artist] = [], mix: Optional[str] = None) -> None:
+        """ Creates a song found on an album.
+
+            :param title:               The title of the song
+            :type title:                str
+
+            :param main_artist:         The main artist of the song. If the album is by a single artitst, this
+                                        is typically not given unless it is included in the song description
+                                        on the album
+            :type main_artist:          :class:`_Artist`
+
+            :param additional_artists:  Optional list of additional artists associated with the song
+            :type additional_artists:   list(:class:`Additional_Artist`)
+
+            :param mix:                 Optional song mix
+            :type mix                   str
+
+            :raises ArtistException:    If main artist is not None or :class:`_Artist`
+            """
         self.title = title
         if main_artist is not None and type(main_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(main_artist))
@@ -170,8 +283,6 @@ class Song():
         # TODO: ensure a the passed list contains only additional_artists elements
         self.additional_artists = additional_artists
         self.mix = mix
-
-        # TODO: Add artists to artist list if the do not already exist
 
     def __str__(self) -> str:
         string = '{}\n'.format(self.title)
@@ -187,6 +298,7 @@ class Song():
 
 
 class TrackList():
+    """ A list of songs (tracklist) on one side of an album"""
 
     @property
     def side(self) -> Optional[str]:
@@ -197,31 +309,68 @@ class TrackList():
         return self.side_mixer
 
     @ property
-    def song_list(self) -> list:
+    def song_list(self) -> List[Song]:
         return self._song_list
 
-    def __init__(self, side=None, side_mixer=None) -> None:
+    def __init__(self, side: Optional[str] = None, side_mixer: Optional[_Artist] = None) -> None:
+        """ Create a tracklist for an album.
+
+            :param side:   The name of the tracklist (eg. "Side A")
+            :type side:    str | None
+
+            :param side_mixer:  And optional mixer of the songs on this tracklist
+            :type side_mixer:   :class:`_Artist`
+
+            :raises ArtistException:  If side_mixer is not a :class:`Artist`
+        """
         self._side = side
         if side_mixer is not None and type(side_mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(side_mixer))
         self._side_mixer = side_mixer
         self._song_list = []
 
-    def add_song(self, song) -> None:
-        """ Songs are appended to the end of the song list and thus an ordered list """
+    def add_song(self, song: Song) -> None:
+        """ Append a song to the end of the song list. Thus an ordered list.
+
+            :param song:  The song to add to the end of the tracklist
+            :type song:   :class:`Song`
+
+            :raises SongException:  If you are not adding a :class:`Song`
+        """
         if type(song) is Song:
             self._song_list.append(song)
         else:
             raise SongException('{} is not a song'.format(song))
 
-    def remove_song(self, song) -> None:
+    def remove_song(self, song: Song) -> None:
+        """ Remove a song from the tracklist.
+
+            :param song:  The song to remove
+            :type song:   :class:`Song`
+        """
         if song in self.song_list:
             self._song_list.remove(song)
 
-    def has_song(self, song) -> bool:
+    def has_song(self, song: Song) -> bool:
+        """ True is the passed song can be found in the tracklist.
+
+            :param song:  The song to remove
+            :type song:   :class:`Song`
+
+            :returns:     True if the song is found in the tracklist
+            :rtype:       bool
+        """
         return song in self.song_list
 
-    def get_song_from_title(self, song_title) -> Optional[Song]:
+    def get_song_from_title(self, song_title: str) -> Optional[Song]:
+        """ Returns the song if the title can be found in the tracklist. None otherwise.
+
+            :param song_title:  The song title to find
+            :type song_title:   str
+
+            :returns:           The song if the title is found in the tracklist
+            :rtype:             :class:`Song`
+        """
         for song in self.song_list:
             if song.title == song_title:
                 return song
@@ -240,6 +389,7 @@ class TrackList():
 
 
 class _LP():
+    """ Defines a music album. Should only be instantiated by calling :func:`LPs().create_LP`. """
 
     @property
     def title(self) -> str:
@@ -258,10 +408,10 @@ class _LP():
         return self._mixer
 
     @property
-    def tracks(self) -> list:
+    def tracks(self) -> List[TrackList]:
         return self._tracks
 
-    def __init__(self, title, artist, date, mixer) -> None:
+    def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist]) -> None:
         self._title = title
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
@@ -272,6 +422,7 @@ class _LP():
         if mixer is not None and type(mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(mixer))
         self._mixer = mixer
+        # self.id = 'a hash'
 
         # Tracks must be set at this level or a reference will exist in the
         # singleton and keep being appended to through "add_track()". Ensure
@@ -279,19 +430,44 @@ class _LP():
         # updated through an instance level call to "add_track[]".
         self._tracks = []
 
-    def add_track(self, track) -> None:
+    def add_track(self, track: TrackList) -> None:
+        """ Append a tracklist to the list of tracks on the album. Thus an ordered list.
+
+            :param track:                The tracklist to append
+            :type track:                 :class:`TrackList`
+
+            :raises TrackListException:  If not passed a :class:`TrackList`
+        """
         if type(track) is TrackList:
             self._tracks.append(track)
         else:
             raise TrackListException('{} is not a track list'.format(track))
 
-    def has_song(self, song) -> bool:
+    def has_song(self, song: Song) -> bool:
+        """ True if the song is found in one of the tracklists on the album.
+
+            :param song:            The song to search for
+            :type song:             :class:`Song`
+
+            :returns:               True if the song is found. False otherwise
+            :rtype:                 bool
+
+            :raises SongException:  If not passed a :class:`Song`
+        """
         for track in self._tracks:
             if track.has_song(song):
                 return True
         return False
 
-    def get_song_from_title(self, song_title) -> Optional[Song]:
+    def get_song_from_title(self, song_title: str) -> Optional[Song]:
+        """ Return the song if the song title is found in one of the tracklists on the album.
+
+            :param song_title:  The song title to search for
+            :type song_title:   str
+
+            :returns:           The song is found. None otherwise
+            :rtype:             :class:`Song` | None
+        """
         for track in self._tracks:
             result = track.get_song_from_title(song_title)
             if result is not None:
@@ -309,11 +485,12 @@ class _LP():
 
 
 class LPs():
+    """ A singleton list of all music albums. """
     _instance = None
     _lps = list()
 
     @property
-    def lps(self) -> list:
+    def lps(self) -> List[_LP]:
         return self._lps
 
     def __new__(cls):
@@ -325,7 +502,29 @@ class LPs():
         """ Private method to remove all albums from the collection. Useful in testing. """
         self._lps = list()
 
-    def create_LP(self, title, artist, date, mixer=None, skip_adding_to_lp_list=False) -> _LP:
+    def create_LP(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist] = None, skip_adding_to_lp_list: bool = False) -> _LP:
+        """ Return the named album if it exists or create a new album.
+
+            By default a new album is added to the list of all albums.
+
+            :param title:                    The title of the new album
+            :type name:                      str
+
+            :param artist:                   The album artist
+            :type artist:                    :class:`_Artist`
+
+            :param date:                     The year the album was published
+            :type date:                      int
+
+            :param artist:                   Optional album mixer
+            :type artist:                    :class:`_Artist`
+
+            :param skip_addiing_to_lp_list:  If true, do not add new album to albums list
+            :type skip_adding_to_lp_list:    bool
+
+            :returns:                        The located or newly created album
+            :rtype:                          :class:`_LP`
+        """
         result = self.find_lp_by_title(title)
         if result is not None:
             return result
@@ -337,24 +536,56 @@ class LPs():
             self.add_lp(new_lp)
         return new_lp
 
-    def add_lp(self, lp) -> None:
+    def add_lp(self, lp: _LP) -> None:
+        """ Add an album to the list of albums.
+
+            :param lp:            The album to add
+            :type lp:             :class:`_LP`
+
+            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the list
+        """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
         if lp in self._lps:
             raise LPException('LP {} already exists'.format(lp))
         self._lps.append(lp)
 
-    def delete_lp(self, lp) -> None:
+    def delete_lp(self, lp: _LP) -> None:
+        """ Remove the album from the list of albums.
+
+            Also remove the album from the list of albums owned by
+            the album artist and album mixer (if they exist)
+
+            :param lp:  The album to add
+            :type lp:   :class:`_LP`
+        """
         if lp in self.lps:
             lp.artist.delete_lp(lp)
             if lp.mixer is not None:
                 lp.mixer.delete_lp(lp)
             self._lps.remove(lp)
 
-    def lp_exists(self, lp) -> bool:
+    def lp_exists(self, lp: _LP) -> bool:
+        """ Returns true of the album exists in the list of albums.
+
+            :param lp:  The album to add
+            :type lp:   :class:`_LP`
+
+            :returns:   True if the album exists in the list of all albums
+            :rtype:     bool
+        """
         return lp in self.lps
 
-    def find_lp_by_title(self, title) -> Optional[_LP]:
+    def find_lp_by_title(self, title: str) -> Optional[_LP]:
+        """ Returns the album in the list of all albums that matches the passed album title. Otherwise, None.
+
+            :param title:  The album title to search for
+            :type title:   str
+
+            :returns:      The album if found. None, otherwise
+            :rtype:       :class:`_LP` | None
+         """
+        # TODO: Return a list since titles might be repeated
         for lp in self.lps:
             if lp.title == title:
                 return lp
