@@ -183,7 +183,7 @@ class LPTestCase(unittest.TestCase):
 
     def test_lps(self):
 
-        # Clean any debris in the albums and artists list 
+        # Clean any debris in the albums and artists list
         all_lps = LPs()
         all_lps._clean_lps()
         artists = Artists()
