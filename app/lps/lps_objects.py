@@ -40,6 +40,11 @@ class SongException(Exception):
     pass
 
 
+class AdditionalArtistException(Exception):
+    """ Indicates an error using and Additional_Artist object """
+    pass
+
+
 class TrackListException(Exception):
     """ Indicates an error using a TrackList object. """
     pass
@@ -274,13 +279,17 @@ class Song():
             :type mix                   str
 
             :raises ArtistException:    If main artist is not None or :class:`_Artist`
+
+            :raises AdditionalArtistException:  If pass list of additional artists are not all of type
+                                                :class:`Additional_Artist`
             """
         self.title = title
         if main_artist is not None and type(main_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(main_artist))
         self.main_artist = main_artist
-
-        # TODO: ensure a the passed list contains only additional_artists elements
+        for artist in additional_artists:
+            if type(artist) is not Additional_Artist:
+                raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
         self.additional_artists = additional_artists
         self.mix = mix
 
