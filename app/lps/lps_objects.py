@@ -25,6 +25,8 @@ an lp.
 from hashlib import md5
 from typing import List, Optional, Set
 
+from bs4 import BeautifulSoup
+
 
 class LPException(Exception):
     """ Indicates an error using an LP object. """
@@ -262,13 +264,110 @@ class Additional_Artist():
 class Song():
     """ A song found on an album. """
 
-    def __init__(self, title: str, main_artist: Optional[_Artist] = None, additional_artists: List[_Artist] = [], mix: Optional[str] = None) -> None:
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @title.setter
+    def title(self, new_title) -> None:
+        self._title = new_title
+
+    @property
+    def main_artist(self) -> _Artist:
+        return self._main_artist
+
+    @main_artist.setter
+    def main_artist(self, new_artist) -> None:
+        if new_artist is not None and type(new_artist) is not _Artist:
+            raise ArtistException('{} is not an Artist object'.format(new_artist))
+        self._main_artist = new_artist
+
+    @property
+    def additional_artists(self) -> List[_Artist]:
+        return self._additional_artists
+
+    @additional_artists.setter
+    def additional_artists(self, new_artists) -> None:
+        for artist in new_artists:
+            if type(artist) is not Additional_Artist:
+                raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
+        self._additional_artists = new_artists
+
+    @property
+    def album(self) -> str:
+        return self._album
+
+    @album.setter
+    def album(self, new_album) -> None:
+        self._album = new_album
+
+    @property
+    def classical_composer(self) -> Optional[_Artist]:
+        return self._classical_composer
+
+    @classical_composer.setter
+    def classical_composer(self, composer) -> None:
+        if composer is not None and type(composer) is not _Artist:
+            raise ArtistException('{} is not an Artist object'.format(composer))
+        self.classical_composer = composer
+
+    @property
+    def classical_work(self) -> str:
+        return self._classical_work
+
+    @classical_work.setter
+    def classical_work(self, new_classical_work) -> None:
+        self._classical_work = new_classical_work
+
+    @property
+    def country(self) -> str:
+        return self._country
+
+    @country.setter
+    def country(self, new_country) -> None:
+        self._country = new_country
+
+    @property
+    def date(self) -> str:
+        return self._date
+
+    @date.setter
+    def date(self, new_date) -> None:
+        self._date = new_date
+
+    @property
+    def mix(self) -> str:
+        return self._mix
+
+    @mix.setter
+    def mix(self, new_mix) -> None:
+        self._mix = new_mix
+
+    @property
+    def parts(self) -> List[str]:
+        return self._parts
+
+    @parts.setter
+    def parts(self, new_parts) -> None:
+        self._parts = new_parts
+
+    def __init__(self,
+                 title: str,
+                 main_artist: Optional[_Artist] = None,
+                 additional_artists: List[_Artist] = [],
+                 album: Optional[str] = None,
+                 classical_composer: Optional[_Artist] = None,
+                 classical_work: Optional[str] = None,
+                 country: Optional[str] = None,
+                 date: Optional[str] = None,
+                 mix: Optional[str] = None,
+                 parts: List[str] = []) -> None:
         """ Creates a song found on an album.
 
-            :param title:               The title of the song
+            :param title:               The title of this song
             :type title:                str
 
-            :param main_artist:         The main artist of the song. If the album is by a single artitst, this
+            :param main_artist:         The main artist of this song. If the album is by a single artitst, this
                                         is typically not given unless it is included in the song description
                                         on the album
             :type main_artist:          :class:`_Artist`
@@ -276,23 +375,66 @@ class Song():
             :param additional_artists:  Optional list of additional artists associated with the song
             :type additional_artists:   list(:class:`Additional_Artist`)
 
+            :param album:               Name of the album this song is taken from
+            :type album:                str
+
+            :param classical_composer:  The composer of this classical song
+            :type classical_composer:   :class:`_Artist`
+
+            :param classical_work:      The classical work this song comes from
+            :type classical_work:       str
+
+            :param country:             The country this song is from
+            :type country:              str
+
+            :param date:                The date (year) of this song
+            :type date:                 str
+
             :param mix:                 Optional song mix
             :type mix                   str
 
-            :raises ArtistException:    If main artist is not None or :class:`_Artist`
+            :param parts:               A list of parts this song is divided into
+            :type parts:                list(str)
+
+            :raises ArtistException:    If main artist or classical composer is not None or :class:`_Artist`
 
             :raises AdditionalArtistException:  If pass list of additional artists are not all of type
                                                 :class:`Additional_Artist`
             """
-        self.title = title
         if main_artist is not None and type(main_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(main_artist))
-        self.main_artist = main_artist
         for artist in additional_artists:
             if type(artist) is not Additional_Artist:
                 raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
-        self.additional_artists = additional_artists
-        self.mix = mix
+        if classical_composer is not None and type(classical_composer) is not _Artist:
+            raise ArtistException('{} is not an Artist object'.format(classical_composer))
+
+        self._title = title
+        self._main_artist = main_artist
+        self._additional_artists = additional_artists
+        self._album = album
+        self._classical_composer = classical_composer
+        self._classical_work = classical_work
+        self._country = country
+        self._date = date
+        self._mix = mix
+        self._parts = parts
+
+    def delete_additional_artist(self, additional_artist) -> Optional[_Artist]:
+        """ Delete the artist from the additional artist list """
+        pass
+
+    def add_additional_artist(self, additional_artist) -> None:
+        """ Add the artist from the additional artist list """
+        pass
+
+    def delete_part(self, part_name) -> Optional[str]:
+        """ Delete the part from the song parts list """
+        pass
+
+    def add_part(self, part_name) -> None:
+        """ Add the part from the song parts list """
+        pass
 
     def __str__(self) -> str:
         string = '{}\n'.format(self.title)
@@ -302,8 +444,21 @@ class Song():
             for additional_artist in self.additional_artists:
                 string += '{}'.format(additional_artist)
             string += '\n'
+        if self.album is not None:
+            string += '({})\n'.format(self.album)
+        if self.classical_composer is not None:
+            string += '({})\n'.format(self.classical_composer)
+        if self.classical_work is not None:
+            string += '({})\n'.format(self.classical_work)
+        if self.country is not None:
+            string += '({})\n'.format(self.country)
+        if self.date is not None:
+            string += '({})\n'.format(self.date)
         if self.mix is not None:
             string += '({})\n'.format(self.mix)
+        if self.parts != []:
+            for part in self.parts:
+                string += '({})\n'.format(part)
         return string
 
 
@@ -312,17 +467,25 @@ class TrackList():
 
     @property
     def side(self) -> Optional[str]:
-        return self.side
+        return self._side
+
+    @side.setter
+    def side(self, side_name) -> None:
+        self._side = side_name
 
     @property
     def side_mixer(self) -> Optional[str]:
-        return self.side_mixer
+        return self._side_mixer
 
-    @ property
+    @side_mixer.setter
+    def side_mixer(self, side_mixer_name) -> None:
+        self._side_mixer = side_mixer_name
+
+    @property
     def song_list(self) -> List[Song]:
         return self._song_list
 
-    def __init__(self, side: Optional[str] = None, side_mixer: Optional[_Artist] = None) -> None:
+    def __init__(self, side: Optional[str] = None, side_mixer: Optional[_Artist] = None, song_list: List[Song] = []) -> None:
         """ Create a tracklist for an album.
 
             :param side:   The name of the tracklist (eg. "Side A")
@@ -337,7 +500,7 @@ class TrackList():
         if side_mixer is not None and type(side_mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(side_mixer))
         self._side_mixer = side_mixer
-        self._song_list = []
+        self._song_list = song_list
 
     def add_song(self, song: Song) -> None:
         """ Append a song to the end of the song list. Thus an ordered list.
@@ -626,6 +789,116 @@ class LPs():
             if lp.title == title:
                 result.append(lp)
         return result
+
+    def from_xml_file(filepath: str) -> None:
+        """ Load the library from an xml file.
+
+            :param filepath:  The file path of the xml file to load
+            :type filepath:   str
+        """
+        def rel_element_text(head_node, rel_value) -> str:
+            rel_text = None
+            rel_node = head_node.find('a', rel=rel_value)
+            if rel_node is not None:
+                rel_text = rel_node.text.strip()
+            return rel_text
+
+        with open(filepath, 'r') as fp:
+            # Parse the formatted file for LPs
+            html = fp.read()
+            parsed_html = BeautifulSoup(html)
+
+            # Parse out the LPs
+            all_lp_elements = parsed_html.find_all('a', rel='lp')
+
+            # Process each LP element
+            for lp_element in all_lp_elements:
+                lp_title = rel_element_text(lp_element, 'title')
+
+                lp_artists = []
+                lp_artist_elements = lp_element.find_all('a', rel='artist')
+                for lp_artist_element in lp_artist_elements:
+                    lp_artist_name = lp_artist_element.text.strip()
+                    lp_artists.append(Artists.create_Artist(lp_artist_name))
+
+                lp_classical_composers = []
+                lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
+                for lp_classical_composer_element in lp_classical_composer_elements:
+                    lp_classical_composer_name = lp_classical_composer_element.text.strip()
+                    lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
+
+                lp_mixers = []
+                lp_mixer_elements = lp_element.find_all('a', rel='mixer')
+                for lp_mixer_element in lp_mixer_elements:
+                    lp_mixer_name = lp_mixer_element.text.strip()
+                    lp_mixers.append(Artists.create_Artist(lp_mixer_name))
+
+                lp_date = rel_element_text(lp_element, 'date')
+
+                lp_song_artists = []
+
+                # Process each side of the lp
+                lp_tracklist = []
+                all_side_elements = lp_element.find_all('a', rel='side')
+                for side_element in all_side_elements:
+                    side_title = side_element.find('h4').text.strip()
+                    # TODO: Check if multiple mixers exist
+                    side_mixer = rel_element_text(side_element, 'side-mixer')
+
+                    # Process each song on the side
+                    side_Songs = []
+                    all_side_songs = side_element.find_all('li')
+                    for song in all_side_songs:
+                        song_title = rel_element_text(song, 'song')
+                        song_album = rel_element_text(song, 'song-album')
+
+                        song_artists = []
+                        song_artist_elements = song.find_all('a', rel='song-artist')
+                        for song_artist_element in song_artist_elements:
+                            song_artist = Artists.create_Artist(song_artist_element.text.strip())
+                            song_artists.append(song_artist)
+                            lp_song_artists.append(song_artist)
+
+                        song_classical_composer_node = song.find('a', rel='song-classical-composer')
+                        song_classical_composer = None
+                        if song_classical_composer_node is not None:
+                            song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
+
+                        song_classical_work = rel_element_text(song, 'song-classical-work')
+                        song_country = rel_element_text(song, 'song-country')
+                        song_date = rel_element_text(song, 'song-date')
+                        song_mix = rel_element_text(song, 'song-mix')
+
+                        song_parts = []
+                        song_part_elements = song.find_all('a', rel='song-part')
+                        for song_part_element in song_part_elements:
+                            song_parts.append(song_part_element.text.strip())
+
+                        if song_artists != []:
+                            main_artist = song_artists[0]
+                            other_artists = song_artists[1:]
+                        else:
+                            main_artist = lp_artists[0]
+                            other_artists = lp_artists[1:]
+                        side_Songs.append(Song(title=song_title,
+                                               main_artist=main_artist,
+                                               additional_artists=other_artists,
+                                               album=song_album,
+                                               classical_composer=song_classical_composer,
+                                               classical_work=song_classical_work,
+                                               country=song_country,
+                                               date=song_date,
+                                               mix=song_mix,
+                                               parts=song_parts))
+                    side_tracklist = TrackList(side=side_title, side_mixer=side_mixer, song_list=side_Songs)
+                    lp_tracklist.append(side_tracklist)
+
+                # Create the LP and add it to all the artists found
+                # TODO: Handle artists vs composers vs mixers
+                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists, date=lp_date, mixer=lp_mixers)
+                for tracklist in lp_tracklist:
+                    new_LP.add_track(tracklist)
+                # TODO: Add LP to all artists
 
     def __str__(self) -> str:
         string = ''
