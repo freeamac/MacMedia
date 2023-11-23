@@ -266,6 +266,8 @@ class LPTestCase(unittest.TestCase):
         album_perm_1 = album_string_1 + album_string_2
         album_perm_2 = album_string_2 + album_string_1
         all_lps_string = str(all_lps)
+        self.maxDiff = None
+        self.assertEqual(all_lps_string, album_perm_1)
         self.assertTrue((album_perm_1 == all_lps_string) or (album_perm_2 == all_lps_string))
 
         # Test that we correctly create a new album when the title matches an
