@@ -95,7 +95,6 @@ jobs:
           
       - name: SonarCloud scanner
         uses: sonarsource/sonarcloud-github-action@master
-        if: ${{ inputs.ENABLE_SONAR }}
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
