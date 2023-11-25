@@ -16,7 +16,7 @@ on:
       ENABLE_SONAR:
         required: false
         type: boolean
-        default: false
+        default: true
         
     secrets:
         SONAR_TOKEN:
