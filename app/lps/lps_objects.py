@@ -485,22 +485,25 @@ class TrackList():
     def song_list(self) -> List[Song]:
         return self._song_list
 
-    def __init__(self, side: Optional[str] = None, side_mixer: Optional[_Artist] = None, song_list: List[Song] = []) -> None:
+    def __init__(self, side_name: Optional[str] = None, side_mixer_artist: Optional[_Artist] = None, songs: Optional[List[Song]] = None) -> None:
         """ Create a tracklist for an album.
 
-            :param side:   The name of the tracklist (eg. "Side A")
-            :type side:    str | None
+            :param side_name:          The name of the tracklist (eg. "Side A")
+            :type side_name:           str | None
 
-            :param side_mixer:  And optional mixer of the songs on this tracklist
-            :type side_mixer:   :class:`_Artist`
+            :param side_mixer_Artist:  And optional mixer of the songs on this tracklist
+            :type side_mixer_Artist:   :class:`_Artist`
+
+            :parm songs:               A list of songs on the track
+            :type songs:               list(:class:`Song`)
 
             :raises ArtistException:  If side_mixer is not a :class:`Artist`
         """
-        self._side = side
-        if side_mixer is not None and type(side_mixer) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(side_mixer))
-        self._side_mixer = side_mixer
-        self._song_list = song_list
+        self._side = side_name
+        if side_mixer_artist is not None and type(side_mixer_artist) is not _Artist:
+            raise ArtistException('{} is not an Artist object'.format(side_mixer_artist))
+        self._side_mixer = side_mixer_artist
+        self._song_list = songs
 
     def add_song(self, song: Song) -> None:
         """ Append a song to the end of the song list. Thus an ordered list.
@@ -511,7 +514,10 @@ class TrackList():
             :raises SongException:  If you are not adding a :class:`Song`
         """
         if type(song) is Song:
-            self._song_list.append(song)
+            if self._song_list is None:
+                self._song_list = [song]
+            else:
+                self._song_list.append(song)
         else:
             raise SongException('{} is not a song'.format(song))
 
@@ -556,8 +562,9 @@ class TrackList():
         if self._side_mixer is not None:
             string += 'mixed by {}'.format(self._side_mixer)
         string += '\n'
-        for counter, song in enumerate(self._song_list):
-            string += '{:2d}. {}'.format(counter + 1, song)
+        if self._song_list is not None:
+            for counter, song in enumerate(self._song_list):
+                string += '{:2d}. {}'.format(counter + 1, song)
         return string
 
 
@@ -783,7 +790,6 @@ class LPs():
             :returns:      The album if found. None, otherwise
             :rtype:        list(:class:`_LP` )
          """
-        # TODO: Return a list since titles might be repeated
         result = []
         for lp in self.lps:
             if lp.title == title:
@@ -842,7 +848,6 @@ class LPs():
                 all_side_elements = lp_element.find_all('a', rel='side')
                 for side_element in all_side_elements:
                     side_title = side_element.find('h4').text.strip()
-                    # TODO: Check if multiple mixers exist
                     side_mixer = rel_element_text(side_element, 'side-mixer')
 
                     # Process each song on the side
@@ -890,7 +895,7 @@ class LPs():
                                                date=song_date,
                                                mix=song_mix,
                                                parts=song_parts))
-                    side_tracklist = TrackList(side=side_title, side_mixer=side_mixer, song_list=side_Songs)
+                    side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
                     lp_tracklist.append(side_tracklist)
 
                 # Create the LP and add it to all the artists found
@@ -899,6 +904,15 @@ class LPs():
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
                 # TODO: Add LP to all artists
+
+    def to_xml_file(filepath: str) -> None:
+        """ Write the library to an xml file.
+
+            :param filepath:  The file path of the xml file to write to
+            :type filepath:   str
+        """
+        # TODO:  Implement
+        pass
 
     def __str__(self) -> str:
         string = ''

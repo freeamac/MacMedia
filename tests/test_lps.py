@@ -97,7 +97,7 @@ class LPTestCase(unittest.TestCase):
         song_1 = Song('Jump To The Beat', Artists().create_Artist('Dannii Minogue'), mix='12" Mix')
         song_2 = Song('Jump!', Artists().create_Artist('The Movement'), mix='Everybody Mix')
         song_3 = Song('Pull Our Love Together', Artists().create_Artist('Pandella'), mix='Komix Club Mix')
-        track = TrackList(side='Side 1')
+        track = TrackList(side_name='Side 1')
 
         # Test song addition
         track.add_song(song_1)
@@ -138,7 +138,7 @@ class LPTestCase(unittest.TestCase):
         song_2 = Song('Jump!', Artists().create_Artist('The Movement'), mix='Everybody Mix')
         song_3 = Song('Pull Our Love Together', Artists().create_Artist('Pandella'), mix='Komix Club Mix')
         song_4 = Song('Latino Mambo', Artists().create_Artist('Latin Side Od Soul'), mix='Dance Mix')
-        track = TrackList(side='Side 1')
+        track = TrackList(side_name='Side 1')
         track.add_song(song_1)
         track.add_song(song_2)
         track.add_song(song_3)
@@ -266,8 +266,6 @@ class LPTestCase(unittest.TestCase):
         album_perm_1 = album_string_1 + album_string_2
         album_perm_2 = album_string_2 + album_string_1
         all_lps_string = str(all_lps)
-        self.maxDiff = None
-        self.assertEqual(all_lps_string, album_perm_1)
         self.assertTrue((album_perm_1 == all_lps_string) or (album_perm_2 == all_lps_string))
 
         # Test that we correctly create a new album when the title matches an
