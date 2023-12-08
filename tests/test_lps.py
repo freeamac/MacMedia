@@ -1,3 +1,4 @@
+import os
 import unittest
 
 import pytest
@@ -16,6 +17,9 @@ from app.lps.lps_objects import (
 
 
 class LPTestCase(unittest.TestCase):
+
+    DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    MUSIC_XML_FILE = os.path.join(DATA_DIR, 'music.html')
 
     def test_Artist(self):
 
@@ -282,3 +286,15 @@ class LPTestCase(unittest.TestCase):
         self.assertEqual(2, len(artist_1.lps))
         self.assertIsNotNone(artists.find_artist('The Movement'))
         self.assertEqual(artist_2, artists.find_artist('Dannii Minogue'))
+
+    def test_reads_lps_xml(self):
+        # Test the reading of a music html file to extract all the LPs
+        all_artists = Artists()
+        all_artists._clean_artists()
+        all_lps = LPs()
+        all_lps._clean_lps()
+        all_lps.from_xml_file(self.MUSIC_XML_FILE)
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        #print('Number of artists found: {}'.format(len(all_artists._artists)))
+        print('Number of lps found: {}'.format(len(all_lps.lps)))
+        assert(False)

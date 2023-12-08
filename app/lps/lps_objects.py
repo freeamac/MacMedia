@@ -80,7 +80,7 @@ class _Artist():
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
         if lp in self._lps:
-            raise LPException('{} already in list of LPs for {}'.format(lp.name, self.name))
+            raise LPException('{} already in list of LPs for {}'.format(lp.title, self.name))
         else:
             self._lps.add(lp)
 
@@ -127,11 +127,13 @@ class Artists():
             cls._instance = super(Artists, cls).__new__(cls)
         return cls._instance
 
-    def _clean_artists(self):
+    @classmethod
+    def _clean_artists(cls):
         """ Private method to remove all artists from the collection. Useful in testing. """
-        self._artists = set()
+        cls._artists = set()
 
-    def create_Artist(self, name: str, skip_adding_to_artists_set: bool = False) -> _Artist:
+    @classmethod
+    def create_Artist(cls, name: str, skip_adding_to_artists_set: bool = False) -> _Artist:
         """ Return the named artist if they exist or create a new artist.
 
             By default a new artist is added to the set of all artists.
@@ -149,15 +151,16 @@ class Artists():
         """
         if name is None or '':
             raise ArtistException('An artist must have a name')
-        result = self.find_artist(name)
+        result = cls.find_artist(name)
         if result is not None:
             return result
         new_artist = _Artist(name)
         if not skip_adding_to_artists_set:
-            self.add_artist(new_artist)
+            cls.add_artist(new_artist)
         return new_artist
 
-    def add_artist(self, artist: _Artist) -> None:
+    @classmethod
+    def add_artist(cls, artist: _Artist) -> None:
         """ Add an artist to the set of all artists.
 
             :param artist:            The artist to add
@@ -168,11 +171,12 @@ class Artists():
         """
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
-        if artist in self.artists or self.find_artist(artist.name) is not None:
+        if artist in cls._artists or cls.find_artist(artist.name) is not None:
             raise ArtistException('Artist {} already exists'.format(artist))
-        self._artists.add(artist)
+        cls._artists.add(artist)
 
-    def delete_artist(self, artist: _Artist) -> None:
+    @classmethod
+    def delete_artist(cls, artist: _Artist) -> None:
         """ Delete an artist from the set of all artists.
 
             :param artist:            The artist to delete
@@ -180,12 +184,13 @@ class Artists():
 
             :raises ArtistException:  If artist does not exist in the set
         """
-        if artist not in self.artists:
+        if artist not in cls._artists:
             raise ArtistException('Artist {} does not exist'.format(artist))
         else:
-            self._artists.remove(artist)
+            cls._artists.remove(artist)
 
-    def artist_exists(self, artist: _Artist) -> bool:
+    @classmethod
+    def artist_exists(cls, artist: _Artist) -> bool:
         """ True if the artist is in the set of artists.
 
             :param artist:  The artist to add
@@ -194,9 +199,10 @@ class Artists():
             :returns:       True if the artist exists in the set of all artists
             :rtype:         bool
         """
-        return artist in self.artists
+        return artist in cls._artists
 
-    def find_artist(self, artist_name: str) -> Optional[_Artist]:
+    @classmethod
+    def find_artist(cls, artist_name: str) -> Optional[_Artist]:
         """ Returns the artist if an artist of that name exists in the set of all artists.
 
             :param artist_name:  Name of the artist to find
@@ -205,13 +211,14 @@ class Artists():
             :returns:            The artist if an artist of that name is found. Otherwise None
             :rtype:              :class:`_Artist` if found, otherwise None
         """
-        for artist in self._artists:
+        for artist in cls._artists:
             if artist.name == artist_name:
                 return artist
 
-    def __str__(self) -> str:
+    @classmethod
+    def __str__(cls) -> str:
         string = ''
-        for artist in self.artists:
+        for artist in cls._artists:
             string += '{}\n'.format(artist)
             string += '  Albums\n'
             string += '  ------\n'
@@ -354,14 +361,14 @@ class Song():
     def __init__(self,
                  title: str,
                  main_artist: Optional[_Artist] = None,
-                 additional_artists: List[_Artist] = [],
+                 additional_artists: Optional[List[_Artist]] = None,
                  album: Optional[str] = None,
                  classical_composer: Optional[_Artist] = None,
                  classical_work: Optional[str] = None,
                  country: Optional[str] = None,
                  date: Optional[str] = None,
                  mix: Optional[str] = None,
-                 parts: List[str] = []) -> None:
+                 parts: Optional[List[str]] = None) -> None:
         """ Creates a song found on an album.
 
             :param title:               The title of this song
@@ -373,7 +380,7 @@ class Song():
             :type main_artist:          :class:`_Artist`
 
             :param additional_artists:  Optional list of additional artists associated with the song
-            :type additional_artists:   list(:class:`Additional_Artist`)
+            :type additional_artists:   list(:class:`Additional_Artist`) | None
 
             :param album:               Name of the album this song is taken from
             :type album:                str
@@ -394,7 +401,7 @@ class Song():
             :type mix                   str
 
             :param parts:               A list of parts this song is divided into
-            :type parts:                list(str)
+            :type parts:                list(str) | None
 
             :raises ArtistException:    If main artist or classical composer is not None or :class:`_Artist`
 
@@ -403,9 +410,10 @@ class Song():
             """
         if main_artist is not None and type(main_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(main_artist))
-        for artist in additional_artists:
-            if type(artist) is not Additional_Artist:
-                raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
+        if additional_artists is not None:
+            for artist in additional_artists:
+                if type(artist) is not Additional_Artist:
+                    raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
         if classical_composer is not None and type(classical_composer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
 
@@ -440,7 +448,7 @@ class Song():
         string = '{}\n'.format(self.title)
         if self.main_artist is not None:
             string += '{}\n'.format(self.main_artist)
-        if self.additional_artists != []:
+        if self.additional_artists is not None:
             for additional_artist in self.additional_artists:
                 string += '{}'.format(additional_artist)
             string += '\n'
@@ -456,7 +464,7 @@ class Song():
             string += '({})\n'.format(self.date)
         if self.mix is not None:
             string += '({})\n'.format(self.mix)
-        if self.parts != []:
+        if self.parts is not None:
             for part in self.parts:
                 string += '({})\n'.format(part)
         return string
@@ -588,6 +596,10 @@ class _LP():
         return self._mixer
 
     @property
+    def classical_composer(self) -> Optional[_Artist]:
+        return self._classical_composer
+
+    @property
     def tracks(self) -> List[TrackList]:
         return self._tracks
 
@@ -606,7 +618,7 @@ class _LP():
         """
         return md5(bytes(title + artist_name, 'utf-8')).hexdigest()
 
-    def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist]) -> None:
+    def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist] = None , classical_composer: Optional[_Artist] = None) -> None:
         self._title = title
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
@@ -617,6 +629,10 @@ class _LP():
         if mixer is not None and type(mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(mixer))
         self._mixer = mixer
+        if classical_composer is not None and type(classical_composer) is not _Artist:
+            raise ArtistException('{} is not an Artist object'.format(classical_composer))
+        self._classical_composer = classical_composer
+        self._id = self.to_hash(title, artist.name)
         self._id = self.to_hash(title, artist.name)
 
         # Tracks must be set at this level or a reference will exist in the
@@ -693,11 +709,19 @@ class LPs():
             cls._instance = super(LPs, cls).__new__(cls)
         return cls._instance
 
-    def _clean_lps(self):
+    @classmethod
+    def _clean_lps(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
-        self._lps = set()
+        cls._lps = set()
 
-    def create_LP(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist] = None, skip_adding_to_lp_list: bool = False) -> _LP:
+    @classmethod
+    def create_LP(cls,
+                  title: str,
+                  artist: _Artist,
+                  date: int,
+                  mixer: Optional[_Artist] = None,
+                  classical_composer: Optional[_Artist] = None,
+                  skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
             By default a new album is added to the set of all albums.
@@ -711,8 +735,11 @@ class LPs():
             :param date:                     The year the album was published
             :type date:                      int
 
-            :param artist:                   Optional album mixer
-            :type artist:                    :class:`_Artist`
+            :param mixer:                   Optional album mixer
+            :type mixer:                    :class:`_Artist`
+
+            :param classical_composer:      Optional album classical composer
+            :type classical_composer:       :class:`_Artist`
 
             :param skip_addiing_to_lp_list:  If true, do not add new album to albums set
             :type skip_adding_to_lp_list:    bool
@@ -725,7 +752,7 @@ class LPs():
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an artist'.format(artist))
 
-        results = self.find_lp_by_title(title)
+        results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
             new_album_id = _LP.to_hash(title, artist.name)
@@ -738,10 +765,11 @@ class LPs():
         if mixer is not None:
             mixer.add_lp(new_lp)
         if not skip_adding_to_lp_list:
-            self.add_lp(new_lp)
+            cls.add_lp(new_lp)
         return new_lp
 
-    def add_lp(self, lp: _LP) -> None:
+    @classmethod
+    def add_lp(cls, lp: _LP) -> None:
         """ Add an album to the set of all albums.
 
             :param lp:            The album to add
@@ -751,11 +779,12 @@ class LPs():
         """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
-        if lp in self._lps:
+        if lp in cls._lps:
             raise LPException('LP {} already exists'.format(lp))
-        self._lps.add(lp)
+        cls._lps.add(lp)
 
-    def delete_lp(self, lp: _LP) -> None:
+    @classmethod
+    def delete_lp(cls, lp: _LP) -> None:
         """ Remove the album from the set of all albums.
 
             Also remove the album from the set of all albums owned by
@@ -764,13 +793,14 @@ class LPs():
             :param lp:  The album to add
             :type lp:   :class:`_LP`
         """
-        if lp in self.lps:
+        if lp in cls._lps:
             lp.artist.delete_lp(lp)
             if lp.mixer is not None:
                 lp.mixer.delete_lp(lp)
-            self._lps.remove(lp)
+            cls._lps.remove(lp)
 
-    def lp_exists(self, lp: _LP) -> bool:
+    @classmethod
+    def lp_exists(cls, lp: _LP) -> bool:
         """ Returns true of the album exists in the set of albums.
 
             :param lp:  The album to add
@@ -779,9 +809,10 @@ class LPs():
             :returns:   True if the album exists in the set of all albums
             :rtype:     bool
         """
-        return lp in self.lps
+        return lp in cls._lps
 
-    def find_lp_by_title(self, title: str) -> List[_LP]:
+    @classmethod
+    def find_lp_by_title(cls, title: str) -> List[_LP]:
         """ Returns the albums in the set of all albums that matches the passed album title. Otherwise, empty list.
 
             :param title:  The album title to search for
@@ -791,12 +822,13 @@ class LPs():
             :rtype:        list(:class:`_LP` )
          """
         result = []
-        for lp in self.lps:
+        for lp in cls._lps:
             if lp.title == title:
                 result.append(lp)
         return result
 
-    def from_xml_file(filepath: str) -> None:
+    @classmethod
+    def from_xml_file(cls, filepath: str) -> None:
         """ Load the library from an xml file.
 
             :param filepath:  The file path of the xml file to load
@@ -826,6 +858,11 @@ class LPs():
                 for lp_artist_element in lp_artist_elements:
                     lp_artist_name = lp_artist_element.text.strip()
                     lp_artists.append(Artists.create_Artist(lp_artist_name))
+                
+                # Track down albums with more than one artist credit
+                if len(lp_artists) > 1:
+                    print('Title: {}'.format(lp_title))
+                    assert(len(lp_artists) == 1)
 
                 lp_classical_composers = []
                 lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
@@ -833,11 +870,21 @@ class LPs():
                     lp_classical_composer_name = lp_classical_composer_element.text.strip()
                     lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
 
+                # Track down albums with more than one classical composer credit
+                if len(lp_classical_composers) > 1:
+                    print('Title: {}'.format(lp_title))
+                    assert(len(lp_classical_composers) == 1)
+
                 lp_mixers = []
                 lp_mixer_elements = lp_element.find_all('a', rel='mixer')
                 for lp_mixer_element in lp_mixer_elements:
                     lp_mixer_name = lp_mixer_element.text.strip()
                     lp_mixers.append(Artists.create_Artist(lp_mixer_name))
+
+                # Track down albums with more than one mixer credit
+                if len(lp_mixers) > 1:
+                    print('Title: {}'.format(lp_title))
+                    assert(len(lp_mixers) == 1)
 
                 lp_date = rel_element_text(lp_element, 'date')
 
@@ -857,12 +904,40 @@ class LPs():
                         song_title = rel_element_text(song, 'song')
                         song_album = rel_element_text(song, 'song-album')
 
-                        song_artists = []
-                        song_artist_elements = song.find_all('a', rel='song-artist')
-                        for song_artist_element in song_artist_elements:
-                            song_artist = Artists.create_Artist(song_artist_element.text.strip())
-                            song_artists.append(song_artist)
-                            lp_song_artists.append(song_artist)
+                        # Song artist by default is only the album artist
+                        main_artist = lp_artists[0]
+                        additional_artists = None
+
+                        # TODO: Determine prequel and sequel
+                        song_artist_block = song.find('b')
+                        if song_artist_block is not None:
+                            song_artist_elements = song_artist_block.find_all('a', rel='song-artist')
+                            if song_artist_elements != []:
+                                # First listed is the main artist
+                                main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
+                                
+                                # Parse out all the other artists associated with the sone
+                                other_artists = []
+                                for song_artist_element in song_artist_elements[1:]:
+                                    other_artist = Artists.create_Artist(song_artist_element.text.strip())
+                                    other_artists.append(other_artist)
+                                    lp_song_artists.append(other_artist)
+
+                                # Now convert those other artists into additional artists which
+                                # means parsing any prequel and sequel information
+                                len_additional_artists = len(other_artists)
+                                song_block_text = song_artist_block.text.replace(main_artist.name, '').strip()
+                                additional_artists = []
+                                for artist_index, other_artist in enumerate(other_artists):
+                                    index_of_artist = song_block_text.index(other_artist.name)
+                                    prequel = song_block_text[0:index_of_artist]
+                                    sequel = ''
+                                    if artist_index == len_additional_artists - 1:
+                                        # Add end of list so need to look for a sequel
+                                        sequel = song_block_text[index_of_artist + len(other_artist.name):] 
+                                    additional_artist = Additional_Artist(other_artist, prequel=prequel, sequel=sequel)
+                                    print(additional_artist)
+                                    additional_artists.append(additional_artist)
 
                         song_classical_composer_node = song.find('a', rel='song-classical-composer')
                         song_classical_composer = None
@@ -879,15 +954,9 @@ class LPs():
                         for song_part_element in song_part_elements:
                             song_parts.append(song_part_element.text.strip())
 
-                        if song_artists != []:
-                            main_artist = song_artists[0]
-                            other_artists = song_artists[1:]
-                        else:
-                            main_artist = lp_artists[0]
-                            other_artists = lp_artists[1:]
                         side_Songs.append(Song(title=song_title,
                                                main_artist=main_artist,
-                                               additional_artists=other_artists,
+                                               additional_artists=additional_artists,
                                                album=song_album,
                                                classical_composer=song_classical_composer,
                                                classical_work=song_classical_work,
@@ -900,12 +969,23 @@ class LPs():
 
                 # Create the LP and add it to all the artists found
                 # TODO: Handle artists vs composers vs mixers
-                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists, date=lp_date, mixer=lp_mixers)
+                if lp_mixers == []:
+                    lp_mixer = None
+                else:
+                    lp_mixer = lp_mixers[0]
+                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], date=int(lp_date), mixer=lp_mixer)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
-                # TODO: Add LP to all artists
+                
+                # Add LP to all song artists found once we dedupe them
+                for artist in set(lp_song_artists):
+                    # Need to skip any that are also album artists since they have 
+                    # already been added
+                    if artist not in lp_artists:
+                        artist.add_lp(new_LP)
 
-    def to_xml_file(filepath: str) -> None:
+    @classmethod
+    def to_xml_file(cls, filepath: str) -> None:
         """ Write the library to an xml file.
 
             :param filepath:  The file path of the xml file to write to
