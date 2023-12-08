@@ -19,7 +19,7 @@ from app.lps.lps_objects import (
 class LPTestCase(unittest.TestCase):
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
-    MUSIC_XML_FILE = os.path.join(DATA_DIR, 'music.html')
+    MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
 
     def test_Artist(self):
 
@@ -293,7 +293,7 @@ class LPTestCase(unittest.TestCase):
         all_artists._clean_artists()
         all_lps = LPs()
         all_lps._clean_lps()
-        all_lps.from_xml_file(self.MUSIC_XML_FILE)
+        all_lps.from_html_file(self.MUSIC_HTML_FILE)
         print('Number of artists found: {}'.format(len(all_artists.artists)))
         #print('Number of artists found: {}'.format(len(all_artists._artists)))
         print('Number of lps found: {}'.format(len(all_lps.lps)))

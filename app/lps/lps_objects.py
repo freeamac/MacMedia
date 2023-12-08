@@ -26,6 +26,7 @@ from hashlib import md5
 from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 
 
 class LPException(Exception):
@@ -231,6 +232,10 @@ class Artists():
 class Additional_Artist():
     """ Formatting structure used for additional artists associated with a :class:`Song`. """
 
+    @property
+    def artist(self):
+        return self._artist
+
     def __init__(self, artist: _Artist, prequel: Optional[str] = None, sequel: Optional[str] = None) -> None:
         """ Create formatting structure for an addition artist.
 
@@ -254,17 +259,17 @@ class Additional_Artist():
         """
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
-        self.artist = artist
-        self.prequel = prequel
-        self.sequel = sequel
+        self._artist = artist
+        self._prequel = prequel
+        self._sequel = sequel
 
     def __str__(self) -> str:
-        if self.prequel is not None:
-            string = '{}{}'.format(self.prequel, self.artist)
+        if self._prequel is not None:
+            string = '{}{}'.format(self._prequel, self._artist)
         else:
-            string = '{}'.format(self.artist)
-        if self.sequel is not None:
-            string += self.sequel
+            string = '{}'.format(self._artist)
+        if self._sequel is not None:
+            string += self._sequel
         return string
 
 
@@ -828,10 +833,10 @@ class LPs():
         return result
 
     @classmethod
-    def from_xml_file(cls, filepath: str) -> None:
-        """ Load the library from an xml file.
+    def from_html_file(cls, filepath: str) -> None:
+        """ Load the library from an html file.
 
-            :param filepath:  The file path of the xml file to load
+            :param filepath:  The file path of the html file to load
             :type filepath:   str
         """
         def rel_element_text(head_node, rel_value) -> str:
@@ -841,53 +846,113 @@ class LPs():
                 rel_text = rel_node.text.strip()
             return rel_text
 
+        def get_lp_metadata(lp_element: Tag) -> (str, List[_Artist], List[_Artist], List[_Artist], str):
+            """ Parse the album tag for the album specific metadata.
+
+                The album metadata is the album title, list of album artists, list of album composers,
+                list of album mixers and the date the LP was produced. The composer and mixer list
+                may be optional.
+
+                :param lp_element:   The Tag node for an album.
+                :type lp_element:    :class:`bs2.element.Tag`
+
+                :returns:            A tuple of the album metadata: title, artists, composers, mixers
+                                     and production date
+                :rtype:              tuple(str, list(:class:`_Artist`), list(:class:`_Artist`), list(:class:`_Artist`), str)
+            """
+            lp_title = rel_element_text(lp_element, 'title')
+
+            lp_artists = []
+            lp_artist_elements = lp_element.find_all('a', rel='artist')
+            for lp_artist_element in lp_artist_elements:
+                lp_artist_name = lp_artist_element.text.strip()
+                lp_artists.append(Artists.create_Artist(lp_artist_name))
+
+            # Track down albums with more than one artist credit
+            if len(lp_artists) > 1:
+                print('Title: {}'.format(lp_title))
+                assert(len(lp_artists) == 1)
+
+            lp_classical_composers = []
+            lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
+            for lp_classical_composer_element in lp_classical_composer_elements:
+                lp_classical_composer_name = lp_classical_composer_element.text.strip()
+                lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
+
+            # Track down albums with more than one classical composer credit
+            if len(lp_classical_composers) > 1:
+                print('Title: {}'.format(lp_title))
+                assert(len(lp_classical_composers) == 1)
+
+            lp_mixers = []
+            lp_mixer_elements = lp_element.find_all('a', rel='mixer')
+            for lp_mixer_element in lp_mixer_elements:
+                lp_mixer_name = lp_mixer_element.text.strip()
+                lp_mixers.append(Artists.create_Artist(lp_mixer_name))
+
+            # Track down albums with more than one mixer credit
+            if len(lp_mixers) > 1:
+                print('Title: {}'.format(lp_title))
+                assert(len(lp_mixers) == 1)
+
+            lp_date = rel_element_text(lp_element, 'date')
+
+            return lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date
+
+        def get_song_additional_artists(song_artist_block: Tag) -> (Optional[_Artist], List[Additional_Artist]):
+            """ Get the optional main artist and additional artists from the song artist block
+
+                It is possible to have no main artist and list of additional artists returned
+                as the candidate song artist block may not have any song artists listed inside.
+
+                :param song_artist_block:   The Tag node for a song artist block.
+                :type song_artist_block:    :class:`bs2.element.Tag`
+
+                :returns:
+                :rtype:                     tuple(_Artist | None, list(Additional_Artist))
+            """
+            main_artist = None
+            additional_artists = []
+            song_artist_elements = song_artist_block.find_all('a', rel='song-artist')
+            if song_artist_elements != []:
+                # First listed is the main artist
+                main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
+
+                # Parse out all the other artists associated with the sone
+                other_artists = []
+                for song_artist_element in song_artist_elements[1:]:
+                    other_artist = Artists.create_Artist(song_artist_element.text.strip())
+                    other_artists.append(other_artist)
+                    lp_song_artists.append(other_artist)
+
+                # Now convert those other artists into additional artists which
+                # means parsing any prequel and sequel information
+                len_additional_artists = len(other_artists)
+                song_block_text = song_artist_block.text.replace(main_artist.name, '').strip()
+                for artist_index, other_artist in enumerate(other_artists):
+                    index_of_artist = song_block_text.index(other_artist.name)
+                    prequel = song_block_text[0:index_of_artist]
+                    sequel = ''
+                    if artist_index == len_additional_artists - 1:
+                        # Add end of list so need to look for a sequel
+                        sequel = song_block_text[index_of_artist + len(other_artist.name):]
+                    additional_artist = Additional_Artist(other_artist, prequel=prequel, sequel=sequel)
+                    print(additional_artist)
+                    additional_artists.append(additional_artist)
+            return main_artist, additional_artists
+
         with open(filepath, 'r') as fp:
             # Parse the formatted file for LPs
             html = fp.read()
-            parsed_html = BeautifulSoup(html)
+            parsed_html = BeautifulSoup(html, features="html.parser")
 
             # Parse out the LPs
             all_lp_elements = parsed_html.find_all('a', rel='lp')
 
             # Process each LP element
             for lp_element in all_lp_elements:
-                lp_title = rel_element_text(lp_element, 'title')
 
-                lp_artists = []
-                lp_artist_elements = lp_element.find_all('a', rel='artist')
-                for lp_artist_element in lp_artist_elements:
-                    lp_artist_name = lp_artist_element.text.strip()
-                    lp_artists.append(Artists.create_Artist(lp_artist_name))
-                
-                # Track down albums with more than one artist credit
-                if len(lp_artists) > 1:
-                    print('Title: {}'.format(lp_title))
-                    assert(len(lp_artists) == 1)
-
-                lp_classical_composers = []
-                lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
-                for lp_classical_composer_element in lp_classical_composer_elements:
-                    lp_classical_composer_name = lp_classical_composer_element.text.strip()
-                    lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
-
-                # Track down albums with more than one classical composer credit
-                if len(lp_classical_composers) > 1:
-                    print('Title: {}'.format(lp_title))
-                    assert(len(lp_classical_composers) == 1)
-
-                lp_mixers = []
-                lp_mixer_elements = lp_element.find_all('a', rel='mixer')
-                for lp_mixer_element in lp_mixer_elements:
-                    lp_mixer_name = lp_mixer_element.text.strip()
-                    lp_mixers.append(Artists.create_Artist(lp_mixer_name))
-
-                # Track down albums with more than one mixer credit
-                if len(lp_mixers) > 1:
-                    print('Title: {}'.format(lp_title))
-                    assert(len(lp_mixers) == 1)
-
-                lp_date = rel_element_text(lp_element, 'date')
-
+                lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
                 lp_song_artists = []
 
                 # Process each side of the lp
@@ -908,36 +973,16 @@ class LPs():
                         main_artist = lp_artists[0]
                         additional_artists = None
 
-                        # TODO: Determine prequel and sequel
+                        # Determine main song and additional song artists with prequel and sequel information
                         song_artist_block = song.find('b')
                         if song_artist_block is not None:
-                            song_artist_elements = song_artist_block.find_all('a', rel='song-artist')
-                            if song_artist_elements != []:
-                                # First listed is the main artist
-                                main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
-                                
-                                # Parse out all the other artists associated with the sone
-                                other_artists = []
-                                for song_artist_element in song_artist_elements[1:]:
-                                    other_artist = Artists.create_Artist(song_artist_element.text.strip())
-                                    other_artists.append(other_artist)
-                                    lp_song_artists.append(other_artist)
-
-                                # Now convert those other artists into additional artists which
-                                # means parsing any prequel and sequel information
-                                len_additional_artists = len(other_artists)
-                                song_block_text = song_artist_block.text.replace(main_artist.name, '').strip()
-                                additional_artists = []
-                                for artist_index, other_artist in enumerate(other_artists):
-                                    index_of_artist = song_block_text.index(other_artist.name)
-                                    prequel = song_block_text[0:index_of_artist]
-                                    sequel = ''
-                                    if artist_index == len_additional_artists - 1:
-                                        # Add end of list so need to look for a sequel
-                                        sequel = song_block_text[index_of_artist + len(other_artist.name):] 
-                                    additional_artist = Additional_Artist(other_artist, prequel=prequel, sequel=sequel)
-                                    print(additional_artist)
-                                    additional_artists.append(additional_artist)
+                            song_main_artist, song_additional_artists = get_song_additional_artists(song_artist_block)
+                            if song_main_artist is not None:
+                                main_artist = song_main_artist
+                            if song_additional_artists != []:
+                                for additional_artist in song_additional_artists:
+                                    lp_song_artists.append(additional_artist.artist)
+                                additional_artists = song_additional_artists
 
                         song_classical_composer_node = song.find('a', rel='song-classical-composer')
                         song_classical_composer = None
@@ -973,22 +1018,26 @@ class LPs():
                     lp_mixer = None
                 else:
                     lp_mixer = lp_mixers[0]
-                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], date=int(lp_date), mixer=lp_mixer)
+                if lp_classical_composers == []:
+                    lp_classical_composer = None
+                else:
+                    lp_classical_composer = lp_classical_composers[0]
+                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], date=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
-                
+
                 # Add LP to all song artists found once we dedupe them
                 for artist in set(lp_song_artists):
-                    # Need to skip any that are also album artists since they have 
+                    # Need to skip any that are also album artists since they have
                     # already been added
                     if artist not in lp_artists:
                         artist.add_lp(new_LP)
 
     @classmethod
-    def to_xml_file(cls, filepath: str) -> None:
-        """ Write the library to an xml file.
+    def to_html_file(cls, filepath: str) -> None:
+        """ Write the library to an html file.
 
-            :param filepath:  The file path of the xml file to write to
+            :param filepath:  The file path of the html file to write to
             :type filepath:   str
         """
         # TODO:  Implement
