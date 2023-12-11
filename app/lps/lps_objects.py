@@ -354,12 +354,12 @@ class Song():
         self._country = new_country
 
     @property
-    def date(self) -> int:
-        return self._date
+    def year(self) -> int:
+        return self._year
 
-    @date.setter
-    def date(self, new_date) -> None:
-        self._date = new_date
+    @year.setter
+    def year(self, new_year) -> None:
+        self._year = new_year
 
     @property
     def mix(self) -> str:
@@ -385,7 +385,7 @@ class Song():
                  classical_composer: Optional[_Artist] = None,
                  classical_work: Optional[str] = None,
                  country: Optional[str] = None,
-                 date: Optional[int] = None,
+                 year: Optional[int] = None,
                  mix: Optional[str] = None,
                  parts: Optional[List[str]] = None) -> None:
         """ Creates a song found on an album.
@@ -413,8 +413,8 @@ class Song():
             :param country:             The country this song is from
             :type country:              str
 
-            :param date:                The date (year) of this song
-            :type date:                 str
+            :param year:                The year of this song
+            :type year:                 str
 
             :param mix:                 Optional song mix
             :type mix                   str
@@ -443,7 +443,9 @@ class Song():
         self._classical_composer = classical_composer
         self._classical_work = classical_work
         self._country = country
-        self._date = date
+        if year is not None and type(year) != int:
+            raise SongException('{} is not a valid integer year'.format(year))
+        self._year = year
         self._mix = mix
         self._parts = parts
 
@@ -479,8 +481,8 @@ class Song():
             string += '({})\n'.format(self.classical_work)
         if self.country is not None:
             string += '({})\n'.format(self.country)
-        if self.date is not None:
-            string += '({})\n'.format(self.date)
+        if self.year is not None:
+            string += '({})\n'.format(self.year)
         if self.mix is not None:
             string += '({})\n'.format(self.mix)
         if self.parts is not None:
@@ -607,8 +609,8 @@ class _LP():
         return self._artist
 
     @property
-    def date(self) -> int:
-        return self._date
+    def year(self) -> int:
+        return self._year
 
     @property
     def mixer(self) -> Optional[_Artist]:
@@ -637,14 +639,14 @@ class _LP():
         """
         return md5(bytes(title + artist_name, 'utf-8')).hexdigest()
 
-    def __init__(self, title: str, artist: _Artist, date: int, mixer: Optional[_Artist] = None , classical_composer: Optional[_Artist] = None) -> None:
+    def __init__(self, title: str, artist: _Artist, year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
         self._title = title
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         self._artist = artist
-        if type(date) is not int:
-            raise TypeError('Date must be an int value')
-        self._date = date
+        if type(year) is not int:
+            raise TypeError('Year must be an int value')
+        self._year = year
         if mixer is not None and type(mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(mixer))
         self._mixer = mixer
@@ -707,7 +709,7 @@ class _LP():
         string = '{}\n{}\n'.format(self.title, self.artist)
         if self.mixer is not None:
             string += 'Mixed by {}\n'.format(self.mixer)
-        string += '{}'.format(self.date)
+        string += '{}'.format(self.year)
         for track in self.tracks:
             string += str(track)
         string += '\n'
@@ -737,7 +739,7 @@ class LPs():
     def create_LP(cls,
                   title: str,
                   artist: _Artist,
-                  date: int,
+                  year: int,
                   mixer: Optional[_Artist] = None,
                   classical_composer: Optional[_Artist] = None,
                   skip_adding_to_lp_list: bool = False) -> _LP:
@@ -751,8 +753,8 @@ class LPs():
             :param artist:                   The album artist
             :type artist:                    :class:`_Artist`
 
-            :param date:                     The year the album was published
-            :type date:                      int
+            :param year:                     The year the album was published
+            :type year:                      int
 
             :param mixer:                   Optional album mixer
             :type mixer:                    :class:`_Artist`
@@ -779,7 +781,7 @@ class LPs():
                 if result._id == new_album_id:
                     return result
         # Create the new album
-        new_lp = _LP(title, artist, date, mixer)
+        new_lp = _LP(title, artist, year, mixer)
         artist.add_lp(new_lp)
         if mixer is not None:
             mixer.add_lp(new_lp)
@@ -847,6 +849,24 @@ class LPs():
         return result
 
     @classmethod
+    def find_lps_by_year(cls, year: int) -> List[_LP]:
+        """ Return a list of albums produced in the passed year.
+
+            :param year:  Find albums produced in this year
+            :type year:   int
+
+            :returns:     A list of albums produced in that year
+            :rtype:       list(:class:`_LP`) | None
+        """
+        lps_found = []
+        for lp in cls._lps:
+            if lp.year == year:
+                lps_found.append(lp)
+        if lps_found == []:
+            return None
+        return lps_found
+
+    @classmethod
     def from_html_file(cls, filepath: str) -> None:
         """ Load the library from an html file.
 
@@ -864,14 +884,14 @@ class LPs():
             """ Parse the album tag for the album specific metadata.
 
                 The album metadata is the album title, list of album artists, list of album composers,
-                list of album mixers and the date the LP was produced. The composer and mixer list
+                list of album mixers and the year the LP was produced. The composer and mixer list
                 may be optional.
 
                 :param lp_element:   The Tag node for an album.
                 :type lp_element:    :class:`bs2.element.Tag`
 
                 :returns:            A tuple of the album metadata: title, artists, composers, mixers
-                                     and production date
+                                     and production year
                 :rtype:              tuple(str, list(:class:`_Artist`), list(:class:`_Artist`), list(:class:`_Artist`), str)
             """
             lp_title = rel_element_text(lp_element, 'title')
@@ -1051,7 +1071,7 @@ class LPs():
                                                classical_composer=song_classical_composer,
                                                classical_work=song_classical_work,
                                                country=song_country,
-                                               date=song_date,
+                                               year=song_date,
                                                mix=song_mix,
                                                parts=song_parts))
                     side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
@@ -1067,7 +1087,7 @@ class LPs():
                     lp_classical_composer = None
                 else:
                     lp_classical_composer = lp_classical_composers[0]
-                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], date=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
+                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
 
