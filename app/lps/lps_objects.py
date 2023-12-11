@@ -637,7 +637,7 @@ class _LP():
             :returns:            md5 has string
             :rtype:              str
         """
-        return md5(bytes(title + artist_name, 'utf-8')).hexdigest()
+        return md5(bytes(title + artist_name, 'utf-8')).hexdigest()  # nosec
 
     def __init__(self, title: str, artist: _Artist, year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
         self._title = title
@@ -905,7 +905,7 @@ class LPs():
             # Track down albums with more than one artist credit
             if len(lp_artists) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_artists) == 1)
+                assert(len(lp_artists) == 1)  # nosec
 
             lp_classical_composers = []
             lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
@@ -916,7 +916,7 @@ class LPs():
             # Track down albums with more than one classical composer credit
             if len(lp_classical_composers) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_classical_composers) == 1)
+                assert(len(lp_classical_composers) == 1)  # nosec
 
             lp_mixers = []
             lp_mixer_elements = lp_element.find_all('a', rel='mixer')
@@ -927,7 +927,7 @@ class LPs():
             # Track down albums with more than one mixer credit
             if len(lp_mixers) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_mixers) == 1)
+                assert(len(lp_mixers) == 1)  # nosec
 
             lp_date = rel_element_text(lp_element, 'date')
 
