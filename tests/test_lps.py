@@ -321,7 +321,7 @@ class LPTestCase(unittest.TestCase):
         self.assertEqual(buble, jingle_bells_song.main_artist)
         self.assertEqual(puppini_sisters, jingle_bells_song.additional_artists[0].artist)
 
-        williams = all_artists.find_artist('John William')
+        williams = all_artists.find_artist('John Williams')
         self.assertEqual(len(williams.lps), 2)
         track1 = williams.find_lp('Greatest Hits').tracks[0]
         self.assertEqual(track1.side, 'Side 1')
