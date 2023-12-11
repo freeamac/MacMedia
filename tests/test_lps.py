@@ -20,7 +20,7 @@ class LPTestCase(unittest.TestCase):
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
     # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
-    MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music2.html')
+    MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'test_music.html')
 
     def test_Artist(self):
 
