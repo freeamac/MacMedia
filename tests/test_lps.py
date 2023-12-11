@@ -19,7 +19,7 @@ from app.lps.lps_objects import (
 class LPTestCase(unittest.TestCase):
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
-    #MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
+    # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
     MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music2.html')
 
     def test_Artist(self):
@@ -150,13 +150,13 @@ class LPTestCase(unittest.TestCase):
 
         album_artist = Artists().create_Artist('Various Artists')
         album_mixer = Artists().create_Artist('DJ Funk')
-        album = LPs().create_LP('Club Cutz Volume 3', artist=album_artist, date=1992, mixer=album_mixer)
+        album = LPs().create_LP('Club Cutz Volume 3', artist=album_artist, year=1992, mixer=album_mixer)
         album.add_track(track=track)
 
         # Test properties creation
         self.assertEqual('Club Cutz Volume 3', album.title)
         self.assertEqual(album_artist, album.artist)
-        self.assertEqual(1992, album.date)
+        self.assertEqual(1992, album.year)
         self.assertEqual(album_mixer, album.mixer)
 
         # Test song searching
@@ -173,7 +173,7 @@ class LPTestCase(unittest.TestCase):
         with pytest.raises(TrackListException):
             album.add_track('Hello')
         with pytest.raises(ArtistException):
-            album = LPs().create_LP('Club Cutz Volume 9', artist=album_artist, date=1992, mixer='Hello')
+            album = LPs().create_LP('Club Cutz Volume 9', artist=album_artist, year=1992, mixer='Hello')
 
         # Test string output
         expected_string = 'Club Cutz Volume 3\n'
@@ -213,7 +213,7 @@ class LPTestCase(unittest.TestCase):
         track_1.add_song(song_2)
         track_1.add_song(song_3)
 
-        album_1 = LPs().create_LP('Club Cutz Volume 3', artist=artist_1, date=1992)
+        album_1 = LPs().create_LP('Club Cutz Volume 3', artist=artist_1, year=1992)
         album_1.add_track(track=track_1)
 
         song_4 = Song('He\'s All I Want', artist_5, mix='Cappery Mix')
@@ -224,7 +224,7 @@ class LPTestCase(unittest.TestCase):
         track_2.add_song(song_5)
         track_2.add_song(song_6)
         album_2_artist = Artists().create_Artist('Various Artists')
-        album_2 = LPs().create_LP('Various: 01 Dance Music: Modernlife', artist=album_2_artist, date=2000)
+        album_2 = LPs().create_LP('Various: 01 Dance Music: Modernlife', artist=album_2_artist, year=2000)
         album_2.add_track(track_2)
 
         # Test Singleton
@@ -233,7 +233,7 @@ class LPTestCase(unittest.TestCase):
 
         # Test existence
         self.assertTrue(all_lps.lp_exists(album_2))
-        missing_album = LPs().create_LP('Missing Gold', artist=Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_set=True), date=1920, skip_adding_to_lp_list=True)
+        missing_album = LPs().create_LP('Missing Gold', artist=Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_set=True), year=1920, skip_adding_to_lp_list=True)
         self.assertFalse(all_lps.lp_exists(missing_album))
 
         # Test we can only add valid albums
@@ -275,7 +275,7 @@ class LPTestCase(unittest.TestCase):
 
         # Test that we correctly create a new album when the title matches an
         # existing album
-        new_album = LPs().create_LP('Club Cutz Volume 3', artist=artist_2, date=1992)
+        new_album = LPs().create_LP('Club Cutz Volume 3', artist=artist_2, year=1992)
         self.assertNotEqual(album_1, new_album)
         search_results = all_lps.find_lp_by_title('Club Cutz Volume 3')
         self.assertEqual(2, len(search_results))
@@ -296,10 +296,8 @@ class LPTestCase(unittest.TestCase):
         all_lps._clean_lps()
         all_lps.from_html_file(self.MUSIC_HTML_FILE)
         print('Number of artists found: {}'.format(len(all_artists.artists)))
-        #print(all_artists)
-        #print('Number of artists found: {}'.format(len(all_artists._artists)))
         print('Number of lps found: {}'.format(len(all_lps.lps)))
-        
+
         puppini_sisters = all_artists.find_artist('The Puppini Sisters')
         puppini_sisters_albums = puppini_sisters.lps
         self.assertEqual(1, len(puppini_sisters_albums))
@@ -337,10 +335,12 @@ class LPTestCase(unittest.TestCase):
         adagio_song_additional_artists = set(['Eugene Ormandy', 'Members of the Philadelphia Orchestra'])
         additional_artists = set([additional_artist.artist.name for additional_artist in adagio_song.additional_artists])
         self.assertEqual(adagio_song_additional_artists, additional_artists)
-        
+
         whos_zoo = all_lps.find_lp_by_title('Who\'s Zoo')[0]
         self.assertEqual(len(whos_zoo.tracks), 4)
         im_the_face_song = whos_zoo.get_song_from_title('I\'m The Face')
-        self.assertEqual(im_the_face_song.date, 1964)
-        self.assertEqual(im_the_face_song.additional_artists[0].artist.name,'The High Numbers')
-        assert(False)
+        self.assertEqual(im_the_face_song.year, 1964)
+        self.assertEqual(im_the_face_song.additional_artists[0].artist.name, 'The High Numbers')
+
+        self.assertEqual(all_lps.find_lps_by_year(1974), [whos_zoo])
+        # assert(False)
