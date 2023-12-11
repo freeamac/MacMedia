@@ -26,7 +26,7 @@ from hashlib import md5
 from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup
-from bs4.element import Tag
+from bs4.element import NavigableString, Tag
 
 
 class LPException(Exception):
@@ -98,6 +98,19 @@ class _Artist():
         else:
             self._lps.remove(lp)
 
+    def find_lp(self, lp_title: str) -> Optional['_LP']:
+        """ Return the named album of the artist or None.
+
+            :param lp_title   Name of the album to locate
+            :type lp_title:   str
+
+            :returns:         The album or None
+            :rtype:           :class:`_LP` | None
+        """
+        for lp in self._lps:
+            if lp.title == lp_title:
+                return lp
+
     def update_name(self, new_name: str) -> None:
         """ Update the name of the artist.
 
@@ -117,6 +130,7 @@ class Artists():
     """ A singleton set of all music artists. """
     _instance = None
     _artists = set()
+    VARIOUS_ARTISTS = 'various artists'
 
     @property
     def artists(self) -> Set[_Artist]:
@@ -340,7 +354,7 @@ class Song():
         self._country = new_country
 
     @property
-    def date(self) -> str:
+    def date(self) -> int:
         return self._date
 
     @date.setter
@@ -371,7 +385,7 @@ class Song():
                  classical_composer: Optional[_Artist] = None,
                  classical_work: Optional[str] = None,
                  country: Optional[str] = None,
-                 date: Optional[str] = None,
+                 date: Optional[int] = None,
                  mix: Optional[str] = None,
                  parts: Optional[List[str]] = None) -> None:
         """ Creates a song found on an album.
@@ -899,28 +913,43 @@ class LPs():
 
             return lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date
 
-        def get_song_additional_artists(song_artist_block: Tag) -> (Optional[_Artist], List[Additional_Artist]):
+        def get_song_additional_artists(song_artist_block: Tag, lp_artist: _Artist, first_prequel: Optional[str] = None) -> (Optional[_Artist], List[Additional_Artist]):
             """ Get the optional main artist and additional artists from the song artist block
 
-                It is possible to have no main artist and list of additional artists returned
-                as the candidate song artist block may not have any song artists listed inside.
+                A `song_artist_block` resides inside a <b> tag. If the album artist is
+                "Various Artists", then the first listed artist is the main song artist
+                and returned. All other song artists are considered additional song
+                artists. Note that the prequel to the first song artist may reside outside
+                the `song_artist_block` and thus needs to be passed in if it exists.
 
                 :param song_artist_block:   The Tag node for a song artist block.
                 :type song_artist_block:    :class:`bs2.element.Tag`
 
-                :returns:
+                :param lp_artist:           The artist of the LP which is the main song artist
+                                            except on a Various Artists album
+                :type lp_artist:            :class:`_Artist`
+
+                :param first_prequel:       A prequel for the first artist which resides outside
+                                            the <b> tag
+                :type first_prequel:        str | None
+
+                :returns:                   Main song artist if they exists and a list of additional
+                                            song artists
                 :rtype:                     tuple(_Artist | None, list(Additional_Artist))
             """
             main_artist = None
             additional_artists = []
             song_artist_elements = song_artist_block.find_all('a', rel='song-artist')
             if song_artist_elements != []:
-                # First listed is the main artist
-                main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
+                other_artists_index = 0
+                # First listed is the main song artist on a Various Artists album
+                if Artists.VARIOUS_ARTISTS == lp_artist.name.lower():
+                    main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
+                    other_artists_index = 1  # Skip main artist in the list of other artists
 
                 # Parse out all the other artists associated with the sone
                 other_artists = []
-                for song_artist_element in song_artist_elements[1:]:
+                for song_artist_element in song_artist_elements[other_artists_index:]:
                     other_artist = Artists.create_Artist(song_artist_element.text.strip())
                     other_artists.append(other_artist)
                     lp_song_artists.append(other_artist)
@@ -928,16 +957,22 @@ class LPs():
                 # Now convert those other artists into additional artists which
                 # means parsing any prequel and sequel information
                 len_additional_artists = len(other_artists)
-                song_block_text = song_artist_block.text.replace(main_artist.name, '').strip()
+                song_block_text = song_artist_block.text.strip()
+                if main_artist is not None:
+                    song_block_text = song_block_text.replace(main_artist.name, '').strip()
                 for artist_index, other_artist in enumerate(other_artists):
                     index_of_artist = song_block_text.index(other_artist.name)
-                    prequel = song_block_text[0:index_of_artist]
+                    if artist_index == 0 and first_prequel is not None:
+                        # Handle prequel outside of the song block text. This occurs after a <br> text
+                        # and before the <b> tag
+                        prequel = first_prequel
+                    else:
+                        prequel = song_block_text[0:index_of_artist]
                     sequel = ''
                     if artist_index == len_additional_artists - 1:
                         # Add end of list so need to look for a sequel
                         sequel = song_block_text[index_of_artist + len(other_artist.name):]
                     additional_artist = Additional_Artist(other_artist, prequel=prequel, sequel=sequel)
-                    print(additional_artist)
                     additional_artists.append(additional_artist)
             return main_artist, additional_artists
 
@@ -973,10 +1008,17 @@ class LPs():
                         main_artist = lp_artists[0]
                         additional_artists = None
 
-                        # Determine main song and additional song artists with prequel and sequel information
+                        # Determine main song and additional song artists with prequel and sequel information.
+                        # The prequel information for the first listed song artist may reside between a <br>
+                        # and a <b> tag so that needs to be extracted and passed along
+                        first_prequel = None
+                        br_block = song.find('br')
+                        if br_block is not None:
+                            if type(br_block.next_sibling) == NavigableString:
+                                first_prequel = br_block.next_sibling.text
                         song_artist_block = song.find('b')
                         if song_artist_block is not None:
-                            song_main_artist, song_additional_artists = get_song_additional_artists(song_artist_block)
+                            song_main_artist, song_additional_artists = get_song_additional_artists(song_artist_block, main_artist, first_prequel)
                             if song_main_artist is not None:
                                 main_artist = song_main_artist
                             if song_additional_artists != []:
@@ -988,10 +1030,13 @@ class LPs():
                         song_classical_composer = None
                         if song_classical_composer_node is not None:
                             song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
+                            lp_song_artists.append(song_classical_composer)
 
                         song_classical_work = rel_element_text(song, 'song-classical-work')
                         song_country = rel_element_text(song, 'song-country')
                         song_date = rel_element_text(song, 'song-date')
+                        if song_date is not None:
+                            song_date = int(song_date)
                         song_mix = rel_element_text(song, 'song-mix')
 
                         song_parts = []

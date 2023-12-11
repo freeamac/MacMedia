@@ -19,7 +19,8 @@ from app.lps.lps_objects import (
 class LPTestCase(unittest.TestCase):
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
-    MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
+    #MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
+    MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music2.html')
 
     def test_Artist(self):
 
@@ -295,6 +296,51 @@ class LPTestCase(unittest.TestCase):
         all_lps._clean_lps()
         all_lps.from_html_file(self.MUSIC_HTML_FILE)
         print('Number of artists found: {}'.format(len(all_artists.artists)))
+        #print(all_artists)
         #print('Number of artists found: {}'.format(len(all_artists._artists)))
         print('Number of lps found: {}'.format(len(all_lps.lps)))
+        
+        puppini_sisters = all_artists.find_artist('The Puppini Sisters')
+        puppini_sisters_albums = puppini_sisters.lps
+        self.assertEqual(1, len(puppini_sisters_albums))
+        puppini_sisters_christmas_album = puppini_sisters.find_lp('Christmas')
+        self.assertIsNotNone(puppini_sisters_christmas_album)
+
+        buble = all_artists.find_artist('Michael Buble')
+        buble_albums = buble.lps
+        self.assertEqual(1, len(buble_albums))
+        buble_christmas_album = buble.find_lp('Christmas')
+        self.assertIsNotNone(buble_christmas_album)
+
+        self.assertEqual(puppini_sisters_christmas_album, buble_christmas_album)
+        self.assertEqual(len(buble_christmas_album.tracks), 2)
+        track1 = buble_christmas_album.tracks[0]
+        self.assertEqual(track1.side, 'Side A')
+        track1_song_list = track1.song_list
+        self.assertEqual(len(track1_song_list), 8)
+        jingle_bells_song = track1.get_song_from_title('Jingle Bells')
+        self.assertEqual(jingle_bells_song.title, 'Jingle Bells')
+        self.assertEqual(buble, jingle_bells_song.main_artist)
+        self.assertEqual(puppini_sisters, jingle_bells_song.additional_artists[0].artist)
+
+        williams = all_artists.find_artist('John William')
+        self.assertEqual(len(williams.lps), 2)
+        track1 = williams.find_lp('Greatest Hits').tracks[0]
+        self.assertEqual(track1.side, 'Side 1')
+        bach_song_composer = track1.get_song_from_title('Gavotte From Fourth Lute Suite')
+        self.assertEqual(bach_song_composer, track1.song_list[1])
+        bach = all_artists.find_artist('Bach')
+        self.assertEqual(len(bach.lps), 1)
+        self.assertEqual(bach, bach_song_composer.classical_composer)
+        adagio_song = williams.find_lp('Greatest Hits').get_song_from_title('Adagio From Concierto de Aranjuez For Guitar And Orchestra')
+        self.assertEqual('Rodrigo', adagio_song.classical_composer.name)
+        adagio_song_additional_artists = set(['Eugene Ormandy', 'Members of the Philadelphia Orchestra'])
+        additional_artists = set([additional_artist.artist.name for additional_artist in adagio_song.additional_artists])
+        self.assertEqual(adagio_song_additional_artists, additional_artists)
+        
+        whos_zoo = all_lps.find_lp_by_title('Who\'s Zoo')[0]
+        self.assertEqual(len(whos_zoo.tracks), 4)
+        im_the_face_song = whos_zoo.get_song_from_title('I\'m The Face')
+        self.assertEqual(im_the_face_song.date, 1964)
+        self.assertEqual(im_the_face_song.additional_artists[0].artist.name,'The High Numbers')
         assert(False)
