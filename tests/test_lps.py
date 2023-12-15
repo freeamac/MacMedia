@@ -21,6 +21,7 @@ class LPTestCase(unittest.TestCase):
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
     # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
     MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'test_music.html')
+    # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'single_music_album.html')
 
     def test_Artist(self):
 
@@ -288,7 +289,7 @@ class LPTestCase(unittest.TestCase):
         self.assertIsNotNone(artists.find_artist('The Movement'))
         self.assertEqual(artist_2, artists.find_artist('Dannii Minogue'))
 
-    def test_reads_lps_xml(self):
+    def test_reads_lps_html(self):
         # Test the reading of a music html file to extract all the LPs
         all_artists = Artists()
         all_artists._clean_artists()
@@ -342,5 +343,42 @@ class LPTestCase(unittest.TestCase):
         self.assertEqual(im_the_face_song.year, 1964)
         self.assertEqual(im_the_face_song.additional_artists[0].artist.name, 'The High Numbers')
 
-        self.assertEqual(all_lps.find_lps_by_year(1974), [whos_zoo])
-        # assert(False)
+        not_fragile = all_lps.find_lp_by_title('Not Fragile')[0]
+        moontan = all_lps.find_lp_by_title('Moontan')[0]
+        know_your_jazz = all_lps.find_lp_by_title('Know Your Jazz')[0]
+
+        self.assertListEqual(all_lps.find_lps_by_year(1974), [whos_zoo, not_fragile, moontan, know_your_jazz])
+
+    def test_lps_html_export(self):
+        # Test the html created by all lps is the same as the html contained
+        # in the file read in
+        all_artists = Artists()
+        all_artists._clean_artists()
+        all_lps = LPs()
+        all_lps._clean_lps()
+        all_lps.from_html_file(self.MUSIC_HTML_FILE)
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of lps found: {}'.format(len(all_lps.lps)))
+
+        with open(self.MUSIC_HTML_FILE, 'r') as fp:
+            file_html = fp.read()
+        html_representation = all_lps.to_html()
+
+        # Used to track down error locations
+        debug = False
+        if debug:
+            file_html_list = file_html.split('\n')
+            html_representation_list = html_representation.split('\n')
+            for i in range(len(html_representation_list)):
+                if html_representation_list[i] != file_html_list[i]:
+                    print(html_representation_list[i - 3:i + 3])
+                    print(file_html_list[i - 3:i + 3])
+                    print(":".join("{:02x}".format(ord(c)) for c in html_representation_list[i]))
+                    print(":".join("{:02x}".format(ord(c)) for c in file_html_list[i]))
+                    break
+            self.assertEqual(len(file_html_list), len(html_representation_list))
+
+        self.maxDiff = None
+        self.assertEqual(file_html, html_representation)
+
+        # assert (False)  # nosec

@@ -23,6 +23,7 @@ an lp.
 """
 
 from hashlib import md5
+from html import escape
 from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup
@@ -119,6 +120,21 @@ class _Artist():
         """
         self._name = new_name
 
+    def to_html(self, song_artist=False):
+        """ Return a html string representation of an artist.
+
+            :param: song_artist:  If this is to represent a song artist instead of a media artist
+            :type son_artist:     bool
+
+            :returns:             Html representation of the artist
+            :rtypr:               str
+         """
+        artist_tag = "artist"
+        if song_artist:
+            artist_tag = "song-artist"
+        html_str = '<b><a rel="{artist_tag}">{name}</a></b>'.format(artist_tag=artist_tag, name=escape(self.name, quote=False))
+        return html_str
+
     def __str__(self) -> str:
         return self.name
 
@@ -130,7 +146,7 @@ class Artists():
     """ A singleton set of all music artists. """
     _instance = None
     _artists = set()
-    VARIOUS_ARTISTS = 'various artists'
+    VARIOUS_ARTISTS = 'VARIOUS ARTISTS'
 
     @property
     def artists(self) -> Set[_Artist]:
@@ -156,8 +172,8 @@ class Artists():
             :param name:                          The name of the new artist
             :type name:                           str
 
-            :param skip_addiing_to_artists_set:  If true, do not add new artist to artists set
-            :type skip_adding_to_artists_set:    bool
+            :param skip_adding_to_artists_set:    If true, do not add new artist to artists set
+            :type skip_adding_to_artists_set:     bool
 
             :raises ArtistException:              If there is no passed name
 
@@ -277,6 +293,17 @@ class Additional_Artist():
         self._prequel = prequel
         self._sequel = sequel
 
+    def to_html(self):
+        """ Html representation of an additional artist.
+
+            :returns:   The html representation of an additonal artist
+            :rtype:     str
+        """
+        html_str = '{prequel}<b><a rel="song-artist">{artist}</a></b>{sequel}'.format(prequel=escape(self._prequel, quote=False),
+                                                                                      artist=escape(self._artist.name, quote=False),
+                                                                                      sequel=escape(self._sequel, quote=False))
+        return html_str
+
     def __str__(self) -> str:
         if self._prequel is not None:
             string = '{}{}'.format(self._prequel, self._artist)
@@ -380,6 +407,7 @@ class Song():
     def __init__(self,
                  title: str,
                  main_artist: Optional[_Artist] = None,
+                 exp_main_artist: Optional[bool] = False,
                  additional_artists: Optional[List[_Artist]] = None,
                  album: Optional[str] = None,
                  classical_composer: Optional[_Artist] = None,
@@ -397,6 +425,9 @@ class Song():
                                         is typically not given unless it is included in the song description
                                         on the album
             :type main_artist:          :class:`_Artist`
+
+            :param exp_main_artist:     Used to know if the main artist should appear in exports
+            :type exp_main_artist:      bool
 
             :param additional_artists:  Optional list of additional artists associated with the song
             :type additional_artists:   list(:class:`Additional_Artist`) | None
@@ -438,12 +469,13 @@ class Song():
 
         self._title = title
         self._main_artist = main_artist
+        self._exp_main_artist = exp_main_artist
         self._additional_artists = additional_artists
         self._album = album
         self._classical_composer = classical_composer
         self._classical_work = classical_work
         self._country = country
-        if year is not None and type(year) != int:
+        if year is not None and not isinstance(year, int):
             raise SongException('{} is not a valid integer year'.format(year))
         self._year = year
         self._mix = mix
@@ -464,6 +496,43 @@ class Song():
     def add_part(self, part_name) -> None:
         """ Add the part from the song parts list """
         pass
+
+    def to_html(self):
+        """ Return an html representation of a song.
+
+            :returns:    An html representation of a song
+            :rtype:      str
+        """
+        def spaceit(line: str, spaces: int) -> str:
+            """ Ensure an indentation of the specified number of spaces. """
+            spaced_line = ' ' * spaces + line.lstrip()
+            return spaced_line
+
+        if self.title is None:
+            html_str = '  <li>'
+        else:
+            html_str = '  <li><a rel="song">{title}</a>'.format(title=escape(self.title, quote=False))
+        if self.additional_artists is not None:
+            html_str += '<br>'
+            for additional_artist in self.additional_artists:
+                # html_str += '\n      {}'.format(additional_artist.to_html())
+                html_str += '\n' + spaceit('{}'.format(additional_artist.to_html()), 6)
+        if self.mix is not None:
+            html_str += '<br>\n      (<a rel="song-mix">{}</a>)'.format(escape(self.mix, quote=False))
+        if self.classical_composer is not None:
+            html_str += '<br>\n      by <b><a rel="song-classical-composer">{}</a></b>'.format(escape(self.classical_composer.name, quote=False))
+        if self.year is not None:
+            html_str += '<br>\n       - <a rel="song-date">{}</a>'.format(self.year)
+        if self.parts is not None and self.parts != []:
+            html_str += '\n'
+            html_str += spaceit('<ol type=I>\n', 4)
+            for song_part in self.parts:
+                html_str += spaceit('<li><a rel="song-part">{}</a></li>\n'.format(escape(song_part, quote=False)), 6)
+            html_str += spaceit('</ol>\n', 4)
+            html_str += spaceit('</li>\n', 4)
+        else:
+            html_str += '</li>\n'
+        return html_str
 
     def __str__(self) -> str:
         string = '{}\n'.format(self.title)
@@ -583,6 +652,21 @@ class TrackList():
             if song.title == song_title:
                 return song
 
+    def to_html(self):
+        """ Return an html representation of a tracklist.
+
+            :returns:  An html representation of a tracklist
+            :rtype:    str
+        """
+        html_str = '<a rel="side">\n'
+        html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
+        html_str += '<ol>\n'
+        for song in self.song_list:
+            html_str += song.to_html()
+        html_str += '</ol>\n'
+        html_str += '</a>\n'
+        return html_str
+
     def __str__(self) -> str:
         if self._side is not None:
             string = '{}'.format(self._side)
@@ -644,7 +728,7 @@ class _LP():
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         self._artist = artist
-        if type(year) is not int:
+        if not isinstance(year, int):
             raise TypeError('Year must be an int value')
         self._year = year
         if mixer is not None and type(mixer) is not _Artist:
@@ -705,6 +789,24 @@ class _LP():
             if result is not None:
                 return result
 
+    def to_html(self):
+        """ Return an html representation of the album
+
+            :returns:   An html representation of the album
+            :rtype:     str
+        """
+        html_str = '<p>\n'
+        html_str += '<a rel="lp">\n'
+        html_str += '<h3><a rel="title">{title}</a></h3>\n'.format(title=escape(self.title, quote=False))
+        html_str += '<h3><a rel="artist">{artist}</a></h3>\n'.format(artist=escape(self.artist.name, quote=False))
+        if self.classical_composer is not None:
+            html_str += '<h3><a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composer.name, quote=False))
+        html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
+        for track in self.tracks:
+            html_str += track.to_html()
+        html_str += '</a>\n'
+        return html_str
+
     def __str__(self) -> str:
         string = '{}\n{}\n'.format(self.title, self.artist)
         if self.mixer is not None:
@@ -719,10 +821,10 @@ class _LP():
 class LPs():
     """ A singleton set of all music albums. """
     _instance = None
-    _lps = set()
+    _lps = []
 
     @property
-    def lps(self) -> Set[_LP]:
+    def lps(self) -> List[_LP]:
         return self._lps
 
     def __new__(cls):
@@ -733,7 +835,7 @@ class LPs():
     @classmethod
     def _clean_lps(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
-        cls._lps = set()
+        cls._lps = []
 
     @classmethod
     def create_LP(cls,
@@ -781,7 +883,7 @@ class LPs():
                 if result._id == new_album_id:
                     return result
         # Create the new album
-        new_lp = _LP(title, artist, year, mixer)
+        new_lp = _LP(title, artist, year, mixer, classical_composer)
         artist.add_lp(new_lp)
         if mixer is not None:
             mixer.add_lp(new_lp)
@@ -802,7 +904,7 @@ class LPs():
             raise LPException('{} is not an LP object'.format(lp))
         if lp in cls._lps:
             raise LPException('LP {} already exists'.format(lp))
-        cls._lps.add(lp)
+        cls._lps.append(lp)
 
     @classmethod
     def delete_lp(cls, lp: _LP) -> None:
@@ -905,7 +1007,7 @@ class LPs():
             # Track down albums with more than one artist credit
             if len(lp_artists) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_artists) == 1)  # nosec
+                assert (len(lp_artists) == 1)  # nosec
 
             lp_classical_composers = []
             lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
@@ -916,7 +1018,7 @@ class LPs():
             # Track down albums with more than one classical composer credit
             if len(lp_classical_composers) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_classical_composers) == 1)  # nosec
+                assert (len(lp_classical_composers) == 1)  # nosec
 
             lp_mixers = []
             lp_mixer_elements = lp_element.find_all('a', rel='mixer')
@@ -927,74 +1029,70 @@ class LPs():
             # Track down albums with more than one mixer credit
             if len(lp_mixers) > 1:
                 print('Title: {}'.format(lp_title))
-                assert(len(lp_mixers) == 1)  # nosec
+                assert (len(lp_mixers) == 1)  # nosec
 
             lp_date = rel_element_text(lp_element, 'date')
 
             return lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date
 
-        def get_song_additional_artists(song_artist_block: Tag, lp_artist: _Artist, first_prequel: Optional[str] = None) -> (Optional[_Artist], List[Additional_Artist]):
-            """ Get the optional main artist and additional artists from the song artist block
+        def get_song_additional_artists(song_block: Tag, lp_artist: _Artist) -> (_Artist, List[Additional_Artist]):
+            """ Get the optional main artist and additional artists from the song artist block.
 
-                A `song_artist_block` resides inside a <b> tag. If the album artist is
-                "Various Artists", then the first listed artist is the main song artist
-                and returned. All other song artists are considered additional song
-                artists. Note that the prequel to the first song artist may reside outside
-                the `song_artist_block` and thus needs to be passed in if it exists.
+                We expect the song artists to reside in the <li></li> block which contains
+                all the information about the song. The artists should come consecutively after
+                the song name which is followed by a <br> tag so we begin our search after
+                this tag. Each artist will be encased in <b></b> tags. This is easy enough
+                to locate. The challenging aspect is collecting the text surrounding the
+                artist names. Text may occur before the first artist so we need to
+                trap the text after the <br> tag. For subsequent artists, we trap the
+                text between two artists and associate it with the later artists.
 
-                :param song_artist_block:   The Tag node for a song artist block.
-                :type song_artist_block:    :class:`bs2.element.Tag`
+                The main artist will be the album artist unless it is
+                found on a "Various Artist" album. In this case, we want to ensure the
+                main artist is the first song artist.
+
+                :param song_block:          The Tag node for a song block containing all information
+                                            about a song
+                :type song_block:           :class:`bs2.element.Tag`
 
                 :param lp_artist:           The artist of the LP which is the main song artist
                                             except on a Various Artists album
                 :type lp_artist:            :class:`_Artist`
 
-                :param first_prequel:       A prequel for the first artist which resides outside
-                                            the <b> tag
-                :type first_prequel:        str | None
-
                 :returns:                   Main song artist if they exists and a list of additional
-                                            song artists
+                                            song artists. Main artist should only occur on "Various
+                                            Artist" albums
                 :rtype:                     tuple(_Artist | None, list(Additional_Artist))
             """
-            main_artist = None
-            additional_artists = []
-            song_artist_elements = song_artist_block.find_all('a', rel='song-artist')
-            if song_artist_elements != []:
-                other_artists_index = 0
-                # First listed is the main song artist on a Various Artists album
-                if Artists.VARIOUS_ARTISTS == lp_artist.name.lower():
-                    main_artist = Artists.create_Artist(song_artist_elements[0].text.strip())
-                    other_artists_index = 1  # Skip main artist in the list of other artists
+            main_artist = lp_artist
+            other_artists = []
+            first_prequel = ''
+            song_metadata_block = song_block.find('br')
+            if song_metadata_block is not None:
+                if isinstance(song_metadata_block.next_sibling, NavigableString):
+                    first_prequel = song_metadata_block.next_sibling.text.split('\n')[1]
+                all_artist_blocks = song_block.find_all('b')
+                if len(all_artist_blocks) > 0:
+                    for artist_block in all_artist_blocks:
+                        # Note that a <b> tag may contain other tags besides a song-artist
+                        # but the consecutivity of the artists allows the following to work
+                        artist_name_block = artist_block.find('a', rel="song-artist")
+                        if artist_name_block is not None:
+                            prequel = sequel = ''
+                            artist_name = artist_name_block.text.strip()
+                            song_artist = Artists.create_Artist(artist_name)
+                            if artist_block == all_artist_blocks[0]:
+                                prequel = first_prequel
+                                # Special handling of first block for the prequel and main artist
+                                if lp_artist.name.upper() == Artists.VARIOUS_ARTISTS:
+                                    main_artist = song_artist
 
-                # Parse out all the other artists associated with the sone
-                other_artists = []
-                for song_artist_element in song_artist_elements[other_artists_index:]:
-                    other_artist = Artists.create_Artist(song_artist_element.text.strip())
-                    other_artists.append(other_artist)
-                    lp_song_artists.append(other_artist)
+                            if isinstance(artist_block.next_sibling, NavigableString):
+                                sequel = artist_block.next_sibling.text.split('\n')[0]
 
-                # Now convert those other artists into additional artists which
-                # means parsing any prequel and sequel information
-                len_additional_artists = len(other_artists)
-                song_block_text = song_artist_block.text.strip()
-                if main_artist is not None:
-                    song_block_text = song_block_text.replace(main_artist.name, '').strip()
-                for artist_index, other_artist in enumerate(other_artists):
-                    index_of_artist = song_block_text.index(other_artist.name)
-                    if artist_index == 0 and first_prequel is not None:
-                        # Handle prequel outside of the song block text. This occurs after a <br> text
-                        # and before the <b> tag
-                        prequel = first_prequel
-                    else:
-                        prequel = song_block_text[0:index_of_artist]
-                    sequel = ''
-                    if artist_index == len_additional_artists - 1:
-                        # Add end of list so need to look for a sequel
-                        sequel = song_block_text[index_of_artist + len(other_artist.name):]
-                    additional_artist = Additional_Artist(other_artist, prequel=prequel, sequel=sequel)
-                    additional_artists.append(additional_artist)
-            return main_artist, additional_artists
+                            other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
+
+            return main_artist, other_artists, exp_main_artist
 
         with open(filepath, 'r') as fp:
             # Parse the formatted file for LPs
@@ -1020,52 +1118,63 @@ class LPs():
                     # Process each song on the side
                     side_Songs = []
                     all_side_songs = side_element.find_all('li')
-                    for song in all_side_songs:
-                        song_title = rel_element_text(song, 'song')
-                        song_album = rel_element_text(song, 'song-album')
+                    found_song_parts = False
+                    song_parts_parent = None
+                    for song_block in all_side_songs:
+                        if found_song_parts:
+                            # Song parts contain 'li' tags so we process
+                            # the first such song and then skip until at the end
+                            # of the parts in the song
+                            if song_block.parent == song_parts_parent:
+                                continue
+                        song_title = rel_element_text(song_block, 'song')
+                        song_album = rel_element_text(song_block, 'song-album')
 
                         # Song artist by default is only the album artist
                         main_artist = lp_artists[0]
                         additional_artists = None
+                        exp_main_artist = False
 
-                        # Determine main song and additional song artists with prequel and sequel information.
-                        # The prequel information for the first listed song artist may reside between a <br>
-                        # and a <b> tag so that needs to be extracted and passed along
-                        first_prequel = None
-                        br_block = song.find('br')
-                        if br_block is not None:
-                            if type(br_block.next_sibling) == NavigableString:
-                                first_prequel = br_block.next_sibling.text
-                        song_artist_block = song.find('b')
-                        if song_artist_block is not None:
-                            song_main_artist, song_additional_artists = get_song_additional_artists(song_artist_block, main_artist, first_prequel)
-                            if song_main_artist is not None:
-                                main_artist = song_main_artist
-                            if song_additional_artists != []:
-                                for additional_artist in song_additional_artists:
-                                    lp_song_artists.append(additional_artist.artist)
-                                additional_artists = song_additional_artists
+                        # Determine main song, additional song artists with prequel and sequel information.
+                        # and if main artist should be exposed.
+                        song_main_artist, song_additional_artists, exp_main_artist = get_song_additional_artists(song_block, lp_artists[0])
+                        if song_main_artist is not None:
+                            main_artist = song_main_artist
+                        if song_additional_artists != []:
+                            for additional_artist in song_additional_artists:
+                                lp_song_artists.append(additional_artist.artist)
+                            additional_artists = song_additional_artists
 
-                        song_classical_composer_node = song.find('a', rel='song-classical-composer')
+                        song_classical_composer_node = song_block.find('a', rel='song-classical-composer')
                         song_classical_composer = None
                         if song_classical_composer_node is not None:
                             song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
                             lp_song_artists.append(song_classical_composer)
 
-                        song_classical_work = rel_element_text(song, 'song-classical-work')
-                        song_country = rel_element_text(song, 'song-country')
-                        song_date = rel_element_text(song, 'song-date')
+                        song_classical_work = rel_element_text(song_block, 'song-classical-work')
+                        song_country = rel_element_text(song_block, 'song-country')
+                        song_date = rel_element_text(song_block, 'song-date')
                         if song_date is not None:
                             song_date = int(song_date)
-                        song_mix = rel_element_text(song, 'song-mix')
+                        song_mix = rel_element_text(song_block, 'song-mix')
 
                         song_parts = []
-                        song_part_elements = song.find_all('a', rel='song-part')
-                        for song_part_element in song_part_elements:
-                            song_parts.append(song_part_element.text.strip())
+                        song_part_elements = song_block.find_all('a', rel='song-part')
+                        if song_part_elements != []:
+                            # If we have song parts, we need to mark the <ol> parent
+                            # so we can skip 'li' tags which are song parts which
+                            # we are processing now
+                            song_parts_parent = song_part_elements[0].parent.parent
+                            found_song_parts = True
+                            for song_part_element in song_part_elements:
+                                song_parts.append(song_part_element.text.strip())
+                        else:
+                            song_parts_parent = None
+                            found_song_parts = False
 
                         side_Songs.append(Song(title=song_title,
                                                main_artist=main_artist,
+                                               exp_main_artist=exp_main_artist,
                                                additional_artists=additional_artists,
                                                album=song_album,
                                                classical_composer=song_classical_composer,
@@ -1107,6 +1216,31 @@ class LPs():
         """
         # TODO:  Implement
         pass
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all albums
+
+            :returns:  An html representation of all albums
+            :rtype:    str
+        """
+        HTML_HEADER = """<!DOCTYPE PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<title>Music List</title>
+</head>
+<body>
+<p>
+<h2>Audio Media</h2>
+"""
+        HTML_CLOSER = """</body>
+</html>
+"""
+        html_str = HTML_HEADER
+        for lp in cls._lps:
+            html_str += lp.to_html()
+        html_str += HTML_CLOSER
+        return html_str
 
     def __str__(self) -> str:
         string = ''
