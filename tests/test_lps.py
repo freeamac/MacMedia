@@ -329,7 +329,7 @@ class LPTestCase(unittest.TestCase):
         bach_song_composer = track1.get_song_from_title('Gavotte From Fourth Lute Suite')
         self.assertEqual(bach_song_composer, track1.song_list[1])
         bach = all_artists.find_artist('Bach')
-        self.assertEqual(len(bach.lps), 1)
+        self.assertEqual(len(bach.lps), 2)
         self.assertEqual(bach, bach_song_composer.classical_composer)
         adagio_song = williams.find_lp('Greatest Hits').get_song_from_title('Adagio From Concierto de Aranjuez For Guitar And Orchestra')
         self.assertEqual('Rodrigo', adagio_song.classical_composer.name)

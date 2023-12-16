@@ -516,18 +516,21 @@ class Song():
             html_str += '<br>'
             for additional_artist in self.additional_artists:
                 # html_str += '\n      {}'.format(additional_artist.to_html())
-                html_str += '\n' + spaceit('{}'.format(additional_artist.to_html()), 6)
+                html_str += '\n' + spaceit('{artist}'.format(artist=additional_artist.to_html()), 6)
         if self.mix is not None:
-            html_str += '<br>\n      (<a rel="song-mix">{}</a>)'.format(escape(self.mix, quote=False))
+            html_str += '<br>\n      (<a rel="song-mix">{mix}</a>)'.format(mix=escape(self.mix, quote=False))
+        if self.classical_work is not None:
+            # must appear before the composer
+            html_str += '<br>\n      from <i><a rel="song-classical-work">{work}</a></i>'.format(work=escape(self.classical_work, quote=False))
         if self.classical_composer is not None:
-            html_str += '<br>\n      by <b><a rel="song-classical-composer">{}</a></b>'.format(escape(self.classical_composer.name, quote=False))
+            html_str += '<br>\n      by <b><a rel="song-classical-composer">{composer}</a></b>'.format(composer=escape(self.classical_composer.name, quote=False))
         if self.year is not None:
-            html_str += '<br>\n       - <a rel="song-date">{}</a>'.format(self.year)
+            html_str += '<br>\n       - <a rel="song-date">{date}</a>'.format(date=self.year)
         if self.parts is not None and self.parts != []:
             html_str += '\n'
             html_str += spaceit('<ol type=I>\n', 4)
             for song_part in self.parts:
-                html_str += spaceit('<li><a rel="song-part">{}</a></li>\n'.format(escape(song_part, quote=False)), 6)
+                html_str += spaceit('<li><a rel="song-part">{part}</a></li>\n'.format(part=escape(song_part, quote=False)), 6)
             html_str += spaceit('</ol>\n', 4)
             html_str += spaceit('</li>\n', 4)
         else:
