@@ -659,7 +659,10 @@ class TrackList():
             :rtype:    str
         """
         html_str = '<a rel="side">\n'
-        html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
+        if self.side is not None:
+            html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
+        if self.side_mixer is not None:
+            html_str += '<h4>Mixed by <a rel="side-mixer">{mixer_name}</a></h4>'.format(mixer_name=self.side_mixer)
         html_str += '<ol>\n'
         for song in self.song_list:
             html_str += song.to_html()
@@ -801,6 +804,8 @@ class _LP():
         html_str += '<h3><a rel="artist">{artist}</a></h3>\n'.format(artist=escape(self.artist.name, quote=False))
         if self.classical_composer is not None:
             html_str += '<h3><a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composer.name, quote=False))
+        if self.mixer is not None:
+            html_str += '<h3>Mixed By <a rel="mixer">{mixer_name}</a></h3>\n'.format(mixer_name=self.mixer)
         html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
         for track in self.tracks:
             html_str += track.to_html()
@@ -1112,8 +1117,13 @@ class LPs():
                 lp_tracklist = []
                 all_side_elements = lp_element.find_all('a', rel='side')
                 for side_element in all_side_elements:
-                    side_title = side_element.find('h4').text.strip()
-                    side_mixer = rel_element_text(side_element, 'side-mixer')
+                    any_additional_side_metadata = side_element.find('h4') is not None
+                    if any_additional_side_metadata:
+                        side_title = side_element.find('h4').text.strip()
+                        side_mixer = rel_element_text(side_element, 'side-mixer')
+                    else:
+                        side_title = None
+                        side_mixer = None
 
                     # Process each song on the side
                     side_Songs = []
