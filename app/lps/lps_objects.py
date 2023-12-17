@@ -695,8 +695,8 @@ class _LP():
         return self._title
 
     @property
-    def artist(self) -> _Artist:
-        return self._artist
+    def artists(self) -> List[_Artist]:
+        return self._artists
 
     @property
     def year(self) -> int:
@@ -729,11 +729,14 @@ class _LP():
         """
         return md5(bytes(title + artist_name, 'utf-8')).hexdigest()  # nosec
 
-    def __init__(self, title: str, artist: _Artist, year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
+    def __init__(self, title: str, artists: List[_Artist], year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
         self._title = title
-        if type(artist) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(artist))
-        self._artist = artist
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of Artist objects'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not an Artist object'.format(artist))
+        self._artists = artists
         if not isinstance(year, int):
             raise TypeError('Year must be an int value')
         self._year = year
@@ -743,8 +746,8 @@ class _LP():
         if classical_composer is not None and type(classical_composer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
         self._classical_composer = classical_composer
-        self._id = self.to_hash(title, artist.name)
-        self._id = self.to_hash(title, artist.name)
+        # Create id hash based on first artist and title
+        self._id = self.to_hash(title, artists[0].name)
 
         # Tracks must be set at this level or a reference will exist in the
         # singleton and keep being appended to through "add_track()". Ensure
@@ -760,7 +763,7 @@ class _LP():
 
             :raises TrackListException:  If not passed a :class:`TrackList`
         """
-        if type(track) is TrackList:
+        if isinstance(track, TrackList):
             self._tracks.append(track)
         else:
             raise TrackListException('{} is not a track list'.format(track))
@@ -804,7 +807,11 @@ class _LP():
         html_str = '<p>\n'
         html_str += '<a rel="lp">\n'
         html_str += '<h3><a rel="title">{title}</a></h3>\n'.format(title=escape(self.title, quote=False))
-        html_str += '<h3><a rel="artist">{artist}</a></h3>\n'.format(artist=escape(self.artist.name, quote=False))
+        html_str += '<h3>'
+        for artist in self.artists:
+            html_str += '<a rel="artist">{artist}</a>, '.format(artist=escape(artist.name, quote=False))
+        html_str = html_str.rstrip(', ')
+        html_str += '</h3>\n'
         if self.classical_composer is not None:
             html_str += '<h3><a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composer.name, quote=False))
         if self.mixer is not None:
@@ -816,7 +823,8 @@ class _LP():
         return html_str
 
     def __str__(self) -> str:
-        string = '{}\n{}\n'.format(self.title, self.artist)
+        string = '{}\n'.format(self.title)
+        string += '{}\n'.format(','.join([artist.name for artist in self.artists]))
         if self.mixer is not None:
             string += 'Mixed by {}\n'.format(self.mixer)
         string += '{}'.format(self.year)
@@ -848,7 +856,7 @@ class LPs():
     @classmethod
     def create_LP(cls,
                   title: str,
-                  artist: _Artist,
+                  artists: List[_Artist],
                   year: int,
                   mixer: Optional[_Artist] = None,
                   classical_composer: Optional[_Artist] = None,
@@ -860,8 +868,8 @@ class LPs():
             :param title:                    The title of the new album
             :type name:                      str
 
-            :param artist:                   The album artist
-            :type artist:                    :class:`_Artist`
+            :param artists:                  The list of album artists
+            :type artists:                   list(:class:`_Artist`)
 
             :param year:                     The year the album was published
             :type year:                      int
@@ -880,19 +888,23 @@ class LPs():
         """
         # We need to perform this check before searching for an existing album as we need a valid
         # artist name to search
-        if type(artist) is not _Artist:
-            raise ArtistException('{} is not an artist'.format(artist))
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of artists'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not a an artist'.format(artist))
 
         results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_album_id = _LP.to_hash(title, artist.name)
+            new_album_id = _LP.to_hash(title, artists[0].name)
             for result in results:
                 if result._id == new_album_id:
                     return result
         # Create the new album
-        new_lp = _LP(title, artist, year, mixer, classical_composer)
-        artist.add_lp(new_lp)
+        new_lp = _LP(title, artists, year, mixer, classical_composer)
+        for artist in artists:
+            artist.add_lp(new_lp)
         if mixer is not None:
             mixer.add_lp(new_lp)
         if not skip_adding_to_lp_list:
@@ -925,7 +937,8 @@ class LPs():
             :type lp:   :class:`_LP`
         """
         if lp in cls._lps:
-            lp.artist.delete_lp(lp)
+            for artist in lp.artists:
+                artist.delete_lp(lp)
             if lp.mixer is not None:
                 lp.mixer.delete_lp(lp)
             cls._lps.remove(lp)
@@ -1011,11 +1024,6 @@ class LPs():
             for lp_artist_element in lp_artist_elements:
                 lp_artist_name = lp_artist_element.text.strip()
                 lp_artists.append(Artists.create_Artist(lp_artist_name))
-
-            # Track down albums with more than one artist credit
-            if len(lp_artists) > 1:
-                print('Title: {}'.format(lp_title))
-                assert (len(lp_artists) == 1)  # nosec
 
             lp_classical_composers = []
             lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
@@ -1211,7 +1219,7 @@ class LPs():
                     lp_classical_composer = None
                 else:
                     lp_classical_composer = lp_classical_composers[0]
-                new_LP = LPs.create_LP(title=lp_title, artist=lp_artists[0], year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
+                new_LP = LPs.create_LP(title=lp_title, artists=lp_artists, year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
 
