@@ -665,7 +665,7 @@ class TrackList():
         if self.side is not None:
             html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
         if self.side_mixer is not None:
-            html_str += '<h4>Mixed by <a rel="side-mixer">{mixer_name}</a></h4>'.format(mixer_name=self.side_mixer)
+            html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
         html_str += '<ol>\n'
         for song in self.song_list:
             html_str += song.to_html()
@@ -1120,13 +1120,15 @@ class LPs():
                 lp_tracklist = []
                 all_side_elements = lp_element.find_all('a', rel='side')
                 for side_element in all_side_elements:
+                    side_title = None
+                    side_mixer = None
                     any_additional_side_metadata = side_element.find('h4') is not None
                     if any_additional_side_metadata:
                         side_title = side_element.find('h4').text.strip()
-                        side_mixer = rel_element_text(side_element, 'side-mixer')
-                    else:
-                        side_title = None
-                        side_mixer = None
+                        side_mixer_name = rel_element_text(side_element, 'side-mixer')
+                        if side_mixer_name is not None:
+                            side_mixer = Artists.create_Artist(side_mixer_name)
+                            lp_song_artists.append(side_mixer)
 
                     # Process each song on the side
                     side_Songs = []
