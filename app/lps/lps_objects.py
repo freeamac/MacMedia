@@ -22,12 +22,18 @@ there last lp being deleted or they are only associated with a song(s) on
 an lp.
 """
 
+from enum import Enum
 from hashlib import md5
 from html import escape
 from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
+
+
+class MediaTypeException(Exception):
+    """ Indicates an error using a Media Type definition. """
+    pass
 
 
 class LPException(Exception):
@@ -53,6 +59,13 @@ class AdditionalArtistException(Exception):
 class TrackListException(Exception):
     """ Indicates an error using a TrackList object. """
     pass
+
+
+class MediaType(Enum):
+    LP = 'lp'
+    CD = 'cd'
+    ELP = 'elp'
+    MINI_CD = 'mini-cd'
 
 
 class _Artist():
@@ -661,8 +674,9 @@ class TrackList():
             :returns:  An html representation of a tracklist
             :rtype:    str
         """
-        html_str = '<a rel="side">\n'
+        html_str = ''
         if self.side is not None:
+            html_str += '<a rel="side">\n'
             html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
         if self.side_mixer is not None:
             html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
@@ -670,7 +684,8 @@ class TrackList():
         for song in self.song_list:
             html_str += song.to_html()
         html_str += '</ol>\n'
-        html_str += '</a>\n'
+        if self.side is not None:
+            html_str += '</a>\n'
         return html_str
 
     def __str__(self) -> str:
@@ -689,6 +704,10 @@ class TrackList():
 
 class _LP():
     """ Defines a music album. Should only be instantiated by calling :func:`LPs().create_LP`. """
+
+    @property
+    def media_type(self) -> MediaType:
+        return self._media_type
 
     @property
     def title(self) -> str:
@@ -729,7 +748,10 @@ class _LP():
         """
         return md5(bytes(title + artist_name, 'utf-8')).hexdigest()  # nosec
 
-    def __init__(self, title: str, artists: List[_Artist], year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
+    def __init__(self, media_type: MediaType, title: str, artists: List[_Artist], year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
+        if not isinstance(media_type, MediaType):
+            raise MediaTypeException('{} is not a valid MediaType'.format(media_type))
+        self._media_type = media_type
         self._title = title
         if not isinstance(artists, list):
             raise ArtistException('{} is not a list of Artist objects'.format(artists))
@@ -805,7 +827,7 @@ class _LP():
             :rtype:     str
         """
         html_str = '<p>\n'
-        html_str += '<a rel="lp">\n'
+        html_str += '<a rel="{media_type}">\n'.format(media_type=self.media_type.value)
         html_str += '<h3><a rel="title">{title}</a></h3>\n'.format(title=escape(self.title, quote=False))
         html_str += '<h3>'
         for artist in self.artists:
@@ -820,9 +842,11 @@ class _LP():
         for track in self.tracks:
             html_str += track.to_html()
         html_str += '</a>\n'
+        html_str += '</p>\n'
         return html_str
 
     def __str__(self) -> str:
+        string = '{}\n'.format(self.media_type.value)
         string = '{}\n'.format(self.title)
         string += '{}\n'.format(','.join([artist.name for artist in self.artists]))
         if self.mixer is not None:
@@ -855,6 +879,7 @@ class LPs():
 
     @classmethod
     def create_LP(cls,
+                  media_type: MediaType,
                   title: str,
                   artists: List[_Artist],
                   year: int,
@@ -864,6 +889,9 @@ class LPs():
         """ Return the named album if it exists or create a new album.
 
             By default a new album is added to the set of all albums.
+
+            :param media_type:               The media type of the music album
+            :type media_type:                :class:`MediaType`
 
             :param title:                    The title of the new album
             :type name:                      str
@@ -902,7 +930,7 @@ class LPs():
                 if result._id == new_album_id:
                     return result
         # Create the new album
-        new_lp = _LP(title, artists, year, mixer, classical_composer)
+        new_lp = _LP(media_type, title, artists, year, mixer, classical_composer)
         for artist in artists:
             artist.add_lp(new_lp)
         if mixer is not None:
@@ -1115,18 +1143,23 @@ class LPs():
             html = fp.read()
             parsed_html = BeautifulSoup(html, features="html.parser")
 
-            # Parse out the LPs
-            all_lp_elements = parsed_html.find_all('a', rel='lp')
+            # Parse out all the LPs which start with <p> tags
+            all_p_elements = parsed_html.find_all('p')
+            for p_element in all_p_elements:
 
-            # Process each LP element
-            for lp_element in all_lp_elements:
-
+                # Now get the <a> tag which encloses all the rest of
+                # the information we want to get
+                lp_element = p_element.contents[1]  # Skipping new line after <p> tag
+                media_type = MediaType(lp_element['rel'][0])
                 lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
                 lp_song_artists = []
 
                 # Process each side of the lp
                 lp_tracklist = []
                 all_side_elements = lp_element.find_all('a', rel='side')
+                if len(all_side_elements) == 0:
+                    # No labelled side like CD
+                    all_side_elements = [lp_element.find('ol')]
                 for side_element in all_side_elements:
                     side_title = None
                     side_mixer = None
@@ -1219,7 +1252,7 @@ class LPs():
                     lp_classical_composer = None
                 else:
                     lp_classical_composer = lp_classical_composers[0]
-                new_LP = LPs.create_LP(title=lp_title, artists=lp_artists, year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
+                new_LP = LPs.create_LP(media_type=media_type, title=lp_title, artists=lp_artists, year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
 
@@ -1253,7 +1286,6 @@ class LPs():
 <title>Music List</title>
 </head>
 <body>
-<p>
 <h2>Audio Media</h2>
 """
         HTML_CLOSER = """</body>
