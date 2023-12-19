@@ -22,7 +22,6 @@ class LPTestCase(unittest.TestCase):
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
     # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
     MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'test_music.html')
-    # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'single_music_album.html')
 
     def test_Artist(self):
 
@@ -330,7 +329,7 @@ class LPTestCase(unittest.TestCase):
         self.assertEqual(puppini_sisters, jingle_bells_song.additional_artists[0].artist)
 
         williams = all_artists.find_artist('John Williams')
-        self.assertEqual(len(williams.lps), 2)
+        self.assertEqual(len(williams.lps), 1)
         track1 = williams.find_lp('Greatest Hits').tracks[0]
         self.assertEqual(track1.side, 'Side 1')
         bach_song_composer = track1.get_song_from_title('Gavotte From Fourth Lute Suite')
@@ -354,7 +353,7 @@ class LPTestCase(unittest.TestCase):
         moontan = all_lps.find_lp_by_title('Moontan')[0]
         know_your_jazz = all_lps.find_lp_by_title('Know Your Jazz')[0]
 
-        self.assertListEqual(all_lps.find_lps_by_year(1974), [whos_zoo, not_fragile, moontan, know_your_jazz])
+        self.assertListEqual(all_lps.find_lps_by_year(1974), [whos_zoo, moontan, know_your_jazz, not_fragile])
 
     def test_lps_html_export(self):
         # Test the html created by all lps is the same as the html contained
