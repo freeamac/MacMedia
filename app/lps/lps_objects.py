@@ -938,7 +938,6 @@ class LPs():
                     return result
         # Create the new album
         new_lp = _LP(media_type, title, artists, year, mixer, classical_composer)
-        # print(artists)
         for artist in artists:
             artist.add_lp(new_lp)
         if mixer is not None:
@@ -1054,7 +1053,6 @@ class LPs():
                 :rtype:              tuple(str, list(:class:`_Artist`), list(:class:`_Artist`), list(:class:`_Artist`), str)
             """
             lp_title = rel_element_text(lp_element, 'title')
-            # print(lp_title)
 
             lp_artists = []
             lp_artist_elements = lp_element.find_all('a', rel='artist')
@@ -1163,25 +1161,14 @@ class LPs():
                 lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
                 lp_song_artists = []
 
-                if lp_title == 'Exit...Stage Left':
-                    print('lp element type {}'.format(type(lp_element)))
-                    print('lp element:\n {}'.format(lp_element))
-
                 # Process each side of the lp
                 lp_tracklist = []
                 all_side_elements = lp_element.find_all('a', rel='side')
                 if len(all_side_elements) == 0:
-                    if lp_title == 'Exit...Stage Left':
-                        print('found no rel="side" searching for <ol>')
                     # No labelled side like CD
                     all_side_elements = [lp_element.find('ol')]
 
-                if lp_title == 'Exit...Stage Left':
-                    print('all side_elements length = {}'.format(len(all_side_elements)))
                 for side_element in all_side_elements:
-                    if lp_title == 'Exit...Stage Left':
-                        print('Side element type {}'.format(type(side_element)))
-                        print('Side element:\n {}'.format(side_element))
                     side_title = None
                     side_mixer = None
                     any_additional_side_metadata = side_element.find('h4') is not None

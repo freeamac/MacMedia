@@ -382,6 +382,7 @@ class LPTestCase(unittest.TestCase):
                     print(file_html_list[i - 3:i + 3])
                     print(":".join("{:02x}".format(ord(c)) for c in html_representation_list[i]))
                     print(":".join("{:02x}".format(ord(c)) for c in file_html_list[i]))
+                    print("Line #{}".format(i))
                     break
             self.assertEqual(len(file_html_list), len(html_representation_list))
 
