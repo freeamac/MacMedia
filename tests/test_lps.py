@@ -371,8 +371,8 @@ class LPTestCase(unittest.TestCase):
         html_representation = all_lps.to_html()
 
         # Used to track down error locations
-        debug = False
-        if debug:
+        debug = os.getenv('TEST_LPS_DEBUG', 'False')
+        if debug.lower() == 'true':
             file_html_list = file_html.split('\n')
             html_representation_list = html_representation.split('\n')
             for i in range(len(html_representation_list)):

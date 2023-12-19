@@ -755,7 +755,14 @@ class _LP():
         """
         return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
 
-    def __init__(self, media_type: MediaType, title: str, artists: List[_Artist], year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
+    def __init__(self,
+                 media_type: MediaType,
+                 title: str,
+                 artists: List[_Artist],
+                 year: int,
+                 mixer: Optional[_Artist] = None,
+                 classical_composer: Optional[_Artist] = None,
+                 artist_particles: Optional[List[str]] = None) -> None:
         if not isinstance(media_type, MediaType):
             raise MediaTypeException('{} is not a valid MediaType'.format(media_type))
         self._media_type = media_type
@@ -766,6 +773,10 @@ class _LP():
             if not isinstance(artist, _Artist):
                 raise ArtistException('{} is not an Artist object'.format(artist))
         self._artists = artists
+        if artist_particles is None:
+            self._artist_particles = []
+        else:
+            self._artist_particles = artist_particles
         if not isinstance(year, int):
             raise TypeError('Year must be an int value')
         self._year = year
@@ -837,9 +848,10 @@ class _LP():
         html_str += '<a rel="{media_type}">\n'.format(media_type=self.media_type.value)
         html_str += '<h3><a rel="title">{title}</a></h3>\n'.format(title=escape(self.title, quote=False))
         html_str += '<h3>'
-        for artist in self.artists:
-            html_str += '<a rel="artist">{artist}</a>, '.format(artist=escape(artist.name, quote=False))
-        html_str = html_str.rstrip(', ')
+        for index, artist in enumerate(self.artists):
+            html_str += '<a rel="artist">{artist}</a>'.format(artist=escape(artist.name, quote=False))
+            if index < len(self._artist_particles):
+                html_str += escape(self._artist_particles[index], quote=False)
         html_str += '</h3>\n'
         if self.classical_composer is not None:
             html_str += '<h3><a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composer.name, quote=False))
@@ -892,6 +904,7 @@ class LPs():
                   year: int,
                   mixer: Optional[_Artist] = None,
                   classical_composer: Optional[_Artist] = None,
+                  artist_particles: List[str] = None,
                   skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
@@ -915,6 +928,9 @@ class LPs():
             :param classical_composer:      Optional album classical composer
             :type classical_composer:       :class:`_Artist`
 
+            :param artist_particles:         Particle text linking artists
+            :type artist_particles:          list(str)
+
             :param skip_addiing_to_lp_list:  If true, do not add new album to albums set
             :type skip_adding_to_lp_list:    bool
 
@@ -937,7 +953,7 @@ class LPs():
                 if result._id == new_album_id:
                     return result
         # Create the new album
-        new_lp = _LP(media_type, title, artists, year, mixer, classical_composer)
+        new_lp = _LP(media_type, title, artists, year, mixer, classical_composer, artist_particles)
         for artist in artists:
             artist.add_lp(new_lp)
         if mixer is not None:
@@ -1038,7 +1054,7 @@ class LPs():
                 rel_text = rel_node.text.strip()
             return rel_text
 
-        def get_lp_metadata(lp_element: Tag) -> (str, List[_Artist], List[_Artist], List[_Artist], str):
+        def get_lp_metadata(lp_element: Tag) -> (str, List[_Artist], List[str], List[_Artist], List[_Artist], str):
             """ Parse the album tag for the album specific metadata.
 
                 The album metadata is the album title, list of album artists, list of album composers,
@@ -1048,43 +1064,60 @@ class LPs():
                 :param lp_element:   The Tag node for an album.
                 :type lp_element:    :class:`bs2.element.Tag`
 
-                :returns:            A tuple of the album metadata: title, artists, composers, mixers
+                :returns:            A tuple of the album metadata: title, artists, artist particles, composers, mixers
                                      and production year
-                :rtype:              tuple(str, list(:class:`_Artist`), list(:class:`_Artist`), list(:class:`_Artist`), str)
+                :rtype:              tuple(str, list(:class:`_Artist`), list(str), list(:class:`_Artist`), list(:class:`_Artist`), str)
             """
-            lp_title = rel_element_text(lp_element, 'title')
-
+            lp_title = None
             lp_artists = []
-            lp_artist_elements = lp_element.find_all('a', rel='artist')
-            for lp_artist_element in lp_artist_elements:
-                lp_artist_name = lp_artist_element.text.strip()
-                lp_artists.append(Artists.create_Artist(lp_artist_name))
-
+            lp_artist_particles = []
             lp_classical_composers = []
-            lp_classical_composer_elements = lp_element.find_all('a', rel='classical-composer')
-            for lp_classical_composer_element in lp_classical_composer_elements:
-                lp_classical_composer_name = lp_classical_composer_element.text.strip()
-                lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
+            lp_mixers = []
+            lp_date = None
+            all_h3_elements = lp_element.find_all('h3')
+            for h3_element in all_h3_elements:
+                # The first content is going to be the anchor tag
+                anchor_tag = h3_element.contents[0]
+                if isinstance(anchor_tag, Tag):
+                    if 'rel' in anchor_tag.attrs.keys():
+                        rel_value = anchor_tag['rel'][0]
+                        if rel_value == 'title':
+                            lp_title = anchor_tag.text.strip()
+                        elif rel_value == 'artist':
+                            next_tag = anchor_tag
+                            while next_tag is not None:
+                                lp_artist_name = next_tag.text.strip()
+                                lp_artists.append(Artists.create_Artist(lp_artist_name))
+                                if isinstance(next_tag.next_sibling, NavigableString):
+                                    next_tag = next_tag.next_sibling
+                                    lp_artist_particles.append(next_tag.text)
+                                    print('Getting particle text: {}'.format(next_tag.text))
+                                next_tag = next_tag.next_sibling
+                        elif rel_value == 'classical-composer':
+                            lp_classical_composer_elements = h3_element.find_all('a', rel='classical-composer')
+                            for lp_classical_composer_element in lp_classical_composer_elements:
+                                lp_classical_composer_name = lp_classical_composer_element.text.strip()
+                                lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
+                        elif rel_value == 'date':
+                            lp_date = anchor_tag.text.strip()
+                elif isinstance(anchor_tag, NavigableString):
+                    # Mixer entry starts as "Mixed By"
+                    lp_mixer_elements = h3_element.find_all('a', rel='mixer')
+                    for lp_mixer_element in lp_mixer_elements:
+                        lp_mixer_name = lp_mixer_element.text.strip()
+                        lp_mixers.append(Artists.create_Artist(lp_mixer_name))
 
             # Track down albums with more than one classical composer credit
             if len(lp_classical_composers) > 1:
                 print('Title: {}'.format(lp_title))
                 assert (len(lp_classical_composers) == 1)  # nosec
 
-            lp_mixers = []
-            lp_mixer_elements = lp_element.find_all('a', rel='mixer')
-            for lp_mixer_element in lp_mixer_elements:
-                lp_mixer_name = lp_mixer_element.text.strip()
-                lp_mixers.append(Artists.create_Artist(lp_mixer_name))
-
             # Track down albums with more than one mixer credit
             if len(lp_mixers) > 1:
                 print('Title: {}'.format(lp_title))
                 assert (len(lp_mixers) == 1)  # nosec
 
-            lp_date = rel_element_text(lp_element, 'date')
-
-            return lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date
+            return lp_title, lp_artists, lp_artist_particles, lp_classical_composers, lp_mixers, lp_date
 
         def get_song_additional_artists(song_block: Tag, lp_artist: _Artist) -> (_Artist, List[Additional_Artist]):
             """ Get the optional main artist and additional artists from the song artist block.
@@ -1158,7 +1191,7 @@ class LPs():
                 # the information we want to get
                 lp_element = p_element.contents[1]  # Skipping new line after <p> tag
                 media_type = MediaType(lp_element['rel'][0])
-                lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
+                lp_title, lp_artists, lp_artist_particles, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
                 lp_song_artists = []
 
                 # Process each side of the lp
@@ -1260,7 +1293,13 @@ class LPs():
                     lp_classical_composer = None
                 else:
                     lp_classical_composer = lp_classical_composers[0]
-                new_LP = LPs.create_LP(media_type=media_type, title=lp_title, artists=lp_artists, year=int(lp_date), mixer=lp_mixer, classical_composer=lp_classical_composer)
+                new_LP = LPs.create_LP(media_type=media_type,
+                                       title=lp_title,
+                                       artists=lp_artists,
+                                       year=int(lp_date),
+                                       mixer=lp_mixer,
+                                       classical_composer=lp_classical_composer,
+                                       artist_particles=lp_artist_particles)
                 for tracklist in lp_tracklist:
                     new_LP.add_track(tracklist)
 
