@@ -370,14 +370,15 @@ class Song():
         self._album = new_album
 
     @property
-    def classical_composer(self) -> Optional[_Artist]:
-        return self._classical_composer
+    def classical_composers(self) -> Optional[List[_Artist]]:
+        return self._classical_composers
 
-    @classical_composer.setter
-    def classical_composer(self, composer) -> None:
-        if composer is not None and type(composer) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(composer))
-        self.classical_composer = composer
+    @classical_composers.setter
+    def classical_composers(self, new_composers) -> None:
+        for composer in new_composers:
+            if composer is not None and type(composer) is not _Artist:
+                raise ArtistException('{} is not an Artist object'.format(composer))
+        self.classical_composers = new_composers
 
     @property
     def classical_work(self) -> str:
@@ -425,7 +426,7 @@ class Song():
                  exp_main_artist: Optional[bool] = False,
                  additional_artists: Optional[List[_Artist]] = None,
                  album: Optional[str] = None,
-                 classical_composer: Optional[_Artist] = None,
+                 classical_composers: List[Optional[_Artist]] = None,
                  classical_work: Optional[str] = None,
                  country: Optional[str] = None,
                  year: Optional[int] = None,
@@ -450,8 +451,8 @@ class Song():
             :param album:               Name of the album this song is taken from
             :type album:                str
 
-            :param classical_composer:  The composer of this classical song
-            :type classical_composer:   :class:`_Artist`
+            :param classical_composers: The composer of this classical song
+            :type classical_composers:  list(:class:`_Artist`) | None
 
             :param classical_work:      The classical work this song comes from
             :type classical_work:       str
@@ -477,17 +478,19 @@ class Song():
             raise ArtistException('{} is not an Artist object'.format(main_artist))
         if additional_artists is not None:
             for artist in additional_artists:
-                if type(artist) is not Additional_Artist:
+                if not isinstance(artist, Additional_Artist):
                     raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
-        if classical_composer is not None and type(classical_composer) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(classical_composer))
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                if not isinstance(classical_composer, _Artist):
+                    raise ArtistException('{} is not an Artist object'.format(classical_composer))
 
         self._title = title
         self._main_artist = main_artist
         self._exp_main_artist = exp_main_artist
         self._additional_artists = additional_artists
         self._album = album
-        self._classical_composer = classical_composer
+        self._classical_composers = classical_composers
         self._classical_work = classical_work
         self._country = country
         if year is not None and not isinstance(year, int):
@@ -537,8 +540,12 @@ class Song():
         if self.classical_work is not None:
             # must appear before the composer
             html_str += '<br>\n      from <i><a rel="song-classical-work">{work}</a></i>'.format(work=escape(self.classical_work, quote=False))
-        if self.classical_composer is not None:
-            html_str += '<br>\n      by <b><a rel="song-classical-composer">{composer}</a></b>'.format(composer=escape(self.classical_composer.name, quote=False))
+        if self.classical_composers is not None:
+            html_str += '<br>\n      by '
+            for index, classical_composer in enumerate(self.classical_composers):
+                html_str += '<b><a rel="song-classical-composer">{composer}</a></b>'.format(composer=escape(classical_composer.name, quote=False))
+                if index < len(self.classical_composers) - 1:
+                    html_str += ' and\n      '
         if self.year is not None:
             html_str += '<br>\n      - <a rel="song-date">{date}</a>'.format(date=self.year)
         if self.country is not None:
@@ -564,8 +571,9 @@ class Song():
             string += '\n'
         if self.album is not None:
             string += '({})\n'.format(self.album)
-        if self.classical_composer is not None:
-            string += '({})\n'.format(self.classical_composer)
+        if self.classical_composers is not None:
+            for composer in self.classical_composers:
+                string += '({})\n'.format(composer)
         if self.classical_work is not None:
             string += '({})\n'.format(self.classical_work)
         if self.country is not None:
@@ -1091,7 +1099,6 @@ class LPs():
                                 if isinstance(next_tag.next_sibling, NavigableString):
                                     next_tag = next_tag.next_sibling
                                     lp_artist_particles.append(next_tag.text)
-                                    print('Getting particle text: {}'.format(next_tag.text))
                                 next_tag = next_tag.next_sibling
                         elif rel_value == 'classical-composer':
                             lp_classical_composer_elements = h3_element.find_all('a', rel='classical-composer')
@@ -1242,11 +1249,16 @@ class LPs():
                                 lp_song_artists.append(additional_artist.artist)
                             additional_artists = song_additional_artists
 
-                        song_classical_composer_node = song_block.find('a', rel='song-classical-composer')
-                        song_classical_composer = None
-                        if song_classical_composer_node is not None:
-                            song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
-                            lp_song_artists.append(song_classical_composer)
+                        song_classical_composer_nodes = song_block.find_all('a', rel='song-classical-composer')
+                        song_classical_composers = []
+                        if song_classical_composer_nodes is not None:
+                            for song_classical_composer_node in song_classical_composer_nodes:
+                                song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
+                                song_classical_composers.append(song_classical_composer)
+                                lp_song_artists.append(song_classical_composer)
+                        if song_classical_composers == []:
+                            # Set to None if we find no classical composers
+                            song_classical_composers = None
 
                         song_classical_work = rel_element_text(song_block, 'song-classical-work')
                         song_country = rel_element_text(song_block, 'song-country')
@@ -1274,7 +1286,7 @@ class LPs():
                                                exp_main_artist=exp_main_artist,
                                                additional_artists=additional_artists,
                                                album=song_album,
-                                               classical_composer=song_classical_composer,
+                                               classical_composers=song_classical_composers,
                                                classical_work=song_classical_work,
                                                country=song_country,
                                                year=song_date,
