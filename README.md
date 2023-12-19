@@ -102,3 +102,109 @@ used to generate the documentation with the command:
     make docs
 ```
 The root of the resulting html documentation is `app/docs/_build/html/index.html`.
+
+# Music Media Schema
+
+Music media is currently encoded in an html file. At the top level, each piece of music media
+is enclosed in a set of tags. The top level tag contains metadata about the music media piece
+and then one or more tracklists. The tracklist level contains metadata about the tracklist and
+a list of song entries. The song entry level contains all the information about a particular
+song.
+
+## Top Music Media Level Container
+
+The top level container is specified with a paragraph tag, \<p>\</p>. Within the tag is an
+\<a rel="{media_type}"> tag which defines the type of music media in "media_type" and encases
+all the information about this piece of music media. Required information, each of which is
+enclosed in an \<h3>\</h3> tag, include the title of the music media piece, the artist(s) of the
+music media piece, and the publication year of the music media piece. Optionally, there
+may be a classical composer of the music media piece and/or a mixer of the music media piece. Finally
+there will be one or more tracklists enclosed described in the next section.
+
+The schema looks like:
+
+```
+<p>
+<a rel="{media_type}>
+<h3><a rel="title">{title}</a></h3>
+<h3><a rel="artists">{artist}</a></h3>
+<h3><a rel="date">{year}</a></h3>
+<h3><a rel="classical-composer">{classical-composer}</a></h3>
+<h3><a rel="mixer">{classical-composer}</a></h3>
+             .
+             .
+             .
+</a>
+</p>
+```
+
+## Tracklist Level Container
+
+In the case of a single tracklist, which generally occurs on a CD, there will just be an order list
+of song entries as the tracklist contains no metadata. For multiple tracklists, each is contained
+in a \<a rel="side"> tag. In this situation, a name for the track is manditory and there may
+optionally be a mixer associated with that track. Each are contained in \<h4>\</h4> tags.
+
+The schema for a single tracklist looks like:
+
+```
+<ol>
+  .
+  .
+  .
+</ol>
+```
+
+For multiple tracklists, each tracklist looks like:
+
+```
+<a rel="side">
+<h4><blockquote>{tack_name}</blockquote></h4>
+<h4>Mixed By <a rel="side-mixer>{side_mixer}</a></h4>
+<ol>
+  .
+  .
+  .
+</ol> 
+</a>
+```
+
+## Song Entry Level Container
+
+As the song entries occur inside the order list of the tracklist container, the song metadata
+for each song entry is enclosed in a \<li>\</li> tag. All song metadata is specified by anchor
+tags (\<a rel="{song_metadata_specifier}">) and additional specific formatting. The only
+manditory piece of metadata required is the song name. The list of potential additional
+song metadata include:
+* song artist(s)
+* song mix
+* song date (year)
+* song country of origin  
+* classical work the song is from
+* classical composer of the song
+* parts of the song
+The parts of the song is an order list container of each part.
+
+The schema for a single song entry looks like:
+
+```
+  <li><a rel="song">{song_name}</a><br>
+      <b><a rel="song-artist">{song_artist}</a></b><br>
+      (<a rel="song-mix">{song_mix}</a>)<br>
+      from <i><a rel="song-classical-work">{song_classical_work}</a></i><br>
+      by <b><a rel="song-classical-composer">{song_classical_composer}</a></b><br>
+      - <a rel="song-date">{year}</a><br>
+      - <a rel="song-country">{country}</a>
+    <ol type=I>
+      <li><a rel="song-part">{part_1_name}</a></li>
+      <li><a rel="song-part">{part_2_name}</a></li>
+                .
+                .
+                .
+      <li><a rel="song-part">{part_N_name}</a></li>
+    </ol>
+  </li>
+```
+
+Note that for multiple artists and composers, textual pieces will linking them
+together are not included in the above example. 
