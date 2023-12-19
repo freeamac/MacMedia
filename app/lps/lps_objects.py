@@ -92,6 +92,8 @@ class _Artist():
             :raises LPException:  If passed parameter is not an :class:`_LP` or the album already
                                   associated with the artist
         """
+        # if self.name == 'George Thorogood & The Destroyers':
+        #    assert False
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
         if lp in self._lps:
@@ -538,7 +540,9 @@ class Song():
         if self.classical_composer is not None:
             html_str += '<br>\n      by <b><a rel="song-classical-composer">{composer}</a></b>'.format(composer=escape(self.classical_composer.name, quote=False))
         if self.year is not None:
-            html_str += '<br>\n       - <a rel="song-date">{date}</a>'.format(date=self.year)
+            html_str += '<br>\n      - <a rel="song-date">{date}</a>'.format(date=self.year)
+        if self.country is not None:
+            html_str += '<br>\n      - <a rel="song-country">{country}</a>'.format(country=self.country)
         if self.parts is not None and self.parts != []:
             html_str += '\n'
             html_str += spaceit('<ol type=I>\n', 4)
@@ -734,8 +738,11 @@ class _LP():
         return self._tracks
 
     @staticmethod
-    def to_hash(title: str, artist_name: str) -> str:
+    def to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
         """ Create a hash for the album based on title and artist_name.
+
+            :param media_type:   The media type of the album
+            :type media_type:    :class:`MediaType`
 
             :param title:        The album title
             :type title:         str
@@ -746,7 +753,7 @@ class _LP():
             :returns:            md5 has string
             :rtype:              str
         """
-        return md5(bytes(title + artist_name, 'utf-8')).hexdigest()  # nosec
+        return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
 
     def __init__(self, media_type: MediaType, title: str, artists: List[_Artist], year: int, mixer: Optional[_Artist] = None, classical_composer: Optional[_Artist] = None) -> None:
         if not isinstance(media_type, MediaType):
@@ -769,7 +776,7 @@ class _LP():
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
         self._classical_composer = classical_composer
         # Create id hash based on first artist and title
-        self._id = self.to_hash(title, artists[0].name)
+        self._id = self.to_hash(media_type, title, artists[0].name)
 
         # Tracks must be set at this level or a reference will exist in the
         # singleton and keep being appended to through "add_track()". Ensure
@@ -925,12 +932,13 @@ class LPs():
         results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_album_id = _LP.to_hash(title, artists[0].name)
+            new_album_id = _LP.to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._id == new_album_id:
                     return result
         # Create the new album
         new_lp = _LP(media_type, title, artists, year, mixer, classical_composer)
+        # print(artists)
         for artist in artists:
             artist.add_lp(new_lp)
         if mixer is not None:
@@ -1046,6 +1054,7 @@ class LPs():
                 :rtype:              tuple(str, list(:class:`_Artist`), list(:class:`_Artist`), list(:class:`_Artist`), str)
             """
             lp_title = rel_element_text(lp_element, 'title')
+            # print(lp_title)
 
             lp_artists = []
             lp_artist_elements = lp_element.find_all('a', rel='artist')
@@ -1154,13 +1163,25 @@ class LPs():
                 lp_title, lp_artists, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
                 lp_song_artists = []
 
+                if lp_title == 'Exit...Stage Left':
+                    print('lp element type {}'.format(type(lp_element)))
+                    print('lp element:\n {}'.format(lp_element))
+
                 # Process each side of the lp
                 lp_tracklist = []
                 all_side_elements = lp_element.find_all('a', rel='side')
                 if len(all_side_elements) == 0:
+                    if lp_title == 'Exit...Stage Left':
+                        print('found no rel="side" searching for <ol>')
                     # No labelled side like CD
                     all_side_elements = [lp_element.find('ol')]
+
+                if lp_title == 'Exit...Stage Left':
+                    print('all side_elements length = {}'.format(len(all_side_elements)))
                 for side_element in all_side_elements:
+                    if lp_title == 'Exit...Stage Left':
+                        print('Side element type {}'.format(type(side_element)))
+                        print('Side element:\n {}'.format(side_element))
                     side_title = None
                     side_mixer = None
                     any_additional_side_metadata = side_element.find('h4') is not None
