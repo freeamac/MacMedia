@@ -413,6 +413,14 @@ class Song():
         self._mix = new_mix
 
     @property
+    def featured_in(self) -> str:
+        return self._featured_in
+
+    @featured_in.setter
+    def featured_in(self, new_featured_in) -> None:
+        self._featured_in = new_featured_in
+
+    @property
     def parts(self) -> List[str]:
         return self._parts
 
@@ -431,6 +439,7 @@ class Song():
                  country: Optional[str] = None,
                  year: Optional[int] = None,
                  mix: Optional[str] = None,
+                 featured_in: Optional[str] = None,
                  parts: Optional[List[str]] = None) -> None:
         """ Creates a song found on an album.
 
@@ -464,7 +473,10 @@ class Song():
             :type year:                 str
 
             :param mix:                 Optional song mix
-            :type mix                   str
+            :type mix:                  str
+
+            :param featured_in:         Optional movie or show the song was featured in
+            :type featured_in:          str
 
             :param parts:               A list of parts this song is divided into
             :type parts:                list(str) | None
@@ -497,6 +509,7 @@ class Song():
             raise SongException('{} is not a valid integer year'.format(year))
         self._year = year
         self._mix = mix
+        self._featured_in = featured_in
         self._parts = parts
 
     def delete_additional_artist(self, additional_artist) -> Optional[_Artist]:
@@ -550,6 +563,8 @@ class Song():
             html_str += '<br>\n      - <a rel="song-date">{date}</a>'.format(date=self.year)
         if self.country is not None:
             html_str += '<br>\n      - <a rel="song-country">{country}</a>'.format(country=self.country)
+        if self.featured_in is not None:
+            html_str += '<br>\n      (featured in <a rel="song-featured-in">{movie_or_show}</a>)'.format(movie_or_show=escape(self.featured_in, quote=False))
         if self.parts is not None and self.parts != []:
             html_str += '\n'
             html_str += spaceit('<ol type=I>\n', 4)
@@ -1266,6 +1281,7 @@ class LPs():
                         if song_date is not None:
                             song_date = int(song_date)
                         song_mix = rel_element_text(song_block, 'song-mix')
+                        song_featured_in = rel_element_text(song_block, 'song-featured-in')
 
                         song_parts = []
                         song_part_elements = song_block.find_all('a', rel='song-part')
@@ -1291,6 +1307,7 @@ class LPs():
                                                country=song_country,
                                                year=song_date,
                                                mix=song_mix,
+                                               featured_in=song_featured_in,
                                                parts=song_parts))
                     side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
                     lp_tracklist.append(side_tracklist)

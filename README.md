@@ -103,6 +103,8 @@ used to generate the documentation with the command:
 ```
 The root of the resulting html documentation is `app/docs/_build/html/index.html`.
 
+---
+
 # Music Media Schema
 
 Music media is currently encoded in an html file. At the top level, each piece of music media
@@ -182,6 +184,7 @@ song metadata include:
 * song country of origin  
 * classical work the song is from
 * classical composer of the song
+* movie or show song featured in
 * parts of the song
 The parts of the song is an order list container of each part.
 
@@ -193,6 +196,7 @@ The schema for a single song entry looks like:
       (<a rel="song-mix">{song_mix}</a>)<br>
       from <i><a rel="song-classical-work">{song_classical_work}</a></i><br>
       by <b><a rel="song-classical-composer">{song_classical_composer}</a></b><br>
+      (featured in <a rel="song-featured-in">{movie_or_show}</a>)<br>
       - <a rel="song-date">{year}</a><br>
       - <a rel="song-country">{country}</a>
     <ol type=I>
