@@ -53,7 +53,7 @@ jobs:
 
       - name: Cache Virtualenv
         id: cache-venv
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: venv
           key: ${{ runner.os }}-golf-venv-${{ hashFiles('requirements.txt') }}
