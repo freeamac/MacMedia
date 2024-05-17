@@ -18,7 +18,7 @@ fasteners==0.17.3
 flake8==4.0.1
 Flask==2.3.2
 Flask-Bootstrap==3.3.7.1
-Flask-Login==0.6.2
+Flask-Login==0.7.0
 Flask-Moment==1.0.2
 Flask-PageDown==0.4.0
 Flask-SQLAlchemy==3.0.3
