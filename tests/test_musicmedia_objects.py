@@ -3,13 +3,17 @@ import unittest
 
 import pytest
 
-from app.lps.lps_objects import (
+from app.musicmedia_objects import (
     Additional_Artist,
     ArtistException,
     Artists,
+    CDs,
+    ELPs,
     LPs,
     LPException,
+    MEDIA,
     MediaType,
+    MINI_CDs,
     Song,
     SongException,
     TrackList,
@@ -17,11 +21,16 @@ from app.lps.lps_objects import (
 )
 
 
-class LPTestCase(unittest.TestCase):
+class MEDIATestCase(unittest.TestCase):
+    """
+    The LP specific tests cases are the most inclusive as all media types share the similar class functions.
+    (ie. barring a typo, the should pass as well)
+    """
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
     # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
     MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'test_music.html')
+    SORTED_MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'sorted_test_music.html')  # Inorder by music type
 
     def test_Artist(self):
 
@@ -301,7 +310,7 @@ class LPTestCase(unittest.TestCase):
         all_artists._clean_artists()
         all_lps = LPs()
         all_lps._clean_lps()
-        all_lps.from_html_file(self.MUSIC_HTML_FILE)
+        MEDIA.from_html_file(self.MUSIC_HTML_FILE)
         print('Number of artists found: {}'.format(len(all_artists.artists)))
         print('Number of lps found: {}'.format(len(all_lps.lps)))
 
@@ -335,7 +344,7 @@ class LPTestCase(unittest.TestCase):
         bach_song_composer = track1.get_song_from_title('Gavotte From Fourth Lute Suite')
         self.assertEqual(bach_song_composer, track1.song_list[1])
         bach = all_artists.find_artist('Bach')
-        self.assertEqual(len(bach.lps), 3)
+        self.assertEqual(len(bach.cds | bach.lps | bach.elps | bach.mini_cds), 3)
         self.assertEqual(bach, bach_song_composer.classical_composers[0])
         adagio_song = williams.find_lp('Greatest Hits').get_song_from_title('Adagio From Concierto de Aranjuez For Guitar And Orchestra')
         self.assertEqual('Rodrigo', adagio_song.classical_composers[0].name)
@@ -355,23 +364,124 @@ class LPTestCase(unittest.TestCase):
 
         self.assertListEqual(all_lps.find_lps_by_year(1974), [whos_zoo, moontan, know_your_jazz, not_fragile])
 
-    def test_lps_html_export(self):
+    def test_read_cds_html(self):
+        # Test the reading of a music html file to extract all the CDs
+        all_artists = Artists()
+        all_artists._clean_artists()
+        all_cds = CDs()
+        all_cds._clean_cds()
+        MEDIA.from_html_file(self.MUSIC_HTML_FILE)
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of cds found: {}'.format(len(all_cds.cds)))
+
+        self.assertEqual(7, len(all_cds.cds))
+
+        jungle_brothers = all_artists.find_artist('Jungle Brothers')
+        jungle_brothers_cds = jungle_brothers.cds
+        self.assertEqual(1, len(jungle_brothers_cds))
+        jungle_brothers_various_cd = jungle_brothers.find_cd('Various: 02 Dance Music: Modernlife')
+        self.assertIsNotNone(jungle_brothers_various_cd)
+
+        dj_geoffe = all_artists.find_artist('DJ Geoffe')
+        dj_geoff_cds = dj_geoffe.cds
+        self.assertEqual(1, len(dj_geoff_cds))
+        dj_geoffe_mixed_cd = dj_geoffe.find_cd('Various: 02 Dance Music: Modernlife')
+        self.assertIsNotNone(dj_geoffe_mixed_cd)
+
+        self.assertEqual(jungle_brothers_various_cd, dj_geoffe_mixed_cd)
+        self.assertEqual(len(dj_geoffe_mixed_cd.tracks), 1)
+        track1 = dj_geoffe_mixed_cd.tracks[0]
+        track1_song_list = track1.song_list
+        self.assertEqual(len(track1_song_list), 10)
+
+        freakin_you = track1.get_song_from_title('Freakin\' You')
+        self.assertEqual(freakin_you.title, 'Freakin\' You')
+        self.assertEqual(jungle_brothers, freakin_you.main_artist)
+
+    def test_read_elps_html(self):
+        # Test the reading of a music html file to extract all the ELPs
+        all_artists = Artists()
+        all_artists._clean_artists()
+        all_elps = ELPs()
+        all_elps._clean_elps()
+        MEDIA.from_html_file(self.MUSIC_HTML_FILE)
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of ELPs found: {}'.format(len(all_elps.elps)))
+
+        self.assertEqual(1, len(all_elps.elps))
+
+        bryan_adams = all_artists.find_artist('Bryan Adams')
+        bryan_adams_elps = bryan_adams.elps
+        self.assertEqual(1, len(bryan_adams_elps))
+        bryan_adams_elp = bryan_adams.find_elp('Run To You')
+        self.assertIsNotNone(bryan_adams_elp)
+
+        self.assertEqual(len(bryan_adams_elp.tracks), 2)
+        track1 = bryan_adams_elp.tracks[0]
+        track2 = bryan_adams_elp.tracks[1]
+
+        self.assertEqual(len(track1.song_list), 1)
+        self.assertEqual(len(track2.song_list), 2)
+
+        cuts_like_a_knife = track2.get_song_from_title('Cuts Like A Knife')
+        self.assertEqual(cuts_like_a_knife.title, 'Cuts Like A Knife')
+        self.assertEqual(bryan_adams, cuts_like_a_knife.main_artist)
+
+    def test_read_mini_cd_html(self):
+        # Test the reading of a music html file to extract all the mini CDs
+        all_artists = Artists()
+        all_artists._clean_artists()
+        all_mini_cds = MINI_CDs()
+        all_mini_cds._clean_mini_cds()
+        MEDIA.from_html_file(self.MUSIC_HTML_FILE)
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of mini CDs found: {}'.format(len(all_mini_cds.mini_cds)))
+
+        self.assertEqual(1, len(all_mini_cds.mini_cds))
+
+        guns_n_roses = all_artists.find_artist('Guns N\' Roses')
+        guns_n_roses_mini_cds = guns_n_roses.mini_cds
+        self.assertEqual(1, len(guns_n_roses_mini_cds))
+        guns_n_roses_mini_cd = guns_n_roses.find_mini_cd('Since I Don\'t Have You')
+        self.assertIsNotNone(guns_n_roses_mini_cd)
+
+        self.assertEqual(len(guns_n_roses_mini_cd.tracks), 1)
+        track1 = guns_n_roses_mini_cd.tracks[0]
+
+        self.assertEqual(len(track1.song_list), 3)
+
+        human_being = track1.get_song_from_title('Human Being')
+        self.assertEqual(human_being.title, 'Human Being')
+        self.assertEqual(guns_n_roses, human_being.main_artist)
+        self.assertEqual(human_being.mix, 'LP version')
+
+    def test_html_export(self):
         # Test the html created by all lps is the same as the html contained
         # in the file read in
         all_artists = Artists()
         all_artists._clean_artists()
+        all_cds = CDs()
+        all_cds._clean_cds()
         all_lps = LPs()
         all_lps._clean_lps()
-        all_lps.from_html_file(self.MUSIC_HTML_FILE)
-        print('Number of artists found: {}'.format(len(all_artists.artists)))
-        print('Number of lps found: {}'.format(len(all_lps.lps)))
+        all_elps = ELPs()
+        all_elps._clean_elps()
+        all_mini_cds = MINI_CDs()
+        all_mini_cds._clean_mini_cds()
+        media = MEDIA()
+        media.from_html_file(self.MUSIC_HTML_FILE)
+        print('Number of Artists found: {}'.format(len(all_artists.artists)))
+        print('Number of CDs found: {}'.format(len(all_cds.cds)))
+        print('Number of LPs found: {}'.format(len(all_lps.lps)))
+        print('Number of ELPs found: {}'.format(len(all_elps.elps)))
+        print('Number of mini CDs found: {}'.format(len(all_mini_cds.mini_cds)))
 
-        with open(self.MUSIC_HTML_FILE, 'r') as fp:
+        with open(self.SORTED_MUSIC_HTML_FILE, 'r') as fp:
             file_html = fp.read()
-        html_representation = all_lps.to_html()
+        html_representation = media.to_html()
 
         # Used to track down error locations
-        debug = os.getenv('TEST_LPS_DEBUG', 'False')
+        debug = os.getenv('TEST_MEDIA_HTML_EXPORT_DEBUG', 'False')
         if debug.lower() == 'true':
             file_html_list = file_html.split('\n')
             html_representation_list = html_representation.split('\n')
