@@ -1,9 +1,14 @@
 """
-Definition of all the objects required for a list of LPs:
-    + A set of LPs is a singleton holding a set of all LP objects
-    + An LP object has a title string, Artist object, list of Track objects
-      and an optional mixer Artist object
-    + An Artist object has a name string, a set of LP objects
+Definition of all the objects required for a list of music media:
+    + Music media can be one of an LP, CD, mini-CD or ELP
+    + There can only be one instance, defined by the "title"
+      of a each type of media object
+    + Each media type has a singleton holding all that particular media's
+      objects
+    + A Media object has a type, title string, Artist object, list of Track
+      objects and an optional mixer Artist object
+    + An Artist object has a name string, and a set of each type of media
+      objects associated with that artist
     + A set of Artists is a singleton holding a set of all Artist objects
     + A Track object has an option side string and a list of Song objects
     + A Song object has a title string, an option main Artist object,
@@ -14,12 +19,12 @@ Definition of all the objects required for a list of LPs:
       is used to compose appropriate formatting where songs are
       done in a collaboration
 
-LP objects can be deleted from the set of LPs which will also remove that
-lp from the set of LP objects referenced by the lp artist.
+Media objects can be deleted from the set of Media which will also remove that
+media from the set of Media objects referenced by the media artist.
 
-It is possible for an Artist object to not reference any lps either due to
-there last lp being deleted or they are only associated with a song(s) on
-an lp.
+It is possible for an Artist object to not reference any media either due to
+there last media being deleted or they are only associated with a song(s) on
+a media tracklist.
 """
 
 from enum import Enum
@@ -36,8 +41,27 @@ class MediaTypeException(Exception):
     pass
 
 
-class LPException(Exception):
+class MediaException(Exception):
+    """ Indicates an error using a Media object. """
+
+
+class LPException(MediaException):
     """ Indicates an error using an LP object. """
+    pass
+
+
+class CDException(MediaException):
+    """ Indicates an error using a CD object. """
+    pass
+
+
+class MiniCDException(MediaException):
+    """ Indicates an error using an mini-CD object. """
+    pass
+
+
+class ELPException(MediaException):
+    """ Indicates an error using an ELP object. """
     pass
 
 
@@ -52,7 +76,7 @@ class SongException(Exception):
 
 
 class AdditionalArtistException(Exception):
-    """ Indicates an error using and Additional_Artist object """
+    """ Indicates an error using and Additional_Artist object. """
     pass
 
 
@@ -72,8 +96,20 @@ class _Artist():
     """ Defines a music artist. Should only be instantiated by calling :func:`Artists().create_Artists`. """
 
     @property
+    def cds(self) -> set:
+        return self._cds
+
+    @property
     def lps(self) -> set:
         return self._lps
+
+    @property
+    def elps(self) -> set:
+        return self._elps
+
+    @property
+    def mini_cds(self) -> set:
+        return self._mini_cds
 
     @property
     def name(self) -> str:
@@ -82,37 +118,92 @@ class _Artist():
     def __init__(self, name: str) -> None:
         self._name = name
         self._lps = set()
+        self._cds = set()
+        self._elps = set()
+        self._mini_cds = set()
 
-    def add_lp(self, lp: '_LP') -> None:
-        """ Add an album associated with the artist as the main artist or mixer of the album.
+    def add_media(self, media: '_MEDIA') -> None:
+        """ Add a media object associated with the artist as the main artist or mixer of the album.
 
-            :param lp:            The album to associate with the artist
-            :type param_lp:       :class:`LP`
+            :param media:             The album to associate with the artist.
+            :type media:              :class:`_Media`
 
-            :raises LPException:  If passed parameter is not an :class:`_LP` or the album already
-                                  associated with the artist
+            :raises MediaException:   If passed parameter is not an :class:`_Media`.
+            :raises LPException:      The album already associated with the artist.
+            :raises CDException:      The CD already associated with the artist.
+            :raises ELPException:     The ELP already associated with the artist.
+            :raises MiniCDException:  The mini CD is already associated with the artist.
         """
-        # if self.name == 'George Thorogood & The Destroyers':
-        #    assert False
-        if type(lp) is not _LP:
-            raise LPException('{} is not an LP object'.format(lp))
-        if lp in self._lps:
-            raise LPException('{} already in list of LPs for {}'.format(lp.title, self.name))
+        if type(media) is _CD:
+            if media in self._cds:
+                raise CDException('{} already in list of CDs for {}'.format(media.title, self.name))
+            else:
+                self._cds.add(media)
+        elif type(media) is _LP:
+            if media in self._lps:
+                raise LPException('{} already in list of LPs for {}'.format(media.title, self.name))
+            else:
+                self._lps.add(media)
+        elif type(media) is _ELP:
+            if media in self._elps:
+                raise ELPException('{} already in list of ELPs for {}'.format(media.title, self.name))
+            else:
+                self._elps.add(media)
+        elif type(media) is _MINI_CD:
+            if media in self._mini_cds:
+                raise MiniCDException('{} already in list of Mini CDs for {}'.format(media.title, self.name))
+            else:
+                self._mini_cds.add(media)
         else:
-            self._lps.add(lp)
+            raise MediaException('{} is not an Media object'.format(media))
 
-    def delete_lp(self, lp: '_LP') -> None:
-        """ Remove an album associated with an artist.
+    def delete_media(self, media: '_MEDIA') -> None:
+        """ Remove the media object associated with an artist.
 
-            :param lp:             The album to associate with the artist
-            :type param_lp:       :class:`LP`
+            :param lp:                The media to remove from the artist.
+            :type lp:                 :class:`LP`
 
-            :raises LPException:  If passed parameter is not an :class:`_LP`
+            :raises LPException:      If the media object is an LP and not associated with the artist.
+            :raises CDException:      If the media object is a CD and not associated with the artist.
+            :raises ELPException:     If the media object is an ELP and not associated with the artist.
+            :raises MiniCDException:  If the media object is an min CD and not associated with the artist.
+            :raises MediaException:   If the passed paramater is not a media object.
         """
-        if lp not in self._lps:
-            raise LPException('{} not in list of LPs for {}'.format(lp.title, self.name))
+        if type(media) is _CD:
+            if media not in self._cds:
+                raise CDException('{} not in list of CDs for {}'.format(media.title, self.name))
+            else:
+                self._cds.remove(media)
+        elif type(media) is _LP:
+            if media not in self._lps:
+                raise LPException('{} not in list of LPs for {}'.format(media.title, self.name))
+            else:
+                self._lps.remove(media)
+        elif type(media) is _ELP:
+            if media not in self._elps:
+                raise ELPException('{} not in list of ELPs for {}'.format(media.title, self.name))
+            else:
+                self._elps.remove(media)
+        elif type(media) is _MINI_CD:
+            if media not in self._mini_cds:
+                raise MiniCDException('{} not in list of mini CDs for {}'.format(media.title, self.name))
+            else:
+                self._mini_cds.remove(media)
         else:
-            self._lps.remove(lp)
+            raise MediaException('Trying to remove a non Media object {} from {}'.format(media, self.name))
+
+    def find_cd(self, cd_title: str) -> Optional['_CD']:
+        """ Return the named cd of the artist or None.
+
+            :param cd_title   Name of the cd to locate
+            :type cd_title:   str
+
+            :returns:         The CD or None
+            :rtype:           :class:`_CD` | None
+        """
+        for cd in self._cds:
+            if cd.title == cd_title:
+                return cd
 
     def find_lp(self, lp_title: str) -> Optional['_LP']:
         """ Return the named album of the artist or None.
@@ -126,6 +217,43 @@ class _Artist():
         for lp in self._lps:
             if lp.title == lp_title:
                 return lp
+
+    def find_elp(self, elp_title: str) -> Optional['_ELP']:
+        """ Return the named ELP of the artist or None.
+
+            :param elp_title   Name of the ELP to locate
+            :type elp_title:   str
+
+            :returns:          The ELP or None
+            :rtype:            :class:`_ELP` | None
+        """
+        for elp in self._elps:
+            if elp.title == elp_title:
+                return elp
+
+    def find_mini_cd(self, mini_cd_title: str) -> Optional['_MINI_CD']:
+        """ Return the named mini CD of the artist or None.
+
+            :param mini_cd_title   Name of the mini CD to locate
+            :type mini_cd_title:   str
+
+            :returns:              The mini CD or None
+            :rtype:                :class:`_MINI_CD` | None
+        """
+        for mini_cd in self._mini_cds:
+            if mini_cd.title == mini_cd_title:
+                return mini_cd
+
+    def find_media(self, title: str) -> Optional[List['_MEDIA']]:
+        """ Return a list of media with the named title of the artist or None.
+
+            :param title:  Title of the media to locate
+            :type title:   str
+
+            :returns:      A list of media with that title or None
+            :rtype:        list(:class:`_MEDIA`) | None
+        """
+        pass
 
     def update_name(self, new_name: str) -> None:
         """ Update the name of the artist.
@@ -729,8 +857,16 @@ class TrackList():
         return string
 
 
-class _LP():
-    """ Defines a music album. Should only be instantiated by calling :func:`LPs().create_LP`. """
+class _MEDIA():
+    """ Defines a music media object.
+
+        Note: Should only be instantiated by calling media type object contructor:
+
+              - :func:`LPs().create_LP`
+              - :func:`LPs().create_CD`
+              - :func:`ELPs().create_ELP`
+              - :func:`MINI_CDs().create_MINI_CD`
+    """
 
     @property
     def media_type(self) -> MediaType:
@@ -762,7 +898,7 @@ class _LP():
 
     @staticmethod
     def to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
-        """ Create a hash for the album based on title and artist_name.
+        """ Create a hash for the media object based on title and artist_name.
 
             :param media_type:   The media type of the album
             :type media_type:    :class:`MediaType`
@@ -900,8 +1036,376 @@ class _LP():
         return string
 
 
+class _CD(_MEDIA):
+    pass
+
+
+class _LP(_MEDIA):
+    pass
+
+
+class _ELP(_MEDIA):
+    pass
+
+
+class _MINI_CD(_MEDIA):
+    pass
+
+
+class MEDIA():
+    @classmethod
+    def from_html_file(cls, filepath: str) -> None:
+        """ Load the library from an html file.
+
+            :param filepath:  The file path of the html file to load
+            :type filepath:   str
+        """
+        def rel_element_text(head_node, rel_value) -> str:
+            rel_text = None
+            rel_node = head_node.find('a', rel=rel_value)
+            if rel_node is not None:
+                rel_text = rel_node.text.strip()
+            return rel_text
+
+        def get_media_metadata(media_element: Tag) -> (str, List[_Artist], List[str], List[_Artist], List[_Artist], str):
+            """ Parse the album tag for the album specific metadata.
+
+                The music media metadata is the title, list of artists, list of composers,
+                list of mixers and the year the music media was produced. The composer and mixer list
+                may be optional.
+
+                :param media_element:   The Tag node for an music media.
+                :type media_element:    :class:`bs2.element.Tag`
+
+                :returns:               A tuple of the album metadata: title, artists, artist particles,
+                                        composers, mixers and production year
+                :rtype:                 tuple(str, list(:class:`_Artist`), list(str), list(:class:`_Artist`), list(:class:`_Artist`), str)
+            """
+            media_title = None
+            media_artists = []
+            media_artist_particles = []
+            media_classical_composers = []
+            media_mixers = []
+            media_date = None
+            all_h3_elements = media_element.find_all('h3')
+            for h3_element in all_h3_elements:
+                # The first content is going to be the anchor tag
+                anchor_tag = h3_element.contents[0]
+                if isinstance(anchor_tag, Tag):
+                    if 'rel' in anchor_tag.attrs.keys():
+                        rel_value = anchor_tag['rel'][0]
+                        if rel_value == 'title':
+                            media_title = anchor_tag.text.strip()
+                        elif rel_value == 'artist':
+                            next_tag = anchor_tag
+                            while next_tag is not None:
+                                lp_artist_name = next_tag.text.strip()
+                                media_artists.append(Artists.create_Artist(lp_artist_name))
+                                if isinstance(next_tag.next_sibling, NavigableString):
+                                    next_tag = next_tag.next_sibling
+                                    media_artist_particles.append(next_tag.text)
+                                next_tag = next_tag.next_sibling
+                        elif rel_value == 'classical-composer':
+                            media_classical_composer_elements = h3_element.find_all('a', rel='classical-composer')
+                            for media_classical_composer_element in media_classical_composer_elements:
+                                media_classical_composer_name = media_classical_composer_element.text.strip()
+                                media_classical_composers.append(Artists.create_Artist(media_classical_composer_name))
+                        elif rel_value == 'date':
+                            media_date = anchor_tag.text.strip()
+                elif isinstance(anchor_tag, NavigableString):
+                    # Mixer entry starts as "Mixed By"
+                    media_mixer_elements = h3_element.find_all('a', rel='mixer')
+                    for media_mixer_element in media_mixer_elements:
+                        media_mixer_name = media_mixer_element.text.strip()
+                        media_mixers.append(Artists.create_Artist(media_mixer_name))
+
+            # Track down albums with more than one classical composer credit
+            if len(media_classical_composers) > 1:
+                print('Title: {}'.format(media_title))
+                assert (len(media_classical_composers) == 1)  # nosec
+
+            # Track down albums with more than one mixer credit
+            if len(media_mixers) > 1:
+                print('Title: {}'.format(media_title))
+                assert (len(media_mixers) == 1)  # nosec
+
+            return media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_date
+
+        def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> (_Artist, List[Additional_Artist]):
+            """ Get the optional main artist and additional artists from the song artist block.
+
+                We expect the song artists to reside in the <li></li> block which contains
+                all the information about the song. The artists should come consecutively after
+                the song name which is followed by a <br> tag so we begin our search after
+                this tag. Each artist will be encased in <b></b> tags. This is easy enough
+                to locate. The challenging aspect is collecting the text surrounding the
+                artist names. Text may occur before the first artist so we need to
+                trap the text after the <br> tag. For subsequent artists, we trap the
+                text between two artists and associate it with the later artists.
+
+                The main artist will be the album artist unless it is
+                found on a "Various Artist" album. In this case, we want to ensure the
+                main artist is the first song artist.
+
+                :param song_block:          The Tag node for a song block containing all information
+                                            about a song
+                :type song_block:           :class:`bs2.element.Tag`
+
+                :param media_artist:        The artist of the music media which is the main song artist
+                                            except on a Various Artists music media
+                :type media_artist:         :class:`_Artist`
+
+                :returns:                   Main song artist if they exists and a list of additional
+                                            song artists. Main artist should only occur on "Various
+                                            Artist" music media
+                :rtype:                     tuple(_Artist | None, list(Additional_Artist))
+            """
+            main_artist = media_artist
+            other_artists = []
+            first_prequel = ''
+            song_metadata_block = song_block.find('br')
+            if song_metadata_block is not None:
+                if isinstance(song_metadata_block.next_sibling, NavigableString):
+                    first_prequel = song_metadata_block.next_sibling.text.split('\n')[1]
+                all_artist_blocks = song_block.find_all('b')
+                if len(all_artist_blocks) > 0:
+                    for artist_block in all_artist_blocks:
+                        # Note that a <b> tag may contain other tags besides a song-artist
+                        # but the consecutivity of the artists allows the following to work
+                        artist_name_block = artist_block.find('a', rel="song-artist")
+                        if artist_name_block is not None:
+                            prequel = sequel = ''
+                            artist_name = artist_name_block.text.strip()
+                            song_artist = Artists.create_Artist(artist_name)
+                            if artist_block == all_artist_blocks[0]:
+                                prequel = first_prequel
+                                # Special handling of first block for the prequel and main artist
+                                if media_artist.name.upper() == Artists.VARIOUS_ARTISTS:
+                                    main_artist = song_artist
+
+                            if isinstance(artist_block.next_sibling, NavigableString):
+                                sequel = artist_block.next_sibling.text.split('\n')[0]
+
+                            other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
+
+            return main_artist, other_artists, exp_main_artist
+
+        with open(filepath, 'r') as fp:
+            # Parse the formatted file for LPs
+            html = fp.read()
+            parsed_html = BeautifulSoup(html, features="html.parser")
+
+            # Parse out all the LPs which start with <p> tags
+            all_p_elements = parsed_html.find_all('p')
+            for p_element in all_p_elements:
+
+                # Now get the <a> tag which encloses all the rest of
+                # the information we want to get
+                media_element = p_element.contents[1]  # Skipping new line after <p> tag
+                media_type = MediaType(media_element['rel'][0])
+                media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_date = get_media_metadata(media_element)
+                media_song_artists = []
+
+                # Process each side of the lp
+                media_tracklist = []
+                all_side_elements = media_element.find_all('a', rel='side')
+                if len(all_side_elements) == 0:
+                    # No labelled side like CD
+                    all_side_elements = [media_element.find('ol')]
+
+                for side_element in all_side_elements:
+                    side_title = None
+                    side_mixer = None
+                    any_additional_side_metadata = side_element.find('h4') is not None
+                    if any_additional_side_metadata:
+                        side_title = side_element.find('h4').text.strip()
+                        side_mixer_name = rel_element_text(side_element, 'side-mixer')
+                        if side_mixer_name is not None:
+                            side_mixer = Artists.create_Artist(side_mixer_name)
+                            media_song_artists.append(side_mixer)
+
+                    # Process each song on the side
+                    side_Songs = []
+                    all_side_songs = side_element.find_all('li')
+                    found_song_parts = False
+                    song_parts_parent = None
+                    for song_block in all_side_songs:
+                        if found_song_parts:
+                            # Song parts contain 'li' tags so we process
+                            # the first such song and then skip until at the end
+                            # of the parts in the song
+                            if song_block.parent == song_parts_parent:
+                                continue
+                        song_title = rel_element_text(song_block, 'song')
+                        song_album = rel_element_text(song_block, 'song-album')
+
+                        # Song artist by default is only the album artist
+                        main_artist = media_artists[0]
+                        additional_artists = None
+                        exp_main_artist = False
+
+                        # Determine main song, additional song artists with prequel and sequel information.
+                        # and if main artist should be exposed.
+                        song_main_artist, song_additional_artists, exp_main_artist = get_song_additional_artists(song_block, media_artists[0])
+                        if song_main_artist is not None:
+                            main_artist = song_main_artist
+                        if song_additional_artists != []:
+                            for additional_artist in song_additional_artists:
+                                media_song_artists.append(additional_artist.artist)
+                            additional_artists = song_additional_artists
+
+                        song_classical_composer_nodes = song_block.find_all('a', rel='song-classical-composer')
+                        song_classical_composers = []
+                        if song_classical_composer_nodes is not None:
+                            for song_classical_composer_node in song_classical_composer_nodes:
+                                song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
+                                song_classical_composers.append(song_classical_composer)
+                                media_song_artists.append(song_classical_composer)
+                        if song_classical_composers == []:
+                            # Set to None if we find no classical composers
+                            song_classical_composers = None
+
+                        song_classical_work = rel_element_text(song_block, 'song-classical-work')
+                        song_country = rel_element_text(song_block, 'song-country')
+                        song_date = rel_element_text(song_block, 'song-date')
+                        if song_date is not None:
+                            song_date = int(song_date)
+                        song_mix = rel_element_text(song_block, 'song-mix')
+                        song_featured_in = rel_element_text(song_block, 'song-featured-in')
+
+                        song_parts = []
+                        song_part_elements = song_block.find_all('a', rel='song-part')
+                        if song_part_elements != []:
+                            # If we have song parts, we need to mark the <ol> parent
+                            # so we can skip 'li' tags which are song parts which
+                            # we are processing now
+                            song_parts_parent = song_part_elements[0].parent.parent
+                            found_song_parts = True
+                            for song_part_element in song_part_elements:
+                                song_parts.append(song_part_element.text.strip())
+                        else:
+                            song_parts_parent = None
+                            found_song_parts = False
+
+                        side_Songs.append(Song(title=song_title,
+                                               main_artist=main_artist,
+                                               exp_main_artist=exp_main_artist,
+                                               additional_artists=additional_artists,
+                                               album=song_album,
+                                               classical_composers=song_classical_composers,
+                                               classical_work=song_classical_work,
+                                               country=song_country,
+                                               year=song_date,
+                                               mix=song_mix,
+                                               featured_in=song_featured_in,
+                                               parts=song_parts))
+                    side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
+                    media_tracklist.append(side_tracklist)
+
+                # Create the LP and add it to all the artists found
+                # TODO: Handle artists vs composers vs mixers
+                if media_mixers == []:
+                    media_mixer = None
+                else:
+                    media_mixer = media_mixers[0]
+                if media_classical_composers == []:
+                    media_classical_composer = None
+                else:
+                    media_classical_composer = media_classical_composers[0]
+
+                # This is a bit awkward but to keep the integrity of the
+                # media type singletons, we farm out the data creation and
+                # updates to each individual media singleton. Perhaps
+                # we could use inheritance from a "MEDIAs" superclass?
+
+                # Handle LP music media
+                if media_type == MediaType.CD:
+                    new_Media = CDs.create_CD(media_type=media_type,
+                                              title=media_title,
+                                              artists=media_artists,
+                                              year=int(media_date),
+                                              mixer=media_mixer,
+                                              classical_composer=media_classical_composer,
+                                              artist_particles=media_artist_particles)
+
+                # Handle CD music media
+                elif media_type == MediaType.LP:
+                    new_Media = LPs.create_LP(media_type=media_type,
+                                              title=media_title,
+                                              artists=media_artists,
+                                              year=int(media_date),
+                                              mixer=media_mixer,
+                                              classical_composer=media_classical_composer,
+                                              artist_particles=media_artist_particles)
+
+                # Handle ELP music media
+                elif media_type == MediaType.ELP:
+                    new_Media = ELPs.create_ELP(media_type=media_type,
+                                                title=media_title,
+                                                artists=media_artists,
+                                                year=int(media_date),
+                                                mixer=media_mixer,
+                                                classical_composer=media_classical_composer,
+                                                artist_particles=media_artist_particles)
+
+                # Handle mini CD music media
+                elif media_type == MediaType.MINI_CD:
+                    new_Media = MINI_CDs.create_MINI_CD(media_type=media_type,
+                                                        title=media_title,
+                                                        artists=media_artists,
+                                                        year=int(media_date),
+                                                        mixer=media_mixer,
+                                                        classical_composer=media_classical_composer,
+                                                        artist_particles=media_artist_particles)
+                for tracklist in media_tracklist:
+                    new_Media.add_track(tracklist)
+
+                # Add LP to all song artists found once we dedupe them
+                for artist in set(media_song_artists):
+                    # Need to skip any that are also album artists since they have
+                    # already been added
+                    if artist not in media_artists:
+                        artist.add_media(new_Media)
+
+    @classmethod
+    def to_html_file(cls, filepath: str) -> None:
+        """ Write the library to an html file.
+
+            :param filepath:  The file path of the html file to write to
+            :type filepath:   str
+        """
+        # TODO:  Implement
+        pass
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all music media
+
+            :returns:  An html representation of all music media
+            :rtype:    str
+        """
+        HTML_HEADER = """<!DOCTYPE PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+<title>Music List</title>
+</head>
+<body>
+<h2>Audio Media</h2>
+"""
+        HTML_CLOSER = """</body>
+</html>
+"""
+        html_str = HTML_HEADER
+        html_str += CDs.to_html()
+        html_str += LPs.to_html()
+        html_str += ELPs.to_html()
+        html_str += MINI_CDs.to_html()
+        html_str += HTML_CLOSER
+        return html_str
+
+
 class LPs():
-    """ A singleton set of all music albums. """
+    """ A singleton set of all music LPs. """
     _instance = None
     _lps = []
 
@@ -978,9 +1482,9 @@ class LPs():
         # Create the new album
         new_lp = _LP(media_type, title, artists, year, mixer, classical_composer, artist_particles)
         for artist in artists:
-            artist.add_lp(new_lp)
+            artist.add_media(new_lp)
         if mixer is not None:
-            mixer.add_lp(new_lp)
+            mixer.add_media(new_lp)
         if not skip_adding_to_lp_list:
             cls.add_lp(new_lp)
         return new_lp
@@ -1012,9 +1516,9 @@ class LPs():
         """
         if lp in cls._lps:
             for artist in lp.artists:
-                artist.delete_lp(lp)
+                artist.delete_media(lp)
             if lp.mixer is not None:
-                lp.mixer.delete_lp(lp)
+                lp.mixer.delete_media(lp)
             cls._lps.remove(lp)
 
     @classmethod
@@ -1064,317 +1568,565 @@ class LPs():
         return lps_found
 
     @classmethod
-    def from_html_file(cls, filepath: str) -> None:
-        """ Load the library from an html file.
-
-            :param filepath:  The file path of the html file to load
-            :type filepath:   str
-        """
-        def rel_element_text(head_node, rel_value) -> str:
-            rel_text = None
-            rel_node = head_node.find('a', rel=rel_value)
-            if rel_node is not None:
-                rel_text = rel_node.text.strip()
-            return rel_text
-
-        def get_lp_metadata(lp_element: Tag) -> (str, List[_Artist], List[str], List[_Artist], List[_Artist], str):
-            """ Parse the album tag for the album specific metadata.
-
-                The album metadata is the album title, list of album artists, list of album composers,
-                list of album mixers and the year the LP was produced. The composer and mixer list
-                may be optional.
-
-                :param lp_element:   The Tag node for an album.
-                :type lp_element:    :class:`bs2.element.Tag`
-
-                :returns:            A tuple of the album metadata: title, artists, artist particles, composers, mixers
-                                     and production year
-                :rtype:              tuple(str, list(:class:`_Artist`), list(str), list(:class:`_Artist`), list(:class:`_Artist`), str)
-            """
-            lp_title = None
-            lp_artists = []
-            lp_artist_particles = []
-            lp_classical_composers = []
-            lp_mixers = []
-            lp_date = None
-            all_h3_elements = lp_element.find_all('h3')
-            for h3_element in all_h3_elements:
-                # The first content is going to be the anchor tag
-                anchor_tag = h3_element.contents[0]
-                if isinstance(anchor_tag, Tag):
-                    if 'rel' in anchor_tag.attrs.keys():
-                        rel_value = anchor_tag['rel'][0]
-                        if rel_value == 'title':
-                            lp_title = anchor_tag.text.strip()
-                        elif rel_value == 'artist':
-                            next_tag = anchor_tag
-                            while next_tag is not None:
-                                lp_artist_name = next_tag.text.strip()
-                                lp_artists.append(Artists.create_Artist(lp_artist_name))
-                                if isinstance(next_tag.next_sibling, NavigableString):
-                                    next_tag = next_tag.next_sibling
-                                    lp_artist_particles.append(next_tag.text)
-                                next_tag = next_tag.next_sibling
-                        elif rel_value == 'classical-composer':
-                            lp_classical_composer_elements = h3_element.find_all('a', rel='classical-composer')
-                            for lp_classical_composer_element in lp_classical_composer_elements:
-                                lp_classical_composer_name = lp_classical_composer_element.text.strip()
-                                lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_name))
-                        elif rel_value == 'date':
-                            lp_date = anchor_tag.text.strip()
-                elif isinstance(anchor_tag, NavigableString):
-                    # Mixer entry starts as "Mixed By"
-                    lp_mixer_elements = h3_element.find_all('a', rel='mixer')
-                    for lp_mixer_element in lp_mixer_elements:
-                        lp_mixer_name = lp_mixer_element.text.strip()
-                        lp_mixers.append(Artists.create_Artist(lp_mixer_name))
-
-            # Track down albums with more than one classical composer credit
-            if len(lp_classical_composers) > 1:
-                print('Title: {}'.format(lp_title))
-                assert (len(lp_classical_composers) == 1)  # nosec
-
-            # Track down albums with more than one mixer credit
-            if len(lp_mixers) > 1:
-                print('Title: {}'.format(lp_title))
-                assert (len(lp_mixers) == 1)  # nosec
-
-            return lp_title, lp_artists, lp_artist_particles, lp_classical_composers, lp_mixers, lp_date
-
-        def get_song_additional_artists(song_block: Tag, lp_artist: _Artist) -> (_Artist, List[Additional_Artist]):
-            """ Get the optional main artist and additional artists from the song artist block.
-
-                We expect the song artists to reside in the <li></li> block which contains
-                all the information about the song. The artists should come consecutively after
-                the song name which is followed by a <br> tag so we begin our search after
-                this tag. Each artist will be encased in <b></b> tags. This is easy enough
-                to locate. The challenging aspect is collecting the text surrounding the
-                artist names. Text may occur before the first artist so we need to
-                trap the text after the <br> tag. For subsequent artists, we trap the
-                text between two artists and associate it with the later artists.
-
-                The main artist will be the album artist unless it is
-                found on a "Various Artist" album. In this case, we want to ensure the
-                main artist is the first song artist.
-
-                :param song_block:          The Tag node for a song block containing all information
-                                            about a song
-                :type song_block:           :class:`bs2.element.Tag`
-
-                :param lp_artist:           The artist of the LP which is the main song artist
-                                            except on a Various Artists album
-                :type lp_artist:            :class:`_Artist`
-
-                :returns:                   Main song artist if they exists and a list of additional
-                                            song artists. Main artist should only occur on "Various
-                                            Artist" albums
-                :rtype:                     tuple(_Artist | None, list(Additional_Artist))
-            """
-            main_artist = lp_artist
-            other_artists = []
-            first_prequel = ''
-            song_metadata_block = song_block.find('br')
-            if song_metadata_block is not None:
-                if isinstance(song_metadata_block.next_sibling, NavigableString):
-                    first_prequel = song_metadata_block.next_sibling.text.split('\n')[1]
-                all_artist_blocks = song_block.find_all('b')
-                if len(all_artist_blocks) > 0:
-                    for artist_block in all_artist_blocks:
-                        # Note that a <b> tag may contain other tags besides a song-artist
-                        # but the consecutivity of the artists allows the following to work
-                        artist_name_block = artist_block.find('a', rel="song-artist")
-                        if artist_name_block is not None:
-                            prequel = sequel = ''
-                            artist_name = artist_name_block.text.strip()
-                            song_artist = Artists.create_Artist(artist_name)
-                            if artist_block == all_artist_blocks[0]:
-                                prequel = first_prequel
-                                # Special handling of first block for the prequel and main artist
-                                if lp_artist.name.upper() == Artists.VARIOUS_ARTISTS:
-                                    main_artist = song_artist
-
-                            if isinstance(artist_block.next_sibling, NavigableString):
-                                sequel = artist_block.next_sibling.text.split('\n')[0]
-
-                            other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
-
-            return main_artist, other_artists, exp_main_artist
-
-        with open(filepath, 'r') as fp:
-            # Parse the formatted file for LPs
-            html = fp.read()
-            parsed_html = BeautifulSoup(html, features="html.parser")
-
-            # Parse out all the LPs which start with <p> tags
-            all_p_elements = parsed_html.find_all('p')
-            for p_element in all_p_elements:
-
-                # Now get the <a> tag which encloses all the rest of
-                # the information we want to get
-                lp_element = p_element.contents[1]  # Skipping new line after <p> tag
-                media_type = MediaType(lp_element['rel'][0])
-                lp_title, lp_artists, lp_artist_particles, lp_classical_composers, lp_mixers, lp_date = get_lp_metadata(lp_element)
-                lp_song_artists = []
-
-                # Process each side of the lp
-                lp_tracklist = []
-                all_side_elements = lp_element.find_all('a', rel='side')
-                if len(all_side_elements) == 0:
-                    # No labelled side like CD
-                    all_side_elements = [lp_element.find('ol')]
-
-                for side_element in all_side_elements:
-                    side_title = None
-                    side_mixer = None
-                    any_additional_side_metadata = side_element.find('h4') is not None
-                    if any_additional_side_metadata:
-                        side_title = side_element.find('h4').text.strip()
-                        side_mixer_name = rel_element_text(side_element, 'side-mixer')
-                        if side_mixer_name is not None:
-                            side_mixer = Artists.create_Artist(side_mixer_name)
-                            lp_song_artists.append(side_mixer)
-
-                    # Process each song on the side
-                    side_Songs = []
-                    all_side_songs = side_element.find_all('li')
-                    found_song_parts = False
-                    song_parts_parent = None
-                    for song_block in all_side_songs:
-                        if found_song_parts:
-                            # Song parts contain 'li' tags so we process
-                            # the first such song and then skip until at the end
-                            # of the parts in the song
-                            if song_block.parent == song_parts_parent:
-                                continue
-                        song_title = rel_element_text(song_block, 'song')
-                        song_album = rel_element_text(song_block, 'song-album')
-
-                        # Song artist by default is only the album artist
-                        main_artist = lp_artists[0]
-                        additional_artists = None
-                        exp_main_artist = False
-
-                        # Determine main song, additional song artists with prequel and sequel information.
-                        # and if main artist should be exposed.
-                        song_main_artist, song_additional_artists, exp_main_artist = get_song_additional_artists(song_block, lp_artists[0])
-                        if song_main_artist is not None:
-                            main_artist = song_main_artist
-                        if song_additional_artists != []:
-                            for additional_artist in song_additional_artists:
-                                lp_song_artists.append(additional_artist.artist)
-                            additional_artists = song_additional_artists
-
-                        song_classical_composer_nodes = song_block.find_all('a', rel='song-classical-composer')
-                        song_classical_composers = []
-                        if song_classical_composer_nodes is not None:
-                            for song_classical_composer_node in song_classical_composer_nodes:
-                                song_classical_composer = Artists.create_Artist(song_classical_composer_node.text.strip())
-                                song_classical_composers.append(song_classical_composer)
-                                lp_song_artists.append(song_classical_composer)
-                        if song_classical_composers == []:
-                            # Set to None if we find no classical composers
-                            song_classical_composers = None
-
-                        song_classical_work = rel_element_text(song_block, 'song-classical-work')
-                        song_country = rel_element_text(song_block, 'song-country')
-                        song_date = rel_element_text(song_block, 'song-date')
-                        if song_date is not None:
-                            song_date = int(song_date)
-                        song_mix = rel_element_text(song_block, 'song-mix')
-                        song_featured_in = rel_element_text(song_block, 'song-featured-in')
-
-                        song_parts = []
-                        song_part_elements = song_block.find_all('a', rel='song-part')
-                        if song_part_elements != []:
-                            # If we have song parts, we need to mark the <ol> parent
-                            # so we can skip 'li' tags which are song parts which
-                            # we are processing now
-                            song_parts_parent = song_part_elements[0].parent.parent
-                            found_song_parts = True
-                            for song_part_element in song_part_elements:
-                                song_parts.append(song_part_element.text.strip())
-                        else:
-                            song_parts_parent = None
-                            found_song_parts = False
-
-                        side_Songs.append(Song(title=song_title,
-                                               main_artist=main_artist,
-                                               exp_main_artist=exp_main_artist,
-                                               additional_artists=additional_artists,
-                                               album=song_album,
-                                               classical_composers=song_classical_composers,
-                                               classical_work=song_classical_work,
-                                               country=song_country,
-                                               year=song_date,
-                                               mix=song_mix,
-                                               featured_in=song_featured_in,
-                                               parts=song_parts))
-                    side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
-                    lp_tracklist.append(side_tracklist)
-
-                # Create the LP and add it to all the artists found
-                # TODO: Handle artists vs composers vs mixers
-                if lp_mixers == []:
-                    lp_mixer = None
-                else:
-                    lp_mixer = lp_mixers[0]
-                if lp_classical_composers == []:
-                    lp_classical_composer = None
-                else:
-                    lp_classical_composer = lp_classical_composers[0]
-                new_LP = LPs.create_LP(media_type=media_type,
-                                       title=lp_title,
-                                       artists=lp_artists,
-                                       year=int(lp_date),
-                                       mixer=lp_mixer,
-                                       classical_composer=lp_classical_composer,
-                                       artist_particles=lp_artist_particles)
-                for tracklist in lp_tracklist:
-                    new_LP.add_track(tracklist)
-
-                # Add LP to all song artists found once we dedupe them
-                for artist in set(lp_song_artists):
-                    # Need to skip any that are also album artists since they have
-                    # already been added
-                    if artist not in lp_artists:
-                        artist.add_lp(new_LP)
-
-    @classmethod
-    def to_html_file(cls, filepath: str) -> None:
-        """ Write the library to an html file.
-
-            :param filepath:  The file path of the html file to write to
-            :type filepath:   str
-        """
-        # TODO:  Implement
-        pass
-
-    @classmethod
     def to_html(cls):
         """ Return an html representation of all albums
 
             :returns:  An html representation of all albums
             :rtype:    str
         """
-        HTML_HEADER = """<!DOCTYPE PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html lang="en">
-<head>
-<title>Music List</title>
-</head>
-<body>
-<h2>Audio Media</h2>
-"""
-        HTML_CLOSER = """</body>
-</html>
-"""
-        html_str = HTML_HEADER
+        html_str = ''
         for lp in cls._lps:
             html_str += lp.to_html()
-        html_str += HTML_CLOSER
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for lp in self.lps:
             string += str(lp)
+        return string
+
+
+class CDs():
+    """ A singleton set of all music CDs. """
+    _instance = None
+    _cds = []
+
+    @property
+    def cds(self) -> List[_CD]:
+        return self._cds
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CDs, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def _clean_cds(cls):
+        """ Private method to remove all albums from the collection. Useful in testing. """
+        cls._cds = []
+
+    @classmethod
+    def create_CD(cls,
+                  media_type: MediaType,
+                  title: str,
+                  artists: List[_Artist],
+                  year: int,
+                  mixer: Optional[_Artist] = None,
+                  classical_composer: Optional[_Artist] = None,
+                  artist_particles: List[str] = None,
+                  skip_adding_to_cd_list: bool = False) -> _CD:
+        """ Return the named cd if it exists or create a new cd.
+
+            By default a new cd is added to the set of all cds.
+
+            :param media_type:               The media type of the music cd
+            :type media_type:                :class:`MediaType`
+
+            :param title:                    The title of the new album
+            :type name:                      str
+
+            :param artists:                  The list of cd artists
+            :type artists:                   list(:class:`_Artist`)
+
+            :param year:                     The year the cd was published
+            :type year:                      int
+
+            :param mixer:                   Optional cd mixer
+            :type mixer:                    :class:`_Artist`
+
+            :param classical_composer:      Optional cd classical composer
+            :type classical_composer:       :class:`_Artist`
+
+            :param artist_particles:         Particle text linking artists
+            :type artist_particles:          list(str)
+
+            :param skip_addiing_to_cd_list:  If true, do not add new cd to cd sset
+            :type skip_adding_to_cd_list:    bool
+
+            :returns:                        The located or newly created cd
+            :rtype:                          :class:`_CD`
+        """
+        # We need to perform this check before searching for an existing cd as we need a valid
+        # artist name to search
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of artists'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not a an artist'.format(artist))
+
+        results = cls.find_cd_by_title(title)
+        if len(results) > 0:
+            # Need to check hash id
+            new_cd_id = _CD.to_hash(media_type, title, artists[0].name)
+            for result in results:
+                if result._id == new_cd_id:
+                    return result
+        # Create the new album
+        new_cd = _CD(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        for artist in artists:
+            artist.add_media(new_cd)
+        if mixer is not None:
+            mixer.add_media(new_cd)
+        if not skip_adding_to_cd_list:
+            cls.add_cd(new_cd)
+        return new_cd
+
+    @classmethod
+    def add_cd(cls, cd: _CD) -> None:
+        """ Add a cd to the set of all cds.
+
+            :param cd:            The cd to add
+            :type cd:             :class:`_CD`
+
+            :raises CDException:  If not passed a :class:`_CD` or the cd already exists in the set
+        """
+        if type(cd) is not _CD:
+            raise CDException('{} is not a CD object'.format(cd))
+        if cd in cls._cds:
+            raise CDException('CD {} already exists'.format(cd))
+        cls._cds.append(cd)
+
+    @classmethod
+    def delete_cd(cls, cd: _LP) -> None:
+        """ Remove the cd from the set of all cd.
+
+            Also remove the cd from the set of all cds owned by
+            the cd artist and cd mixer (if they exist)
+
+            :param cd:  The cd to add
+            :type cd:   :class:`_CD`
+        """
+        if cd in cls._cds:
+            for artist in cd.artists:
+                artist.delete_media(cd)
+            if cd.mixer is not None:
+                cd.mixer.delete_media(cd)
+            cls._cds.remove(cd)
+
+    @classmethod
+    def cd_exists(cls, cd: _CD) -> bool:
+        """ Returns true of the cd exists in the set of cds.
+
+            :param cd:  The cd to add
+            :type cd:   :class:`_CD`
+
+            :returns:   True if the cd exists in the set of all cds
+            :rtype:     bool
+        """
+        return cd in cls._cds
+
+    @classmethod
+    def find_cd_by_title(cls, title: str) -> List[_CD]:
+        """ Returns the cds in the set of all cds that matches the passed cd title. Otherwise, empty list.
+
+            :param title:  The cd title to search for
+            :type title:   str
+
+            :returns:      The cd if found. None, otherwise
+            :rtype:        list(:class:`_CD` )
+         """
+        result = []
+        for cd in cls._cds:
+            if cd.title == title:
+                result.append(cd)
+        return result
+
+    @classmethod
+    def find_cds_by_year(cls, year: int) -> List[_LP]:
+        """ Return a list of cds produced in the passed year.
+
+            :param year:  Find cds produced in this year
+            :type year:   int
+
+            :returns:     A list of cds produced in that year
+            :rtype:       list(:class:`_CD`) | None
+        """
+        cds_found = []
+        for cd in cls._cds:
+            if cd.year == year:
+                cds_found.append(cd)
+        if cds_found == []:
+            return None
+        return cds_found
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all cds
+
+            :returns:  An html representation of all cds
+            :rtype:    str
+        """
+        html_str = ''
+        for cd in cls._cds:
+            html_str += cd.to_html()
+        return html_str
+
+    def __str__(self) -> str:
+        string = ''
+        for cd in self.cds:
+            string += str(cd)
+        return string
+
+
+class ELPs():
+    """ A singleton set of all music ELPs. """
+    _instance = None
+    _elps = []
+
+    @property
+    def elps(self) -> List[_ELP]:
+        return self._elps
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ELPs, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def _clean_elps(cls):
+        """ Private method to remove all elps from the collection. Useful in testing. """
+        cls._elps = []
+
+    @classmethod
+    def create_ELP(cls,
+                   media_type: MediaType,
+                   title: str,
+                   artists: List[_Artist],
+                   year: int,
+                   mixer: Optional[_Artist] = None,
+                   classical_composer: Optional[_Artist] = None,
+                   artist_particles: List[str] = None,
+                   skip_adding_to_elp_list: bool = False) -> _ELP:
+        """ Return the named elp if it exists or create a new elp.
+
+            By default a new elp is added to the set of all elps.
+
+            :param media_type:               The media type of the music elp
+            :type media_type:                :class:`MediaType`
+
+            :param title:                    The title of the new elp
+            :type name:                      str
+
+            :param artists:                  The list of elp artists
+            :type artists:                   list(:class:`_Artist`)
+
+            :param year:                     The year the elp was published
+            :type year:                      int
+
+            :param mixer:                   Optional elp mixer
+            :type mixer:                    :class:`_Artist`
+
+            :param classical_composer:      Optional elp classical composer
+            :type classical_composer:       :class:`_Artist`
+
+            :param artist_particles:         Particle text linking artists
+            :type artist_particles:          list(str)
+
+            :param skip_addiing_to_elp_list:  If true, do not add new elp to elps set
+            :type skip_adding_to_elp_list:    bool
+
+            :returns:                        The located or newly created elp
+            :rtype:                          :class:`_ELP`
+        """
+        # We need to perform this check before searching for an existing elp as we need a valid
+        # artist name to search
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of artists'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not a an artist'.format(artist))
+
+        results = cls.find_elp_by_title(title)
+        if len(results) > 0:
+            # Need to check hash id
+            new_elp_id = _ELP.to_hash(media_type, title, artists[0].name)
+            for result in results:
+                if result._id == new_elp_id:
+                    return result
+        # Create the new elp
+        new_elp = _ELP(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        for artist in artists:
+            artist.add_media(new_elp)
+        if mixer is not None:
+            mixer.add_media(new_elp)
+        if not skip_adding_to_elp_list:
+            cls.add_elp(new_elp)
+        return new_elp
+
+    @classmethod
+    def add_elp(cls, elp: _ELP) -> None:
+        """ Add an elp to the set of all elps.
+
+            :param elp:            The elp to add
+            :type elp:             :class:`_ELP`
+
+            :raises ELPException:  If not passed a :class:`_ELP` or the elp already exists in the set
+        """
+        if type(elp) is not _ELP:
+            raise ELPException('{} is not an ELP object'.format(elp))
+        if elp in cls._elps:
+            raise ELPException('ELP {} already exists'.format(elp))
+        cls._elps.append(elp)
+
+    @classmethod
+    def delete_elp(cls, elp: _ELP) -> None:
+        """ Remove the elp from the set of all elps.
+
+            Also remove the elp from the set of all elps owned by
+            the elp artist and elp mixer (if they exist)
+
+            :param elp:  The elp to add
+            :type elp:   :class:`_ELP`
+        """
+        if elp in cls._elps:
+            for artist in elp.artists:
+                artist.delete_media(elp)
+            if elp.mixer is not None:
+                elp.mixer.delete_media(elp)
+            cls._elps.remove(elp)
+
+    @classmethod
+    def elp_exists(cls, elp: _ELP) -> bool:
+        """ Returns true of the elp exists in the set of elps.
+
+            :param elp:  The elp to add
+            :type elp:   :class:`_ELP`
+
+            :returns:   True if the elp exists in the set of all elps
+            :rtype:     bool
+        """
+        return elp in cls._elps
+
+    @classmethod
+    def find_elp_by_title(cls, title: str) -> List[_ELP]:
+        """ Returns the elps in the set of all elps that matches the passed elp title. Otherwise, empty list.
+
+            :param title:  The elp title to search for
+            :type title:   str
+
+            :returns:      The elp if found. None, otherwise
+            :rtype:        list(:class:`_ELP` )
+         """
+        result = []
+        for elp in cls._elps:
+            if elp.title == title:
+                result.append(elp)
+        return result
+
+    @classmethod
+    def find_elps_by_year(cls, year: int) -> List[_ELP]:
+        """ Return a list of elps produced in the passed year.
+
+            :param year:  Find elps produced in this year
+            :type year:   int
+
+            :returns:     A list of elps produced in that year
+            :rtype:       list(:class:`_ELP`) | None
+        """
+        elps_found = []
+        for elp in cls._elps:
+            if elp.year == year:
+                elps_found.append(elp)
+        if elps_found == []:
+            return None
+        return elps_found
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all elps
+
+            :returns:  An html representation of all elps
+            :rtype:    str
+        """
+        html_str = ''
+        for elp in cls._elps:
+            html_str += elp.to_html()
+        return html_str
+
+    def __str__(self) -> str:
+        string = ''
+        for elp in self.elps:
+            string += str(elp)
+        return string
+
+
+class MINI_CDs():
+    """ A singleton set of all music mini CDs. """
+    _instance = None
+    _mini_cds = []
+
+    @property
+    def mini_cds(self) -> List[_MINI_CD]:
+        return self._mini_cds
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(MINI_CDs, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def _clean_mini_cds(cls):
+        """ Private method to remove all mini CDs from the collection. Useful in testing. """
+        cls._mini_cds = []
+
+    @classmethod
+    def create_MINI_CD(cls,
+                       media_type: MediaType,
+                       title: str,
+                       artists: List[_Artist],
+                       year: int,
+                       mixer: Optional[_Artist] = None,
+                       classical_composer: Optional[_Artist] = None,
+                       artist_particles: List[str] = None,
+                       skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
+        """ Return the named mini CD if it exists or create a new mini_cd.
+
+            By default a new mini CD is added to the set of all mini CDs.
+
+            :param media_type:               The media type of the music mini CD
+            :type media_type:                :class:`MediaType`
+
+            :param title:                    The title of the new mini CD
+            :type name:                      str
+
+            :param artists:                  The list of mini CD artists
+            :type artists:                   list(:class:`_Artist`)
+
+            :param year:                     The year the mini CD was published
+            :type year:                      int
+
+            :param mixer:                   Optional mini CD mixer
+            :type mixer:                    :class:`_Artist`
+
+            :param classical_composer:      Optional mini CD classical composer
+            :type classical_composer:       :class:`_Artist`
+
+            :param artist_particles:         Particle text linking artists
+            :type artist_particles:          list(str)
+
+            :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds set
+            :type skip_adding_to_mini_cd_list:    bool
+
+            :returns:                        The located or newly created mini CD
+            :rtype:                          :class:`_MINI_CD`
+        """
+        # We need to perform this check before searching for an existing mini CD as we need a valid
+        # artist name to search
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of artists'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not a an artist'.format(artist))
+
+        results = cls.find_mini_cd_by_title(title)
+        if len(results) > 0:
+            # Need to check hash id
+            new_mini_cd_id = _MINI_CD.to_hash(media_type, title, artists[0].name)
+            for result in results:
+                if result._id == new_mini_cd_id:
+                    return result
+        # Create the new mini CD
+        new_mini_cd = _MINI_CD(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        for artist in artists:
+            artist.add_media(new_mini_cd)
+        if mixer is not None:
+            mixer.add_media(new_mini_cd)
+        if not skip_adding_to_mini_cd_list:
+            cls.add_mini_cd(new_mini_cd)
+        return new_mini_cd
+
+    @classmethod
+    def add_mini_cd(cls, mini_cd: _MINI_CD) -> None:
+        """ Add an mini_cd to the set of all mini CDs.
+
+            :param mini_cd:            The mini CD to add
+            :type mini_cd:             :class:`_MINI_CD`
+
+            :raises MINI_CDException:  If not passed a :class:`_MINI_CD` or the mini CD already exists in the set
+        """
+        if type(mini_cd) is not _MINI_CD:
+            raise MiniCDException('{} is not an mini CD object'.format(mini_cd))
+        if mini_cd in cls._mini_cds:
+            raise MiniCDException('Mini CD {} already exists'.format(mini_cd))
+        cls._mini_cds.append(mini_cd)
+
+    @classmethod
+    def delete_mini_cd(cls, mini_cd: _MINI_CD) -> None:
+        """ Remove the mini CD from the set of all mini CDs.
+
+            Also remove the mini_cd from the set of all mini CDs owned by
+            the mini CD artist and mini CD mixer (if they exist)
+
+            :param mini_cd:  The mini CD to add
+            :type mini_cd:   :class:`_MINI_CD`
+        """
+        if mini_cd in cls._mini_cds:
+            for artist in mini_cd.artists:
+                artist.delete_media(mini_cd)
+            if mini_cd.mixer is not None:
+                mini_cd.mixer.media(mini_cd)
+            cls._mini_cds.remove(mini_cd)
+
+    @classmethod
+    def mini_cd_exists(cls, mini_cd: _MINI_CD) -> bool:
+        """ Returns true of the mini CD exists in the set of mini CDs.
+
+            :param mini_cd:  The mini CD to add
+            :type mini_cd:   :class:`_MINI_CD`
+
+            :returns:   True if the mini CD exists in the set of all mini CDs
+            :rtype:     bool
+        """
+        return mini_cd in cls._mini_cds
+
+    @classmethod
+    def find_mini_cd_by_title(cls, title: str) -> List[_MINI_CD]:
+        """ Returns the mini CDs in the set of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
+
+            :param title:  The mini CD title to search for
+            :type title:   str
+
+            :returns:      The mini CD if found. None, otherwise
+            :rtype:        list(:class:`_MINI_CD` )
+         """
+        result = []
+        for mini_cd in cls._mini_cds:
+            if mini_cd.title == title:
+                result.append(mini_cd)
+        return result
+
+    @classmethod
+    def find_mini_cds_by_year(cls, year: int) -> List[_MINI_CD]:
+        """ Return a list of mini CDs produced in the passed year.
+
+            :param year:  Find mini CDs produced in this year
+            :type year:   int
+
+            :returns:     A list of mini CDs produced in that year
+            :rtype:       list(:class:`_MINI_CD`) | None
+        """
+        mini_cds_found = []
+        for mini_cd in cls._mini_cds:
+            if mini_cd.year == year:
+                mini_cds_found.append(mini_cd)
+        if mini_cds_found == []:
+            return None
+        return mini_cds_found
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all mini CDs
+
+            :returns:  An html representation of all mini CDs
+            :rtype:    str
+        """
+        html_str = ''
+        for mini_cd in cls._mini_cds:
+            html_str += mini_cd.to_html()
+        return html_str
+
+    def __str__(self) -> str:
+        string = ''
+        for mini_cd in self.mini_cds:
+            string += str(mini_cd)
         return string
