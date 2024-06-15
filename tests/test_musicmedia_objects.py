@@ -188,7 +188,8 @@ class MEDIATestCase(unittest.TestCase):
             album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 9', artists=[album_artist], year=1992, mixer='Hello')
 
         # Test string output
-        expected_string = 'Club Cutz Volume 3\n'
+        expected_string = 'lp\n'
+        expected_string += 'Club Cutz Volume 3\n'
         expected_string += 'Various Artists\n'
         expected_string += 'Mixed by DJ Funk\n'
         expected_string += '1992'
@@ -272,13 +273,15 @@ class MEDIATestCase(unittest.TestCase):
 
         # Test string output. Since the albums are in a set, the output
         # can come in one of two permutations
-        album_string_1 = 'Club Cutz Volume 3\n'
+        album_string_1 = 'lp\n'
+        album_string_1 += 'Club Cutz Volume 3\n'
         album_string_1 += 'Various Artists\n'
         album_string_1 += '1992\n'
         album_string_1 += ' 1. Jump To The Beat\nDannii Minogue\n(12" Mix)\n'
         album_string_1 += ' 2. Jump!\nThe Movement\n(Everybody Mix)\n'
         album_string_1 += ' 3. Pull Our Love Together\nPandella\n(Komix Club Mix)\n\n'
-        album_string_2 = 'Various: 01 Dance Music: Modernlife\n'
+        album_string_2 = 'lp\n'
+        album_string_2 += 'Various: 01 Dance Music: Modernlife\n'
         album_string_2 += 'Various Artists\n'
         album_string_2 += '2000\n'
         album_string_2 += ' 1. He\'s All I Want\nAngelmoon\n(Cappery Mix)\n'

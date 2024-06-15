@@ -96,6 +96,10 @@ class _Artist():
     """ Defines a music artist. Should only be instantiated by calling :func:`Artists().create_Artists`. """
 
     @property
+    def index(self) -> int:
+        return self._index
+
+    @property
     def cds(self) -> set:
         return self._cds
 
@@ -115,12 +119,13 @@ class _Artist():
     def name(self) -> str:
         return self._name
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, index: int) -> None:
         self._name = name
         self._lps = set()
         self._cds = set()
         self._elps = set()
         self._mini_cds = set()
+        self._index = index
 
     def add_media(self, media: '_MEDIA') -> None:
         """ Add a media object associated with the artist as the main artist or mixer of the album.
@@ -289,6 +294,7 @@ class Artists():
     """ A singleton set of all music artists. """
     _instance = None
     _artists = set()
+    _max_index = 0
     VARIOUS_ARTISTS = 'VARIOUS ARTISTS'
 
     @property
@@ -328,7 +334,8 @@ class Artists():
         result = cls.find_artist(name)
         if result is not None:
             return result
-        new_artist = _Artist(name)
+        new_artist = _Artist(name, cls._max_index)
+        cls._max_index += 1
         if not skip_adding_to_artists_set:
             cls.add_artist(new_artist)
         return new_artist
@@ -869,6 +876,10 @@ class _MEDIA():
     """
 
     @property
+    def index(self) -> int:
+        return self._index
+
+    @property
     def media_type(self) -> MediaType:
         return self._media_type
 
@@ -919,6 +930,7 @@ class _MEDIA():
                  title: str,
                  artists: List[_Artist],
                  year: int,
+                 index: int,
                  mixer: Optional[_Artist] = None,
                  classical_composer: Optional[_Artist] = None,
                  artist_particles: Optional[List[str]] = None) -> None:
@@ -946,7 +958,8 @@ class _MEDIA():
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
         self._classical_composer = classical_composer
         # Create id hash based on first artist and title
-        self._id = self.to_hash(media_type, title, artists[0].name)
+        self._hash = self.to_hash(media_type, title, artists[0].name)
+        self._index = index
 
         # Tracks must be set at this level or a reference will exist in the
         # singleton and keep being appended to through "add_track()". Ensure
@@ -1025,7 +1038,7 @@ class _MEDIA():
 
     def __str__(self) -> str:
         string = '{}\n'.format(self.media_type.value)
-        string = '{}\n'.format(self.title)
+        string += '{}\n'.format(self.title)
         string += '{}\n'.format(','.join([artist.name for artist in self.artists]))
         if self.mixer is not None:
             string += 'Mixed by {}\n'.format(self.mixer)
@@ -1408,6 +1421,7 @@ class LPs():
     """ A singleton set of all music LPs. """
     _instance = None
     _lps = []
+    _max_index = 0
 
     @property
     def lps(self) -> List[_LP]:
@@ -1475,12 +1489,13 @@ class LPs():
         results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_album_id = _LP.to_hash(media_type, title, artists[0].name)
+            new_album_hash = _LP.to_hash(media_type, title, artists[0].name)
             for result in results:
-                if result._id == new_album_id:
+                if result._hash == new_album_hash:
                     return result
         # Create the new album
-        new_lp = _LP(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        new_lp = _LP(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        cls._max_index += 1
         for artist in artists:
             artist.add_media(new_lp)
         if mixer is not None:
@@ -1590,6 +1605,7 @@ class CDs():
     """ A singleton set of all music CDs. """
     _instance = None
     _cds = []
+    _max_index = 0
 
     @property
     def cds(self) -> List[_CD]:
@@ -1657,12 +1673,13 @@ class CDs():
         results = cls.find_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_cd_id = _CD.to_hash(media_type, title, artists[0].name)
+            new_cd_hash = _CD.to_hash(media_type, title, artists[0].name)
             for result in results:
-                if result._id == new_cd_id:
+                if result._hash == new_cd_hash:
                     return result
         # Create the new album
-        new_cd = _CD(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        new_cd = _CD(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        cls._max_index += 1
         for artist in artists:
             artist.add_media(new_cd)
         if mixer is not None:
@@ -1772,6 +1789,7 @@ class ELPs():
     """ A singleton set of all music ELPs. """
     _instance = None
     _elps = []
+    _max_index = 0
 
     @property
     def elps(self) -> List[_ELP]:
@@ -1839,12 +1857,13 @@ class ELPs():
         results = cls.find_elp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_elp_id = _ELP.to_hash(media_type, title, artists[0].name)
+            new_elp_hash = _ELP.to_hash(media_type, title, artists[0].name)
             for result in results:
-                if result._id == new_elp_id:
+                if result._hash == new_elp_hash:
                     return result
         # Create the new elp
-        new_elp = _ELP(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        new_elp = _ELP(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        cls._max_index += 1
         for artist in artists:
             artist.add_media(new_elp)
         if mixer is not None:
@@ -1954,6 +1973,7 @@ class MINI_CDs():
     """ A singleton set of all music mini CDs. """
     _instance = None
     _mini_cds = []
+    _max_index = 0
 
     @property
     def mini_cds(self) -> List[_MINI_CD]:
@@ -2021,12 +2041,13 @@ class MINI_CDs():
         results = cls.find_mini_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_mini_cd_id = _MINI_CD.to_hash(media_type, title, artists[0].name)
+            new_mini_cd_hash = _MINI_CD.to_hash(media_type, title, artists[0].name)
             for result in results:
-                if result._id == new_mini_cd_id:
+                if result._hash == new_mini_cd_hash:
                     return result
         # Create the new mini CD
-        new_mini_cd = _MINI_CD(media_type, title, artists, year, mixer, classical_composer, artist_particles)
+        new_mini_cd = _MINI_CD(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        cls._max_index += 1
         for artist in artists:
             artist.add_media(new_mini_cd)
         if mixer is not None:
