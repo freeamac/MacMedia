@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Delete LP From The Music MediaLibrary{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Delete LP From The Music Media Library</h1>
+</div>
+
+<div class="col-md-4">
+    {{ wtf.quick_form(form) }}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}

@@ -311,6 +311,7 @@ class Artists():
     def _clean_artists(cls):
         """ Private method to remove all artists from the collection. Useful in testing. """
         cls._artists = set()
+        cls._max_index = 0
 
     @classmethod
     def create_Artist(cls, name: str, skip_adding_to_artists_set: bool = False) -> _Artist:
@@ -892,6 +893,10 @@ class _MEDIA():
         return self._artists
 
     @property
+    def artist_particles(self) -> Optional[List[str]]:
+        return self._artist_particles
+
+    @property
     def year(self) -> int:
         return self._year
 
@@ -1418,7 +1423,7 @@ class MEDIA():
 
 
 class LPs():
-    """ A singleton set of all music LPs. """
+    """ A singleton list of all music LPs. """
     _instance = None
     _lps = []
     _max_index = 0
@@ -1436,6 +1441,7 @@ class LPs():
     def _clean_lps(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
         cls._lps = []
+        cls._max_index = 0
 
     @classmethod
     def create_LP(cls,
@@ -1449,7 +1455,7 @@ class LPs():
                   skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
-            By default a new album is added to the set of all albums.
+            By default a new album is added to the list of all albums.
 
             :param media_type:               The media type of the music album
             :type media_type:                :class:`MediaType`
@@ -1472,7 +1478,7 @@ class LPs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_lp_list:  If true, do not add new album to albums set
+            :param skip_addiing_to_lp_list:  If true, do not add new album to albums list
             :type skip_adding_to_lp_list:    bool
 
             :returns:                        The located or newly created album
@@ -1506,12 +1512,12 @@ class LPs():
 
     @classmethod
     def add_lp(cls, lp: _LP) -> None:
-        """ Add an album to the set of all albums.
+        """ Add an album to the list of all albums.
 
             :param lp:            The album to add
             :type lp:             :class:`_LP`
 
-            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the set
+            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the list
         """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
@@ -1521,9 +1527,9 @@ class LPs():
 
     @classmethod
     def delete_lp(cls, lp: _LP) -> None:
-        """ Remove the album from the set of all albums.
+        """ Remove the album from the list of all albums.
 
-            Also remove the album from the set of all albums owned by
+            Also remove the album from the list of all albums owned by
             the album artist and album mixer (if they exist)
 
             :param lp:  The album to add
@@ -1538,19 +1544,36 @@ class LPs():
 
     @classmethod
     def lp_exists(cls, lp: _LP) -> bool:
-        """ Returns true of the album exists in the set of albums.
+        """ Returns true of the album exists in the list of albums.
 
             :param lp:  The album to add
             :type lp:   :class:`_LP`
 
-            :returns:   True if the album exists in the set of all albums
+            :returns:   True if the album exists in the list of all albums
             :rtype:     bool
         """
         return lp in cls._lps
 
     @classmethod
+    def find_by_index(cls, index: int) -> Optional[_LP]:
+        """ Return the album by its index or None if not found.
+
+            :param index:   The index in the list of albums of the album to locate
+            :type index:    int
+
+            :returns:    The album or None
+            :rtype:      class:`_LP` or None
+        """
+        lp = None
+        try:
+            lp = cls._lps[index]
+        except IndexError:
+            pass
+        return lp
+
+    @classmethod
     def find_lp_by_title(cls, title: str) -> List[_LP]:
-        """ Returns the albums in the set of all albums that matches the passed album title. Otherwise, empty list.
+        """ Returns the albums in the list of all albums that matches the passed album title. Otherwise, empty list.
 
             :param title:  The album title to search for
             :type title:   str
@@ -1602,7 +1625,7 @@ class LPs():
 
 
 class CDs():
-    """ A singleton set of all music CDs. """
+    """ A singleton list of all music CDs. """
     _instance = None
     _cds = []
     _max_index = 0
@@ -1620,6 +1643,7 @@ class CDs():
     def _clean_cds(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
         cls._cds = []
+        cls._max_index = 0
 
     @classmethod
     def create_CD(cls,
@@ -1633,7 +1657,7 @@ class CDs():
                   skip_adding_to_cd_list: bool = False) -> _CD:
         """ Return the named cd if it exists or create a new cd.
 
-            By default a new cd is added to the set of all cds.
+            By default a new cd is added to the list of all cds.
 
             :param media_type:               The media type of the music cd
             :type media_type:                :class:`MediaType`
@@ -1656,7 +1680,7 @@ class CDs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_cd_list:  If true, do not add new cd to cd sset
+            :param skip_addiing_to_cd_list:  If true, do not add new cd to cd list
             :type skip_adding_to_cd_list:    bool
 
             :returns:                        The located or newly created cd
@@ -1690,12 +1714,12 @@ class CDs():
 
     @classmethod
     def add_cd(cls, cd: _CD) -> None:
-        """ Add a cd to the set of all cds.
+        """ Add a cd to the list of all cds.
 
             :param cd:            The cd to add
             :type cd:             :class:`_CD`
 
-            :raises CDException:  If not passed a :class:`_CD` or the cd already exists in the set
+            :raises CDException:  If not passed a :class:`_CD` or the cd already exists in the list
         """
         if type(cd) is not _CD:
             raise CDException('{} is not a CD object'.format(cd))
@@ -1705,9 +1729,9 @@ class CDs():
 
     @classmethod
     def delete_cd(cls, cd: _LP) -> None:
-        """ Remove the cd from the set of all cd.
+        """ Remove the cd from the list of all cd.
 
-            Also remove the cd from the set of all cds owned by
+            Also remove the cd from the list of all cds owned by
             the cd artist and cd mixer (if they exist)
 
             :param cd:  The cd to add
@@ -1722,19 +1746,19 @@ class CDs():
 
     @classmethod
     def cd_exists(cls, cd: _CD) -> bool:
-        """ Returns true of the cd exists in the set of cds.
+        """ Returns true of the cd exists in the list of cds.
 
             :param cd:  The cd to add
             :type cd:   :class:`_CD`
 
-            :returns:   True if the cd exists in the set of all cds
+            :returns:   True if the cd exists in the list of all cds
             :rtype:     bool
         """
         return cd in cls._cds
 
     @classmethod
     def find_cd_by_title(cls, title: str) -> List[_CD]:
-        """ Returns the cds in the set of all cds that matches the passed cd title. Otherwise, empty list.
+        """ Returns the cds in the list of all cds that matches the passed cd title. Otherwise, empty list.
 
             :param title:  The cd title to search for
             :type title:   str
@@ -1786,7 +1810,7 @@ class CDs():
 
 
 class ELPs():
-    """ A singleton set of all music ELPs. """
+    """ A singleton list of all music ELPs. """
     _instance = None
     _elps = []
     _max_index = 0
@@ -1804,6 +1828,7 @@ class ELPs():
     def _clean_elps(cls):
         """ Private method to remove all elps from the collection. Useful in testing. """
         cls._elps = []
+        cls._max_index = 0
 
     @classmethod
     def create_ELP(cls,
@@ -1817,7 +1842,7 @@ class ELPs():
                    skip_adding_to_elp_list: bool = False) -> _ELP:
         """ Return the named elp if it exists or create a new elp.
 
-            By default a new elp is added to the set of all elps.
+            By default a new elp is added to the list of all elps.
 
             :param media_type:               The media type of the music elp
             :type media_type:                :class:`MediaType`
@@ -1840,7 +1865,7 @@ class ELPs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_elp_list:  If true, do not add new elp to elps set
+            :param skip_addiing_to_elp_list:  If true, do not add new elp to elps list
             :type skip_adding_to_elp_list:    bool
 
             :returns:                        The located or newly created elp
@@ -1874,12 +1899,12 @@ class ELPs():
 
     @classmethod
     def add_elp(cls, elp: _ELP) -> None:
-        """ Add an elp to the set of all elps.
+        """ Add an elp to the list of all elps.
 
             :param elp:            The elp to add
             :type elp:             :class:`_ELP`
 
-            :raises ELPException:  If not passed a :class:`_ELP` or the elp already exists in the set
+            :raises ELPException:  If not passed a :class:`_ELP` or the elp already exists in the list
         """
         if type(elp) is not _ELP:
             raise ELPException('{} is not an ELP object'.format(elp))
@@ -1889,9 +1914,9 @@ class ELPs():
 
     @classmethod
     def delete_elp(cls, elp: _ELP) -> None:
-        """ Remove the elp from the set of all elps.
+        """ Remove the elp from the list of all elps.
 
-            Also remove the elp from the set of all elps owned by
+            Also remove the elp from the list of all elps owned by
             the elp artist and elp mixer (if they exist)
 
             :param elp:  The elp to add
@@ -1906,19 +1931,19 @@ class ELPs():
 
     @classmethod
     def elp_exists(cls, elp: _ELP) -> bool:
-        """ Returns true of the elp exists in the set of elps.
+        """ Returns true of the elp exists in the list of elps.
 
             :param elp:  The elp to add
             :type elp:   :class:`_ELP`
 
-            :returns:   True if the elp exists in the set of all elps
+            :returns:   True if the elp exists in the list of all elps
             :rtype:     bool
         """
         return elp in cls._elps
 
     @classmethod
     def find_elp_by_title(cls, title: str) -> List[_ELP]:
-        """ Returns the elps in the set of all elps that matches the passed elp title. Otherwise, empty list.
+        """ Returns the elps in the list of all elps that matches the passed elp title. Otherwise, empty list.
 
             :param title:  The elp title to search for
             :type title:   str
@@ -1970,7 +1995,7 @@ class ELPs():
 
 
 class MINI_CDs():
-    """ A singleton set of all music mini CDs. """
+    """ A singleton list of all music mini CDs. """
     _instance = None
     _mini_cds = []
     _max_index = 0
@@ -1988,6 +2013,7 @@ class MINI_CDs():
     def _clean_mini_cds(cls):
         """ Private method to remove all mini CDs from the collection. Useful in testing. """
         cls._mini_cds = []
+        cls._max_index = 0
 
     @classmethod
     def create_MINI_CD(cls,
@@ -2001,7 +2027,7 @@ class MINI_CDs():
                        skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
         """ Return the named mini CD if it exists or create a new mini_cd.
 
-            By default a new mini CD is added to the set of all mini CDs.
+            By default a new mini CD is added to the list of all mini CDs.
 
             :param media_type:               The media type of the music mini CD
             :type media_type:                :class:`MediaType`
@@ -2024,7 +2050,7 @@ class MINI_CDs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds set
+            :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds list
             :type skip_adding_to_mini_cd_list:    bool
 
             :returns:                        The located or newly created mini CD
@@ -2058,12 +2084,12 @@ class MINI_CDs():
 
     @classmethod
     def add_mini_cd(cls, mini_cd: _MINI_CD) -> None:
-        """ Add an mini_cd to the set of all mini CDs.
+        """ Add an mini_cd to the list of all mini CDs.
 
             :param mini_cd:            The mini CD to add
             :type mini_cd:             :class:`_MINI_CD`
 
-            :raises MINI_CDException:  If not passed a :class:`_MINI_CD` or the mini CD already exists in the set
+            :raises MINI_CDException:  If not passed a :class:`_MINI_CD` or the mini CD already exists in the list
         """
         if type(mini_cd) is not _MINI_CD:
             raise MiniCDException('{} is not an mini CD object'.format(mini_cd))
@@ -2073,9 +2099,9 @@ class MINI_CDs():
 
     @classmethod
     def delete_mini_cd(cls, mini_cd: _MINI_CD) -> None:
-        """ Remove the mini CD from the set of all mini CDs.
+        """ Remove the mini CD from the list of all mini CDs.
 
-            Also remove the mini_cd from the set of all mini CDs owned by
+            Also remove the mini_cd from the list of all mini CDs owned by
             the mini CD artist and mini CD mixer (if they exist)
 
             :param mini_cd:  The mini CD to add
@@ -2090,19 +2116,19 @@ class MINI_CDs():
 
     @classmethod
     def mini_cd_exists(cls, mini_cd: _MINI_CD) -> bool:
-        """ Returns true of the mini CD exists in the set of mini CDs.
+        """ Returns true of the mini CD exists in the list of mini CDs.
 
             :param mini_cd:  The mini CD to add
             :type mini_cd:   :class:`_MINI_CD`
 
-            :returns:   True if the mini CD exists in the set of all mini CDs
+            :returns:   True if the mini CD exists in the list of all mini CDs
             :rtype:     bool
         """
         return mini_cd in cls._mini_cds
 
     @classmethod
     def find_mini_cd_by_title(cls, title: str) -> List[_MINI_CD]:
-        """ Returns the mini CDs in the set of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
+        """ Returns the mini CDs in the list of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
 
             :param title:  The mini CD title to search for
             :type title:   str

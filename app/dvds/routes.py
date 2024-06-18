@@ -16,8 +16,9 @@ from app.updates import db_update_dvd
 def index():
     """ Main landing page for the DVD library """
 
-    # dvds = get_all_dvds(db)
-    # return render_template('dvds_main.html', dvds=dvds)
+    # The magic here is the template calls the api
+    # route to get all the dvds which are rendered
+    # via ajax.
     return render_template('dvds_main.html')
 
 
