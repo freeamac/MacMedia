@@ -11,6 +11,8 @@ from flask_talisman import Talisman
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect
 
+from app.musicmedia_objects import MEDIA
+
 import config
 
 DEFAULT_SECRET_KEY = 'you-will-never-guess'  # nosec
@@ -67,6 +69,10 @@ def create_app(name=None):
     # Turn off SQL modificationt tracking
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Load in the music media html file
+    if app.env != 'Test':
+        MEDIA().from_html_file(app.config['MUSIC_MEDIA_HTML_FILE'])
+
     bootstrap.init_app(app)
     db.init_app(app)
     login_manager.init_app(app)
@@ -76,6 +82,10 @@ def create_app(name=None):
     # Set up the routes to the AJAX data api
     from app.api import api as api_blueprint
     app.register_blueprint(api_blueprint)
+
+    # Set up the routes to the LPs library
+    from app.lps import lps as lps_blueprint
+    app.register_blueprint(lps_blueprint)
 
     # Set up the routes to the DVD library
     from app.dvds import dvds as dvds_blueprint
@@ -88,10 +98,6 @@ def create_app(name=None):
     # Set up the routes to the Cassettes library
     from app.cassettes import cassettes as cassettes_blueprint
     app.register_blueprint(cassettes_blueprint)
-
-    # Set up the routes to the LPs library
-    from app.lps import lps as lps_blueprint
-    app.register_blueprint(lps_blueprint)
 
     # Setting up the security policay which, besides reasons of safety,
     # is used to force https.

@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 : ${PYTHONPATH:=}
 export PYTHONPATH="${PYTHONPATH}:`pwd`/app"
 
-if ! flake8 "./app" "./tests"; then
+if ! flake8 "./app" "./tests" "./config"; then
     fail=$(($fail + 1))
 fi
 

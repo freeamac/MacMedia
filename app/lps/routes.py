@@ -9,18 +9,24 @@ from .forms import DeleteLPForm  # , ModifyLPForm, NewLPForm
 
 
 @lps.route('/')
+@login_required
 def index():
     """ Main landing page for the LPs library """
-    library_type = "Music LPs"
-    return render_template('coming_soon.html', library_type=library_type)
+
+    # The magic here is the template calls the api
+    # route to get all the dvds which are rendered
+    # via ajax.
+    return render_template('lps_main.html')
+
+
+@lps.route('/add/', methods=['GET', 'POST'])
+@login_required
+def add_lp():
+    """ Add a new LP to the list of LPs """
+    return render_template('coming_soon.html', library='Add LP')
 
 
 """
-@dvds.route('/add/', methods=['GET', 'POST'])
-@login_required
-def add_lp():
-    \""" Add a new LP to the list of LPs \"""
-
     form = NewLPForm()
 
     if request.method == 'POST':
@@ -97,12 +103,15 @@ def delete_lps(id):
     return render_template('delete_lp.html', form=form)
 
 
-"""
-@dvds.route('/modify/<int:id>', methods=['GET', 'POST'])
+@lps.route('/modify/<int:id>', methods=['GET', 'POST'])
 @login_required
-def modify_dvd(id):
-    \""" Modify the data of a LP \"""
+def modify_lps(id):
+    """ Modify the data of a LP """
 
+    return render_template('coming_soon.html', library_type='Modify LP')
+
+
+"""
     dvd_data = get_dvd_by_id(db, id)
     if dvd_data is None:
         flash('ERROR: LP with identifier "{}" not found'.format(id))

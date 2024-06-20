@@ -12,14 +12,14 @@
 
 <h2><a href="{{ url_for('.add_lp') }}" class="btn btn-success">Add New LP To Music Media Library</a></h2>
 
-<table id="dvdlist" class="table table-striped" border="10">
+<table id="lpslist" class="table table-striped" border="10">
     <thead>
       <tr>
         <th class="th-sm">ID</th>
         <th class="th-sm">Title </th>
         <th class="th-sm">Artists</th>
-	<th class="th-sm">Classical Composer</th>
-	<th class="th-sm">Mixer</th>
+	      <th class="th-sm">Classical Composer</th>
+	      <th class="th-sm">Mixer</th>
         <th class="th-sm">Year </th>
         <th class="th-sm">Actions</th>
       </tr>
@@ -64,10 +64,10 @@
 </script>
 <!--
         {data: null,
-        defaultContent: "<a href=\"{{ url_for('.modify_dvd', id='0') }}\" class=\"btn btn-success\">Modify</a>"}],
+        defaultContent: "<a href=\"{{ url_for('.modify_lps', id='0') }}\" class=\"btn btn-success\">Modify</a>"}],
 <script>
   $(document).ready(function(){
-    $('#dvdlist').DataTable();
+    $('#lpslist').DataTable();
   });
 </script>
 -->
