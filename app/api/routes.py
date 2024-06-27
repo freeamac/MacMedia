@@ -1,3 +1,5 @@
+from flask import url_for
+
 from . import api
 from app import db
 from app.musicmedia_objects import LPs
@@ -30,8 +32,10 @@ def lps_data():
                    'artists': lp_artists,
                    'classical_composer': classical_composer,
                    'mixer': mixer,
-                   'year': lp.year
+                   'year': lp.year,
+                   'expand_url_title': '<a href="{}">{}</a>'.format(url_for('lps.expand_lps', id=lp.index), lp.title)
                    }
         lps_summary.append(lp_data)
+        lps_summary = sorted(lps_summary, key=lambda d: d['title'])
 
     return {'data': lps_summary}

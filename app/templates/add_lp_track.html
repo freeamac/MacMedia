@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Add Tracks To An LP{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Add A Track To An LP</h1>
+</div>
+
+<div class="container">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="row">
+          <div class="col-md-2">
+            <h4>Track Name:</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2">
+            {{ form.track_name }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2">
+            <h4>Track Mixer:</h4>
+          </div>
+        </div>
+        <div class="row bottom10">
+          <div class="col-md-2">
+            {{ form.track_mixer}}
+          </div>
+        </div>
+        {% for song in form.track_songs %}
+        <div class="row">
+          <div class="col-md-1">
+            <h4>Song Title:</h4>
+          </div>
+          <div class="col-md-1">
+            {{ song.form.song_title}}
+          </div>
+        </div>
+        {% endfor %}    
+        <div class="row top20">
+            <div class="col-md-2">
+              <input type="submit" name="add_track" value="Add Another Track">
+            </div>
+            <div class="col-md-2">
+                <input type="submit" name="finish" value="Save And Finish">
+            </div>
+            <div class="col-md-1">
+              <input type="submit" name="cancel" value="Cancel">
+            </div>
+          </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}

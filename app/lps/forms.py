@@ -1,10 +1,8 @@
 from datetime import date
 
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, SelectField, StringField, SubmitField
+from wtforms import FieldList, FormField, IntegerField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length
-
-from app.models import Location_Type_Enum, Media_Type_Enum
 
 
 class DataRequiredNoFlags(DataRequired):
@@ -14,27 +12,49 @@ class DataRequiredNoFlags(DataRequired):
     field_flags = ()
 
 
-class LPForm(FlaskForm):
+class AdditionalArtistForm(FlaskForm):
+    additional_artist_particle = StringField('Artist Particle', validators=[Length(0, 20)])
+    additional_artist = StringField('Additional Artist', validators=[Length(0, 40)])
+
+
+class LPMetaForm(FlaskForm):
     """ Form to defining a LP """
-    lp_title = StringField('LP Title', validators=[DataRequiredNoFlags(), Length(0, 120)])
-    lp_artists = StringField('Artist(s)', validators=[Length(0, 120)])
+    lp_title = StringField('LP Title', validators=[Length(0, 120)])
+    lp_main_artist = StringField('Main Artist', validators=[Length(0, 40)])
+    lp_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=5, max_entries=5)
+    lp_mixer = StringField('Mixer', validators=[Length(0, 40)])
+    lp_classical_composer = StringField('Classical Composer', validators=[Length(0, 40)])
     lp_year = IntegerField('Year Of Release', validators=[DataRequiredNoFlags()], default=date.today().year)
-    lp_set = StringField('From Set', validators=[Length(0, 120)])
-    lp_media_type = SelectField('LP Type?', choices=[Media_Type_Enum.dvd.name.capitalize(), Media_Type_Enum.blueray.name.capitalize()])
-    lp_music_type = SelectField('Music LP?', choices=['No', 'Yes'])
-    lp_music_artist = StringField('Music LP Artist', validators=[Length(0, 120)])
-    lp_location = SelectField('LP Location?', choices=[Location_Type_Enum.home.name.capitalize(), Location_Type_Enum.away.name.capitalize()])
 
 
-class NewLPForm(LPForm):
+class NewLPMetaForm(LPMetaForm):
     """ Form for creating a new LP"""
-    submit = SubmitField('Create')
+    submit = SubmitField('Add Tracks')
     cancel = SubmitField('Cancel')
 
 
-class ModifyLPForm(LPForm):
+class ModifyLPForm(LPMetaForm):
     """ Form for modifying a LP"""
     submit = SubmitField('Save')
+    cancel = SubmitField('Cancel')
+
+
+class SongForm(FlaskForm):
+    """ Form for a song entry on a track """
+    song_title = StringField('Song Title', validators=[Length(0, 60)])
+
+
+class LPTrackForm(FlaskForm):
+    """ Form for a track on an LP """
+    track_name = StringField('Track Name', validators=[Length(0, 40)])
+    track_mixer = StringField('Track Mixer', validators=[Length(0, 40)])
+    track_songs = FieldList(FormField(SongForm), min_entries=30, max_entries=30)
+
+
+class NewLPTrackForm(LPTrackForm):
+    """ Form for a new track on an LP """
+    add_track = SubmitField('Add Another Track')
+    save = SubmitField('Save And Finish')
     cancel = SubmitField('Cancel')
 
 

@@ -844,8 +844,9 @@ class TrackList():
         if self.side_mixer is not None:
             html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
         html_str += '<ol>\n'
-        for song in self.song_list:
-            html_str += song.to_html()
+        if self.song_list is not None:
+            for song in self.song_list:
+             html_str += song.to_html()
         html_str += '</ol>\n'
         if self.side is not None:
             html_str += '</a>\n'
@@ -895,6 +896,16 @@ class _MEDIA():
     @property
     def artist_particles(self) -> Optional[List[str]]:
         return self._artist_particles
+
+    @property
+    def artists_text(self) -> str:
+        if self.artist_particles is None:
+            text = str(self.artists[0].name)
+        else:
+            text = str(self.artists[0].name)
+            for i, particle in enumerate(self.artist_particles):
+                text += particle + str(self.artists[i + 1].name)
+        return text
 
     @property
     def year(self) -> int:

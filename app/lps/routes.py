@@ -3,9 +3,14 @@ from flask_login import login_required
 
 from . import lps
 from app.musicmedia_objects import (
-    LPs
+    Artists,
+    LPs,
+    MediaType,
+    TrackList
 )
-from .forms import DeleteLPForm  # , ModifyLPForm, NewLPForm
+from .forms import DeleteLPForm, NewLPMetaForm, NewLPTrackForm  # , ModifyLPForm, NewLPForm
+
+from app import app
 
 
 @lps.route('/')
@@ -23,16 +28,102 @@ def index():
 @login_required
 def add_lp():
     """ Add a new LP to the list of LPs """
-    return render_template('coming_soon.html', library='Add LP')
 
+    additional_artists = [{'artist_particle': '', 'additional_artist': ''}] * 5
 
-"""
-    form = NewLPForm()
+    form = NewLPMetaForm()
+    app.app.logger.info('In add LP - Method: {}'.format(request.method))
+
+    if request.method == 'GET':
+        app.app.logger.info('Get method')
+
+        form.lp_title.data = ''
+        form.lp_main_artist.data = ''
+        form.lp_mixer.data = ''
+        form.lp_classical_composer.data = ''
 
     if request.method == 'POST':
         if form.cancel.data:
             return redirect(url_for('.index'))
 
+        app.app.logger.info('About to validate')
+        if form.validate:
+            lp_title = form['lp_title'].data.strip()
+            lp_artist_str = form['lp_main_artist'].data.strip()
+            lp_mixer_str = form['lp_mixer'].data.strip()
+            lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+            lp_year = form['lp_year'].data
+            app.app.logger.info('Title: "{}"'.format(lp_title))
+            app.app.logger.info('Artist: "{}"'.format(lp_artist_str))
+            app.app.logger.info('Mixer: "{}" len{}'.format(lp_mixer_str, len(lp_mixer_str)))
+            if lp_title is None or lp_title == '':
+                flash('Error: A title is required for a new LP.')
+            elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
+                flash('Error a Main Artist or Mixer is required for a new LP.')
+            else:
+                if lp_artist_str is not None or lp_artist_str != '':
+                    lp_artist = Artists.create_Artist(lp_artist_str)
+                else:
+                    lp_artist = None
+                if lp_mixer_str is not None and lp_mixer_str != '':
+                    lp_mixer = Artists.create_Artist(lp_mixer_str)
+                    app.app.logger.info('Mixer being set to an Artist: "{}"'.format(lp_mixer_str))
+                else:
+                    lp_mixer = None
+                    app.app.logger.info('Mixer begin set to None: "{}"'.format(lp_mixer_str))
+                if lp_classical_composer_str is not None and lp_classical_composer_str != '':
+                    lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
+                else:
+                    lp_classical_composer = None
+                new_lp = LPs.create_LP(media_type=MediaType.LP, title=lp_title, artists=[lp_artist], year=lp_year,
+                                       mixer=lp_mixer, classical_composer=lp_classical_composer)
+                return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
+
+    return render_template('add_new_lp.html', form=form, lp_additional_artists=additional_artists)
+
+
+@lps.route('/add_track/<int:album_id>/<int:track_id>', methods=['GET', 'POST'])
+@login_required
+def add_lp_track(album_id, track_id):
+    """ Add a new track to the LP  """
+
+    track_songs = [''] * 30
+    form = NewLPTrackForm()
+
+    if request.method == "GET":
+        form.track_name.data = ''
+        form.track_mixer.data = ''
+
+    if request.method == 'POST':
+        if form.cancel.data:
+            return redirect(url_for('.index'))
+
+        if form.validate:
+            track_name = form['track_name'].data.strip()
+            track_mixer_str = form['track_mixer'].data.strip()
+
+            if track_name == '':
+                track_name = None
+            if track_mixer_str is None or track_mixer_str == '':
+                track_mixer = None
+            else:
+                track_mixer = Artists.create_Artist(track_mixer_str)
+
+            # ToDo: Process Songs
+
+            tracklist = TrackList(side_name=track_name, side_mixer_artist=track_mixer)
+            LPs().find_by_index(album_id).add_track(tracklist)
+
+            if form.add_track.data:
+                track_id += 1
+                return redirect(url_for('.add_lp_track', album_id=album_id, track_id=track_id))
+
+            return redirect(url_for('.index'))
+
+    return render_template('add_lp_track.html', form=form, track_songs=track_songs)
+
+
+"""
         if form.validate():
             data = {}
             data['title'] = form.dvd_title.data
@@ -56,8 +147,6 @@ def add_lp():
             except (ModelNotFound, UniqueNameError) as err:
                 flash('ERROR: ' + str(err))
             return redirect(url_for('.index'))
-
-    return render_template('add_new_dvd.html', form=form)
 """
 
 
@@ -76,13 +165,7 @@ def delete_lps(id):
 
     if request.method == 'GET':
         form.lp_title.data = lp_data.title
-        if lp_data.artist_particles is None:
-            form.lp_artists.data = str(lp_data.artists[0].name)
-        else:
-            lp_artists = str(lp_data.artists[0].name)
-            for i, particle in enumerate(lp_data.artist_particles):
-                lp_artists += particle + str(lp_data.artists[i + 1].name)
-            form.lp_artists.data = lp_artists
+        form.lp_artists.data = lp_data.artists_text
         if lp_data.mixer is not None:
             form.lp_mixer.data = lp_data.mixer
         if lp_data.classical_composer is not None:
@@ -101,6 +184,19 @@ def delete_lps(id):
         return redirect(url_for('.index'))
 
     return render_template('delete_lp.html', form=form)
+
+
+@lps.route('/expand/<int:id>', methods=['GET', 'POST'])
+@login_required
+def expand_lps(id):
+    """ Expand the LP information of the passed LP id. """
+
+    lp_data = LPs.find_by_index(id)
+    if lp_data is None:
+        flash('ERROR: LP with identifier "{}" not found'.format(id))
+        return redirect(url_for('.index'))
+    html_str = lp_data.to_html()
+    return render_template('expand_lp.html', html_str=html_str)
 
 
 @lps.route('/modify/<int:id>', methods=['GET', 'POST'])
