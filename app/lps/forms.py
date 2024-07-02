@@ -1,7 +1,7 @@
 from datetime import date
 
 from flask_wtf import FlaskForm
-from wtforms import FieldList, FormField, IntegerField, StringField, SubmitField
+from wtforms import BooleanField, FieldList, FormField, IntegerField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length
 
 
@@ -14,7 +14,10 @@ class DataRequiredNoFlags(DataRequired):
 
 class AdditionalArtistForm(FlaskForm):
     additional_artist_particle = StringField('Artist Particle', validators=[Length(0, 20)])
-    additional_artist = StringField('Additional Artist', validators=[Length(0, 40)])
+    additional_artist_prequel = StringField('Prequel', validators=[Length(0, 20)])
+    additional_artist_sequel = StringField('Sequel', validators=[Length(0, 20)])
+    additional_artist = StringField('Artist Name', validators=[Length(0, 40)])
+    classical_composer = StringField('Classical Composer', validators=[Length(0, 40)])
 
 
 class LPMetaForm(FlaskForm):
@@ -42,6 +45,15 @@ class ModifyLPForm(LPMetaForm):
 class SongForm(FlaskForm):
     """ Form for a song entry on a track """
     song_title = StringField('Song Title', validators=[Length(0, 60)])
+    song_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=4, max_entries=4)
+    song_featured_in = StringField('Feat. In', validators=[Length(0, 40)])
+    song_list_main_artist = BooleanField('List Main Artist?')
+    song_classical_composers = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=2, max_entries=2)
+    song_classical_work = StringField('Classical Work', validators=[Length(0, 40)])
+    song_country = StringField('Country', validators=[Length(0, 20)])
+    song_year = StringField('Release Year', validators=[Length(0, 4)])
+    song_mix = StringField('Mix', validators=[Length(0, 40)])
+    song_parts = TextAreaField('Song Parts')
 
 
 class LPTrackForm(FlaskForm):

@@ -441,8 +441,8 @@ class Additional_Artist():
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         self._artist = artist
-        self._prequel = prequel
-        self._sequel = sequel
+        self._prequel = '' if prequel is None else prequel
+        self._sequel = '' if sequel is None else sequel
 
     def to_html(self):
         """ Html representation of an additional artist.
@@ -456,12 +456,7 @@ class Additional_Artist():
         return html_str
 
     def __str__(self) -> str:
-        if self._prequel is not None:
-            string = '{}{}'.format(self._prequel, self._artist)
-        else:
-            string = '{}'.format(self._artist)
-        if self._sequel is not None:
-            string += self._sequel
+        string = '{}{}{}'.format(self._prequel, self._artist, self._sequel)
         return string
 
 
@@ -582,7 +577,7 @@ class Song():
             :param title:               The title of this song
             :type title:                str
 
-            :param main_artist:         The main artist of this song. If the album is by a single artitst, this
+            :param main_artist:         The main artist of this song. If the album is by a single artist, this
                                         is typically not given unless it is included in the song description
                                         on the album
             :type main_artist:          :class:`_Artist`
@@ -866,6 +861,24 @@ class TrackList():
         return string
 
 
+def media_to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
+    """ Create a hash for the media object based on title and artist_name.
+
+        :param media_type:   The media type of the album
+        :type media_type:    :class:`MediaType`
+
+        :param title:        The album title
+        :type title:         str
+
+        :param artist_name:  The name of the artist of the album
+        :type artist_name:   str
+
+        :returns:            md5 hash string
+        :rtype:              str
+    """
+    return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
+
+
 class _MEDIA():
     """ Defines a music media object.
 
@@ -880,6 +893,10 @@ class _MEDIA():
     @property
     def index(self) -> int:
         return self._index
+
+    @property
+    def hash(self) -> str:
+        return self._hash
 
     @property
     def media_type(self) -> MediaType:
@@ -923,24 +940,6 @@ class _MEDIA():
     def tracks(self) -> List[TrackList]:
         return self._tracks
 
-    @staticmethod
-    def to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
-        """ Create a hash for the media object based on title and artist_name.
-
-            :param media_type:   The media type of the album
-            :type media_type:    :class:`MediaType`
-
-            :param title:        The album title
-            :type title:         str
-
-            :param artist_name:  The name of the artist of the album
-            :type artist_name:   str
-
-            :returns:            md5 has string
-            :rtype:              str
-        """
-        return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
-
     def __init__(self,
                  media_type: MediaType,
                  title: str,
@@ -974,7 +973,7 @@ class _MEDIA():
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
         self._classical_composer = classical_composer
         # Create id hash based on first artist and title
-        self._hash = self.to_hash(media_type, title, artists[0].name)
+        self._hash = media_to_hash(media_type, title, artists[0].name)
         self._index = index
 
         # Tracks must be set at this level or a reference will exist in the
@@ -1506,7 +1505,7 @@ class LPs():
         results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_album_hash = _LP.to_hash(media_type, title, artists[0].name)
+            new_album_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_album_hash:
                     return result
@@ -1708,7 +1707,7 @@ class CDs():
         results = cls.find_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_cd_hash = _CD.to_hash(media_type, title, artists[0].name)
+            new_cd_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_cd_hash:
                     return result
@@ -1893,7 +1892,7 @@ class ELPs():
         results = cls.find_elp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_elp_hash = _ELP.to_hash(media_type, title, artists[0].name)
+            new_elp_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_elp_hash:
                     return result
@@ -2078,7 +2077,7 @@ class MINI_CDs():
         results = cls.find_mini_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_mini_cd_hash = _MINI_CD.to_hash(media_type, title, artists[0].name)
+            new_mini_cd_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_mini_cd_hash:
                     return result

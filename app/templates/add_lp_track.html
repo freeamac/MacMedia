@@ -11,9 +11,11 @@
 <div class="container">
     <form method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <!-- Track Meta Data -->
         <div class="row">
           <div class="col-md-2">
-            <h4>Track Name:</h4>
+            <h4>{{ form.track_name.label }}:</h4>
           </div>
         </div>
         <div class="row">
@@ -23,24 +25,136 @@
         </div>
         <div class="row">
           <div class="col-md-2">
-            <h4>Track Mixer:</h4>
+            <h4>{{ form.track_mixer.label }}:</h4>
           </div>
         </div>
         <div class="row bottom10">
           <div class="col-md-2">
-            {{ form.track_mixer}}
+            {{ form.track_mixer }}
           </div>
         </div>
+
+        <!-- Loop through to pick each song information -->
         {% for song in form.track_songs %}
-        <div class="row">
-          <div class="col-md-1">
-            <h4>Song Title:</h4>
+          <hr width="75%"\>
+          <div class="row">
+            <div class="col-md-1">
+              <h3><u><b>Song #{{ loop.index }}:</b></u></h3>
+            </div>
           </div>
-          <div class="col-md-1">
-            {{ song.form.song_title}}
+
+          <!-- Collect song meta information -->
+          <div class="row">
+            <div class="col-md-1">
+              <h4>{{ song.form.song_title.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_title }}
+            </div>
+            <div class="col-md-1">
+              <h4>{{ song.form.song_mix.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_mix }}
+            </div>
           </div>
-        </div>
-        {% endfor %}    
+
+          <div class="row">
+            <div class="col-md-1">
+              <h4>{{ song.form.song_featured_in.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_featured_in }}
+            </div><div class="col-md-2">
+              <h4>{{ song.form.song_list_main_artist.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_list_main_artist }}
+            </div>
+          </div>
+
+          <!-- Collect additional song artists -->
+          <hr width="45%"\>
+          {% for additional_artist in song.form.song_additional_artists %}
+            <div class="row">
+              <div class="col-md-2">
+                <h4><b></b>Additional Artist<b></b></h4>
+              </div>
+              <div class="col-md-1">
+                <h5>{{ additional_artist.form.additional_artist_prequel.label }}</h5>
+              </div>
+              <div class="col-md-2">
+                {{ additional_artist.form.additional_artist_prequel }}
+              </div>
+              <div class="col-md-1">
+                <h5>{{ additional_artist.form.additional_artist.label }}</h5>
+              </div>
+              <div class="col-md-2">
+                {{ additional_artist.form.additional_artist }}
+              </div>
+              <div class="col-md-1">
+                <h5>{{ additional_artist.form.additional_artist_sequel.label }}</h5>
+              </div>
+              <div class="col-md-2">
+                {{ additional_artist.form.additional_artist_sequel }}
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Collect classical song meta information-->
+          <hr width="45%"\>
+          <div class="row">
+            <div class="col-md-2">
+              <h4>{{ song.form.song_classical_work.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_classical_work }}
+            </div>
+          </div>
+
+          <!-- Collect classical song composers -->
+          {% for classical_composer in song.form.song_classical_composers %}
+            <div class="row">
+              <div class="col-md-2">
+                <h4>{{ classical_composer.form.classical_composer.label }}</h4>
+              </div>
+              <div class="col-md-2">
+                {{ classical_composer.form.classical_composer }}
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Collect extraneous song information -->
+          <hr width="45%"\>
+          <div class="row">
+            <div class="col-md-1">
+              <h4>{{ song.form.song_country.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_country }}
+            </div>
+            <div class="col-md-1">
+              <h5>{{ song.form.song_year.label }}</h5>
+            </div>
+            <div class="col-md-1">
+              {{ song.form.song_year }}
+            </div>
+          </div>
+
+          <!-- Collect song parts -->
+          <hr width="45%"\>
+          <div class="row">
+            <div class="col-md-1">
+              <h4>{{ song.form.song_parts.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_parts(cols=40, rows=7) }}
+            </div>
+          </div>
+        {% endfor %}
+
+
+
         <div class="row top20">
             <div class="col-md-2">
               <input type="submit" name="add_track" value="Add Another Track">
