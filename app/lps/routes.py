@@ -254,33 +254,6 @@ def add_lp_track(album_id, track_id):
                            track_song_classical_composers=track_song_classical_composers)
 
 
-"""
-        if form.validate():
-            data = {}
-            data['title'] = form.dvd_title.data
-            data['series'] = form.dvd_series.data
-            data['year'] = form.dvd_year.data
-            data['set'] = form.dvd_set.data
-            data['media_type'] = form.dvd_media_type.data.lower()
-            if form.dvd_music_type.data == 'No':
-                data['music_type'] = False
-            else:
-                data['music_type'] = True
-            data['artist'] = form.dvd_music_artist.data
-            data['location'] = form.dvd_location.data.lower()
-
-            try:
-                new_dvd = db_create_dvd(db, data)
-                if new_dvd is None:
-                    flash('Error: Unable to add "{}" to the LP library'.format(new_dvd.title))
-                else:
-                    flash('Added "{}" to the LP library'.format(new_dvd.title))
-            except (ModelNotFound, UniqueNameError) as err:
-                flash('ERROR: ' + str(err))
-            return redirect(url_for('.index'))
-"""
-
-
 @lps.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_lps(id):

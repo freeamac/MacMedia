@@ -15,6 +15,7 @@
 <table id="lpslist" class="table table-striped" border="10">
     <thead>
       <tr>
+        <th class="th-sm">Title</th>
         <th class="th-sm">ID</th>
         <th class="th-sm">Title </th>
         <th class="th-sm">Artists</th>
@@ -38,6 +39,7 @@
     var table = $('#lpslist').DataTable({
       ajax: '/api/v1/lps',
       columns: [
+        {data: 'title', visible: false},  // Added first so sorted on title
         {data: 'id', visible: false, searchable: false},
         {data: 'expand_url_title'},
         {data: 'artists'},
