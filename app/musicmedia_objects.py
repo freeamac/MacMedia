@@ -1539,6 +1539,10 @@ class LPs():
     def delete_lp(cls, lp: _LP) -> None:
         """ Remove the album from the list of all albums.
 
+            In actuality we pug the location in the list of
+            all albums with None to preserve the increasing
+            index scheme used in the list.
+
             Also remove the album from the list of all albums owned by
             the album artist and album mixer (if they exist)
 
@@ -1550,7 +1554,8 @@ class LPs():
                 artist.delete_media(lp)
             if lp.mixer is not None:
                 lp.mixer.delete_media(lp)
-            cls._lps.remove(lp)
+            make_hole_index = lp.index
+            cls._lps[make_hole_index] = None
 
     @classmethod
     def lp_exists(cls, lp: _LP) -> bool:
@@ -1593,8 +1598,9 @@ class LPs():
          """
         result = []
         for lp in cls._lps:
-            if lp.title == title:
-                result.append(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                if lp.title == title:
+                    result.append(lp)
         return result
 
     @classmethod
@@ -1609,8 +1615,9 @@ class LPs():
         """
         lps_found = []
         for lp in cls._lps:
-            if lp.year == year:
-                lps_found.append(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                if lp.year == year:
+                    lps_found.append(lp)
         if lps_found == []:
             return None
         return lps_found
@@ -1624,13 +1631,15 @@ class LPs():
         """
         html_str = ''
         for lp in cls._lps:
-            html_str += lp.to_html()
+            if lp is not None:  # Skip holes in the list due to deletions
+                html_str += lp.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for lp in self.lps:
-            string += str(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                string += str(lp)
         return string
 
 
@@ -1741,6 +1750,10 @@ class CDs():
     def delete_cd(cls, cd: _LP) -> None:
         """ Remove the cd from the list of all cd.
 
+            In actuality we pug the location in the list of
+            all CDs with None to preserve the increasing
+            index scheme used in the list.
+
             Also remove the cd from the list of all cds owned by
             the cd artist and cd mixer (if they exist)
 
@@ -1752,7 +1765,8 @@ class CDs():
                 artist.delete_media(cd)
             if cd.mixer is not None:
                 cd.mixer.delete_media(cd)
-            cls._cds.remove(cd)
+            make_hole_index = cd.index
+            cls._cds[make_hole_index] = None
 
     @classmethod
     def cd_exists(cls, cd: _CD) -> bool:
@@ -1778,8 +1792,9 @@ class CDs():
          """
         result = []
         for cd in cls._cds:
-            if cd.title == title:
-                result.append(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                if cd.title == title:
+                    result.append(cd)
         return result
 
     @classmethod
@@ -1794,8 +1809,9 @@ class CDs():
         """
         cds_found = []
         for cd in cls._cds:
-            if cd.year == year:
-                cds_found.append(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                if cd.year == year:
+                    cds_found.append(cd)
         if cds_found == []:
             return None
         return cds_found
@@ -1809,13 +1825,15 @@ class CDs():
         """
         html_str = ''
         for cd in cls._cds:
-            html_str += cd.to_html()
+            if cd is not None:  # Skip holes in the list due to deletions
+                html_str += cd.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for cd in self.cds:
-            string += str(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                string += str(cd)
         return string
 
 
@@ -1926,6 +1944,10 @@ class ELPs():
     def delete_elp(cls, elp: _ELP) -> None:
         """ Remove the elp from the list of all elps.
 
+            In actuality we pug the location in the list of
+            all ELPs with None to preserve the increasing
+            index scheme used in the list.
+
             Also remove the elp from the list of all elps owned by
             the elp artist and elp mixer (if they exist)
 
@@ -1937,7 +1959,8 @@ class ELPs():
                 artist.delete_media(elp)
             if elp.mixer is not None:
                 elp.mixer.delete_media(elp)
-            cls._elps.remove(elp)
+            make_hole_index = elp.index
+            cls.elps[make_hole_index] = None
 
     @classmethod
     def elp_exists(cls, elp: _ELP) -> bool:
@@ -1963,8 +1986,9 @@ class ELPs():
          """
         result = []
         for elp in cls._elps:
-            if elp.title == title:
-                result.append(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                if elp.title == title:
+                    result.append(elp)
         return result
 
     @classmethod
@@ -1979,8 +2003,9 @@ class ELPs():
         """
         elps_found = []
         for elp in cls._elps:
-            if elp.year == year:
-                elps_found.append(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                if elp.year == year:
+                    elps_found.append(elp)
         if elps_found == []:
             return None
         return elps_found
@@ -1994,13 +2019,15 @@ class ELPs():
         """
         html_str = ''
         for elp in cls._elps:
-            html_str += elp.to_html()
+            if elp is not None:  # Skip holes in the list due to deletions
+                html_str += elp.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for elp in self.elps:
-            string += str(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                string += str(elp)
         return string
 
 
@@ -2111,6 +2138,10 @@ class MINI_CDs():
     def delete_mini_cd(cls, mini_cd: _MINI_CD) -> None:
         """ Remove the mini CD from the list of all mini CDs.
 
+            In actuality we pug the location in the list of
+            all ELPs with None to preserve the increasing
+            index scheme used in the list.
+
             Also remove the mini_cd from the list of all mini CDs owned by
             the mini CD artist and mini CD mixer (if they exist)
 
@@ -2121,8 +2152,9 @@ class MINI_CDs():
             for artist in mini_cd.artists:
                 artist.delete_media(mini_cd)
             if mini_cd.mixer is not None:
-                mini_cd.mixer.media(mini_cd)
-            cls._mini_cds.remove(mini_cd)
+                mini_cd.mixer.delete_media(mini_cd)
+            make_hole_index = mini_cd.index
+            cls._mini_cds[make_hole_index] = None
 
     @classmethod
     def mini_cd_exists(cls, mini_cd: _MINI_CD) -> bool:
@@ -2148,8 +2180,9 @@ class MINI_CDs():
          """
         result = []
         for mini_cd in cls._mini_cds:
-            if mini_cd.title == title:
-                result.append(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                if mini_cd.title == title:
+                    result.append(mini_cd)
         return result
 
     @classmethod
@@ -2164,8 +2197,9 @@ class MINI_CDs():
         """
         mini_cds_found = []
         for mini_cd in cls._mini_cds:
-            if mini_cd.year == year:
-                mini_cds_found.append(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                if mini_cd.year == year:
+                    mini_cds_found.append(mini_cd)
         if mini_cds_found == []:
             return None
         return mini_cds_found
@@ -2179,11 +2213,13 @@ class MINI_CDs():
         """
         html_str = ''
         for mini_cd in cls._mini_cds:
-            html_str += mini_cd.to_html()
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                html_str += mini_cd.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for mini_cd in self.mini_cds:
-            string += str(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                string += str(mini_cd)
         return string

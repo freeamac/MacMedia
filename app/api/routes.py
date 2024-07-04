@@ -19,6 +19,8 @@ def lps_data():
     """ API returning a summary of all LPs in Music Media library """
     lps_summary = []
     for lp in LPs().lps:
+        if lp is None:  # Skip holes in the list due to deletions
+            continue
         if lp.artist_particles is None:
             lp_artists = str(lp.artists[0].name)
         else:
@@ -36,6 +38,6 @@ def lps_data():
                    'expand_url_title': '<a href="{}">{}</a>'.format(url_for('lps.expand_lps', id=lp.index), lp.title)
                    }
         lps_summary.append(lp_data)
-        lps_summary = sorted(lps_summary, key=lambda d: d['title'])
+    lps_summary = sorted(lps_summary, key=lambda d: d['title'])
 
     return {'data': lps_summary}
