@@ -1,7 +1,7 @@
 from datetime import date
 
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, FieldList, FormField, IntegerField, StringField, SubmitField, TextAreaField
+from wtforms import BooleanField, FieldList, Form, FormField, IntegerField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Length
 
 
@@ -12,7 +12,7 @@ class DataRequiredNoFlags(DataRequired):
     field_flags = ()
 
 
-class AdditionalArtistForm(FlaskForm):
+class AdditionalArtistForm(Form):
     additional_artist_particle = StringField('Artist Particle', validators=[Length(0, 20)])
     additional_artist_prequel = StringField('Prequel', validators=[Length(0, 20)])
     additional_artist_sequel = StringField('Sequel', validators=[Length(0, 20)])
@@ -24,7 +24,7 @@ class LPMetaForm(FlaskForm):
     """ Form to defining a LP """
     lp_title = StringField('LP Title', validators=[Length(0, 120)])
     lp_main_artist = StringField('Main Artist', validators=[Length(0, 40)])
-    lp_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=5, max_entries=5)
+    lp_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=5)
     lp_mixer = StringField('Mixer', validators=[Length(0, 40)])
     lp_classical_composer = StringField('Classical Composer', validators=[Length(0, 40)])
     lp_year = IntegerField('Year Of Release', validators=[DataRequiredNoFlags()], default=date.today().year)
@@ -36,9 +36,10 @@ class NewLPMetaForm(LPMetaForm):
     cancel = SubmitField('Cancel')
 
 
-class ModifyLPForm(LPMetaForm):
+class ModifyLPMetaForm(LPMetaForm):
     """ Form for modifying a LP"""
     submit = SubmitField('Save')
+    modify_tracks = SubmitField('Modify Tracks')
     cancel = SubmitField('Cancel')
 
 
@@ -60,12 +61,19 @@ class LPTrackForm(FlaskForm):
     """ Form for a track on an LP """
     track_name = StringField('Track Name', validators=[Length(0, 40)])
     track_mixer = StringField('Track Mixer', validators=[Length(0, 40)])
-    track_songs = FieldList(FormField(SongForm), min_entries=30, max_entries=30)
+    track_songs = FieldList(FormField(SongForm), min_entries=1, max_entries=30)
 
 
 class NewLPTrackForm(LPTrackForm):
     """ Form for a new track on an LP """
     add_track = SubmitField('Add Another Track')
+    save = SubmitField('Save And Finish')
+    cancel = SubmitField('Cancel')
+
+
+class ModifyTrackForm(LPTrackForm):
+    """ Form to modify song track of an LP """
+    modify_next_track = SubmitField('Save And Modify Next Track')
     save = SubmitField('Save And Finish')
     cancel = SubmitField('Cancel')
 

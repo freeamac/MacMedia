@@ -12,9 +12,18 @@ from app.musicmedia_objects import (
     TrackList,
     media_to_hash
 )
-from .forms import DeleteLPForm, NewLPMetaForm, NewLPTrackForm  # , ModifyLPForm, NewLPForm
+from .forms import (
+    DeleteLPForm,
+    ModifyLPMetaForm,
+    NewLPMetaForm,
+    NewLPTrackForm
+)
 
 from app import app
+
+
+class FormValidateException(Exception):
+    pass
 
 
 def field_value_or_none(form, field):
@@ -22,6 +31,11 @@ def field_value_or_none(form, field):
     value = form[field].data.strip()
     if value is not None and value != '':
         return value
+
+
+def name_value_or_blank(data_value):
+    """ Return the data value or '' if None"""
+    return '' if data_value is None else data_value.name
 
 
 @lps.route('/')
@@ -36,7 +50,7 @@ def index():
 
 
 @lps.route('/add/', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def add_lp():
     """ Add a new LP to the list of LPs """
 
@@ -54,64 +68,72 @@ def add_lp():
         if form.cancel.data:
             return redirect(url_for('.index'))
 
-        if form.validate:
-            lp_title = form['lp_title'].data.strip()
-            lp_artist_str = form['lp_main_artist'].data.strip()
-            lp_additional_artists = form['lp_additional_artists']
-            lp_mixer_str = form['lp_mixer'].data.strip()
-            lp_classical_composer_str = form['lp_classical_composer'].data.strip()
-            lp_year = form['lp_year'].data
-            if lp_title is None or lp_title == '':
-                flash('Error: A title is required for a new LP.')
-            elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
-                flash('Error a Main Artist or Mixer is required for a new LP.')
+        try:
+            if form.validate:
+                lp_title = form['lp_title'].data.strip()
+                lp_artist_str = form['lp_main_artist'].data.strip()
+                lp_additional_artists = form['lp_additional_artists']
+                lp_mixer_str = form['lp_mixer'].data.strip()
+                lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+                lp_year = form['lp_year'].data
+                if lp_title is None or lp_title == '':
+                    flash('Error: A title is required for a new LP.')
+                    raise FormValidateException()
+                elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
+                    flash('Error a Main Artist or Mixer is required for a new LP.')
+                    raise FormValidateException()
 
-            # Check LP  does not already exist
-            lp_unique = True
-            results = LPs.find_lp_by_title(lp_title)
-            if len(results) > 0:
-                # Need to check hash id
-                new_album_hash = media_to_hash(MediaType.LP, lp_title, lp_artist_str)
-                for result in results:
-                    if result._hash == new_album_hash:
-                        lp_unique = False
-                        flash('LP already exists in music media library!')
-            if lp_unique:
-                # Start processing the new album data
-                if lp_artist_str is not None or lp_artist_str != '':
-                    lp_artists = [Artists.create_Artist(lp_artist_str)]
-                    if lp_additional_artists is None:
-                        lp_artist_particles = None
+                # Check LP  does not already exist
+                lp_unique = True
+                results = LPs.find_lp_by_title(lp_title)
+                if len(results) > 0:
+                    # Need to check hash id
+                    new_album_hash = media_to_hash(MediaType.LP, lp_title, lp_artist_str)
+                    for result in results:
+                        if result._hash == new_album_hash:
+                            lp_unique = False
+                            flash('LP already exists in music media library!')
+                            raise FormValidateException()
+                if lp_unique:
+                    # Start processing the new album data
+                    if lp_artist_str is not None or lp_artist_str != '':
+                        lp_artists = [Artists.create_Artist(lp_artist_str)]
+                        if lp_additional_artists is None:
+                            lp_artist_particles = None
+                        else:
+                            lp_artist_particles = []
+                            for artist_info in lp_additional_artists:
+                                particle = artist_info['additional_artist_particle'].data  # Awkward: Need to maintain spacing
+                                additional_artist_str = artist_info['additional_artist'].data.strip()
+                                app.app.logger.info('Add artist is "{}"'.format(additional_artist_str))
+                                app.app.logger.info('Add artist particle is "{}"'.format(particle))
+                                if additional_artist_str is None or additional_artist_str == '':
+                                    continue
+                                lp_artist_particles.append(particle)
+                                additional_artist = Artists.create_Artist(additional_artist_str)
+                                lp_artists.append(additional_artist)
                     else:
-                        lp_artist_particles = []
-                        for artist_info in lp_additional_artists:
-                            particle = artist_info['additional_artist_particle'].data  # Awkward: Need to maintain spacing
-                            additional_artist_str = artist_info['additional_artist'].data.strip()
-                            if additional_artist_str is None or additional_artist_str == '':
-                                continue
-                            lp_artist_particles.append(particle)
-                            additional_artist = Artists.create_Artist(additional_artist_str)
-                            lp_artists.append(additional_artist)
-                else:
-                    lp_artists = None
-                    lp_artist_particles = None
-                if lp_mixer_str is not None and lp_mixer_str != '':
-                    lp_mixer = Artists.create_Artist(lp_mixer_str)
-                else:
-                    lp_mixer = None
-                if lp_classical_composer_str is not None and lp_classical_composer_str != '':
-                    lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
-                else:
-                    lp_classical_composer = None
+                        lp_artists = None
+                        lp_artist_particles = None
+                    if lp_mixer_str is not None and lp_mixer_str != '':
+                        lp_mixer = Artists.create_Artist(lp_mixer_str)
+                    else:
+                        lp_mixer = None
+                    if lp_classical_composer_str is not None and lp_classical_composer_str != '':
+                        lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
+                    else:
+                        lp_classical_composer = None
 
-                new_lp = LPs.create_LP(media_type=MediaType.LP,
-                                       title=lp_title,
-                                       artists=lp_artists,
-                                       year=lp_year,
-                                       mixer=lp_mixer,
-                                       classical_composer=lp_classical_composer,
-                                       artist_particles=lp_artist_particles)
-                return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
+                    new_lp = LPs.create_LP(media_type=MediaType.LP,
+                                           title=lp_title,
+                                           artists=lp_artists,
+                                           year=lp_year,
+                                           mixer=lp_mixer,
+                                           classical_composer=lp_classical_composer,
+                                           artist_particles=lp_artist_particles)
+                    return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
+        except FormValidateException:
+            pass
 
     return render_template('add_new_lp.html', form=form, lp_additional_artists=additional_artists)
 
@@ -305,65 +327,100 @@ def expand_lps(id):
 
 @lps.route('/modify/<int:id>', methods=['GET', 'POST'])
 @login_required
-def modify_lps(id):
+def modify_lp(id):
     """ Modify the data of a LP """
+    additional_artists = []
 
-    return render_template('coming_soon.html', library_type='Modify LP')
-
-
-"""
-    dvd_data = get_dvd_by_id(db, id)
-    if dvd_data is None:
-        flash('ERROR: LP with identifier "{}" not found'.format(id))
-        return redirect(url_for('.index'))
-
-    # Set up form
-    form = ModifyLPForm()
+    form = ModifyLPMetaForm()
+    lp_data = LPs.find_by_index(id)
 
     if request.method == 'GET':
-        form.dvd_title.data = dvd_data.get('title')
-        form.dvd_series.data = dvd_data.get('series', '')
-        form.dvd_year.data = dvd_data.get('year')
-        form.dvd_set.data = dvd_data.get('set', '')
-        form.dvd_media_type.data = dvd_data.get('media_type').capitalize()
-        form.dvd_music_type.data = dvd_data.get('music_type')
-        form.dvd_music_artist.data = dvd_data.get('artist', '')
-        form.dvd_location.data = dvd_data.get('location').capitalize()
+
+        if len(lp_data.artists) > 1:
+            app.app.logger.info('particles: {}'.format(lp_data.artist_particles))
+            for x in range(1, len(lp_data.artists)):
+                additional_artist = {'additional_artist_particle': lp_data.artist_particles[x - 1],
+                                     'additional_artist': lp_data.artists[x].name}
+                additional_artists.append(additional_artist)
+            for x in range(len(lp_data.artists), 6):
+                additional_artist = {'additional_artist_particle': '', 'additional_artist': ''}
+                additional_artists.append(additional_artist)      
+            # form.lp_additional_artists.append_entry(additional_artists)
+        app.app.logger.info('Additional artits: {}'.format(additional_artists))
+        form.process(lp_additional_artists=additional_artists)
+        form.lp_title.data = lp_data.title
+        form.lp_main_artist.data = lp_data.artists[0].name
+        form.lp_mixer.data = name_value_or_blank(lp_data.mixer)
+
+        form.lp_classical_composer.data = name_value_or_blank(lp_data.classical_composer)
+        form.lp_year.data = lp_data.year
 
     if request.method == 'POST':
-        # Take action based on the button pressed
-
         if form.cancel.data:
-            # User cancels form submission
             return redirect(url_for('.index'))
 
-        if form.validate():
-            dvd_data['id'] = int(id)
-            dvd_data['title'] = form.dvd_title.data.strip()
-            dvd_data['series'] = form.dvd_series.data.strip()
-            dvd_data['year'] = form.dvd_year.data
-            dvd_data['set'] = form.dvd_set.data.strip()
-            dvd_data['media_type'] = form.dvd_media_type.data.lower()
-            if form.dvd_music_type.data.upper() == 'YES':
-                dvd_data['music_type'] = True
-            else:
-                dvd_data['music_type'] = False
-            dvd_data['artist'] = form.dvd_music_artist.data.strip()
-            dvd_data['location'] = form.dvd_location.data.lower()
+        if form.validate:
+            lp_title = form['lp_title'].data.strip()
+            lp_artist_str = form['lp_main_artist'].data.strip()
+            lp_additional_artists = form['lp_additional_artists']
+            lp_mixer_str = form['lp_mixer'].data.strip()
+            lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+            lp_year = form['lp_year'].data
+            if lp_title is None or lp_title == '':
+                flash('Error: A title is required for an LP.')
+            elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
+                flash('Error a Main Artist or Mixer is required for an LP.')
 
-            try:
-                dvd = db_update_dvd(db, dvd_data)
-                if dvd is not None:
-                    flash('LP titled "{}" updated'.format(dvd_data['title']))
+            # See if any updates are required
+
+            # Check LP  does not already exist
+            lp_unique = True
+            results = LPs.find_lp_by_title(lp_title)
+            if len(results) > 0:
+                # Need to check hash id
+                new_album_hash = media_to_hash(MediaType.LP, lp_title, lp_artist_str)
+                for result in results:
+                    if result._hash == new_album_hash:
+                        lp_unique = False
+                        flash('LP already exists in music media library!')
+            if lp_unique:
+                # Start processing the new album data
+                if lp_artist_str is not None or lp_artist_str != '':
+                    lp_artists = [Artists.create_Artist(lp_artist_str)]
+                    if lp_additional_artists is None:
+                        lp_artist_particles = None
+                    else:
+                        lp_artist_particles = []
+                        for artist_info in lp_additional_artists:
+                            particle = artist_info['additional_artist_particle'].data  # Awkward: Need to maintain spacing
+                            additional_artist_str = artist_info['additional_artist'].data.strip()
+                            if additional_artist_str is None or additional_artist_str == '':
+                                continue
+                            lp_artist_particles.append(particle)
+                            additional_artist = Artists.create_Artist(additional_artist_str)
+                            lp_artists.append(additional_artist)
                 else:
-                    flash('No changes made to LP titled "{}"'.format(dvd_data['title']))
-            except (ModelNotFound, UniqueNameError) as err:
-                flash('ERROR: ' + str(err))
+                    lp_artists = None
+                    lp_artist_particles = None
+                if lp_mixer_str is not None and lp_mixer_str != '':
+                    lp_mixer = Artists.create_Artist(lp_mixer_str)
+                else:
+                    lp_mixer = None
+                if lp_classical_composer_str is not None and lp_classical_composer_str != '':
+                    lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
+                else:
+                    lp_classical_composer = None
 
-            return redirect(url_for('.index'))
+                new_lp = LPs.create_LP(media_type=MediaType.LP,
+                                       title=lp_title,
+                                       artists=lp_artists,
+                                       year=lp_year,
+                                       mixer=lp_mixer,
+                                       classical_composer=lp_classical_composer,
+                                       artist_particles=lp_artist_particles)
+                return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
 
-    return render_template('modify_dvd.html', form=form)
-"""
+    return render_template('modify_lp.html', form=form, lp_additional_artists=additional_artists)
 
 
 @lps.route('/search/')

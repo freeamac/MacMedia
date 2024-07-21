@@ -37,8 +37,8 @@
         <!-- Loop through to pick each song information -->
         {% for song in form.track_songs %}
           <hr width="75%"\>
-          <div class="row">
-            <div class="col-md-1">
+          <div class="row bottom10">
+            <div class="col-md-2">
               <h3><u><b>Song #{{ loop.index }}:</b></u></h3>
             </div>
           </div>
@@ -46,13 +46,13 @@
           <!-- Collect song meta information -->
           <div class="row">
             <div class="col-md-1">
-              <h4>{{ song.form.song_title.label }}:</h4>
+              <h4><b>Song Title:</b></h4>
             </div>
             <div class="col-md-2">
               {{ song.form.song_title }}
             </div>
             <div class="col-md-1">
-              <h4>{{ song.form.song_mix.label }}:</h4>
+              <h4><b>Mix:</b></h4>
             </div>
             <div class="col-md-2">
               {{ song.form.song_mix }}
@@ -61,12 +61,12 @@
 
           <div class="row">
             <div class="col-md-1">
-              <h4>{{ song.form.song_featured_in.label }}:</h4>
+              <h4><b>Feat. In:</b></h4>
             </div>
             <div class="col-md-2">
               {{ song.form.song_featured_in }}
             </div><div class="col-md-2">
-              <h4>{{ song.form.song_list_main_artist.label }}:</h4>
+              <h4><b>List Main Artist?</b></h4>
             </div>
             <div class="col-md-2">
               {{ song.form.song_list_main_artist }}
@@ -81,24 +81,25 @@
                 <h4><b></b>Additional Artist<b></b></h4>
               </div>
               <div class="col-md-1">
-                <h5>{{ additional_artist.form.additional_artist_prequel.label }}</h5>
+                <h5><b>Prequel</b></h5>
               </div>
               <div class="col-md-2">
                 {{ additional_artist.form.additional_artist_prequel }}
               </div>
               <div class="col-md-1">
-                <h5>{{ additional_artist.form.additional_artist.label }}</h5>
+                <h5><b>Artist Name</b></h5>
               </div>
               <div class="col-md-2">
                 {{ additional_artist.form.additional_artist }}
               </div>
               <div class="col-md-1">
-                <h5>{{ additional_artist.form.additional_artist_sequel.label }}</h5>
+                <h5><b>Sequel</b></h5>
               </div>
               <div class="col-md-2">
                 {{ additional_artist.form.additional_artist_sequel }}
               </div>
             </div>
+            <div id="additional_artist_fields"></div>
           {% endfor %}
 
           <!-- Collect classical song meta information-->
@@ -144,13 +145,23 @@
           <!-- Collect song parts -->
           <hr width="45%"\>
           <div class="row">
-            <div class="col-md-1">
+            <div class="col-md-2">
               <h4>{{ song.form.song_parts.label }}:</h4>
             </div>
             <div class="col-md-2">
               {{ song.form.song_parts(cols=40, rows=7) }}
             </div>
           </div>
+          <div class="plus_button_0">
+            <div class="row">
+              <div class="col-md-2">
+                <div class="input-group-btn">
+                  <button class="btn btn-success" type="button"  onclick="additional_song_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="additional_song_fields"></div>
         {% endfor %}
 
 
@@ -173,4 +184,213 @@
 {% block scripts %}
 {{ super() }}
 {{ pagedown.include_pagedown() }}
+<script nonce="{{ csp_nonce() }}">
+  var song_num = 0;
+  function additional_song_fields() {
+ 
+    song_num++;
+    track_song_id = song_num + 1;
+    previous_button_id = song_num - 1;
+    $('.plus_button_'+previous_button_id).remove();
+    var objTo = document.getElementById('additional_song_fields')
+    var divtest = document.createElement("div");
+	  divtest.setAttribute("class", "form-group removeclass"+song_num);
+	  var rdiv = 'removeclass'+song_num;
+    divtest.innerHTML = '<hr width="75%"\>\
+          <div class="row bottom10">\
+            <div class="col-md-2">\
+              <h3><u><b>Song #'+track_song_id+':</b></u></h3>\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-1">\
+              <h4><b>Song Title:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_title" maxlength="60" minlength="0" name="track_songs-'+song_num+'-song_title" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h4><b>Mix:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_mix" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_mix" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-1">\
+              <h4><b>Feat. In:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_featured_in" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_featured_in" type="text" value="">\
+            </div><div class="col-md-2">\
+              <h4><b>List Main Artist?</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_list_main_artist" name="track_songs-'+song_num+'-song_list_main_artist" type="checkbox" value="y">\
+            </div>\
+          </div>\
+          <!-- Collect additional song artists -->\
+          <hr width="45%"\>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b></b>Additional Artist<b></b></h4>\
+            </div>\
+            <div class="col-md-1">\
+              <h5><label for="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_prequel">Prequel</label></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_prequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Artist Name</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-0-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-0-additional_artist" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Sequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_sequel" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b></b>Additional Artist<b></b></h4>\
+            </div>\
+            <div class="col-md-1">\
+              <h5><label for="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel">Prequel</label></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Artist Name</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Sequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_sequel" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b></b>Additional Artist<b></b></h4>\
+            </div>\
+            <div class="col-md-1">\
+              <h5><label for="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel">Prequel</label></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Artist Name</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Sequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_sequel" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b></b>Additional Artist<b></b></h4>\
+            </div>\
+            <div class="col-md-1">\
+              <h5><label for="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel">Prequel</label></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Artist Name</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Sequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_sequel" type="text" value="">\
+            </div>\
+          </div>\
+          <div id="additional_artist_fields"></div>\
+          <!-- Collect classical song meta information-->\
+          <hr width="45%"\>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b>Classical Work:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_classical_work" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_classical_work" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b>Classical Composer</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_classical_composers-0-classical_composer" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_classical_composers-0-classical_composer" type="text" value="">\
+            </div>\
+          </div>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b>Classical Composer</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_classical_composers-1-classical_composer" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_classical_composers-1-classical_composer" type="text" value="">\
+            </div>\
+          </div>\
+          <!-- Collect extraneous song information -->\
+          <hr width="45%"\>\
+          <div class="row">\
+            <div class="col-md-1">\
+              <h4><b>Country:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <input id="track_songs-'+song_num+'-song_country" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_country" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Release Year</b></h5>\
+            </div>\
+            <div class="col-md-1">\
+              <input id="track_songs-'+song_num+'-song_year" maxlength="4" minlength="0" name="track_songs-'+song_num+'-song_year" type="text" value="">\
+            </div>\
+          </div>\
+          <!-- Collect song parts -->\
+          <hr width="45%"\>\
+          <div class="row">\
+            <div class="col-md-2">\
+              <h4><b>Song Parts:</b></h4>\
+            </div>\
+            <div class="col-md-2">\
+              <textarea cols="40" id="track_songs-'+song_num+'-song_parts" name="track_songs-'+song_num+'-song_parts" rows="7"></textarea>\
+            </div>\
+          </div>\
+          <div class="plus_button_'+song_num+'">\
+            <div class="row">\
+                <div class="col-md-2">\
+                <div class="input-group-btn">\
+                  <button class="btn btn-success" type="button"  onclick="additional_song_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+                </div>\
+              </div>\
+            </div>\
+          </div>\
+';
+    
+    objTo.appendChild(divtest)
+  }
+  function remove_song_fields(rid) {
+	  $('.removeclass'+rid).remove();
+  }
+</script>
 {% endblock %}
