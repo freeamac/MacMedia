@@ -50,7 +50,7 @@ def index():
 
 
 @lps.route('/add/', methods=['GET', 'POST'])
-# @login_required
+@login_required
 def add_lp():
     """ Add a new LP to the list of LPs """
 
@@ -103,7 +103,14 @@ def add_lp():
                         else:
                             lp_artist_particles = []
                             for artist_info in lp_additional_artists:
-                                particle = artist_info['additional_artist_particle'].data  # Awkward: Need to maintain spacing
+                                particle = artist_info['additional_artist_particle'].data.strip()
+                                # For word particles, we want to surround them with spaces. In the case
+                                # of a comma, we only want a space at the end
+                                if particle is not None and particle != '':
+                                    if particle == ',':
+                                        particle += ' '
+                                    else:
+                                        particle = ' ' + particle + ' '
                                 additional_artist_str = artist_info['additional_artist'].data.strip()
                                 app.app.logger.info('Add artist is "{}"'.format(additional_artist_str))
                                 app.app.logger.info('Add artist particle is "{}"'.format(particle))

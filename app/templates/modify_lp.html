@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Modify LP Information{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Modify LP Information</h1>
+</div>
+
+<div class="container">
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="row">
+        <div class="col-md-2">
+          <h4>LP Title:</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          {{ form.lp_title }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <h4>Main Artist:</h4>
+        </div>
+      </div>
+      <div class="row bottom10">
+        <div class="col-md-2">
+          {{ form.lp_main_artist}}
+        </div>
+      </div>
+      {% for additional_artist in form.lp_additional_artists %}
+        <div class="row">
+          <div class="col-md-2">
+            <h4>Particle:</h4>
+          </div>
+          <div class="col-md-2">
+            {{ additional_artist.form.additional_artist_particle }}
+          </div>
+          <div class="col-md-2">
+            <h4>Additional Artist:</h4>
+          </div>
+          <div class="col-md-2">
+            {{ additional_artist.additional_artist }}
+          </div>
+        </div>
+      {% endfor %}
+      <div class="row top10">
+        <div class="col-md-2">
+          <h4>Mixer:</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          {{ form.lp_mixer }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <h4>Classical Composer:</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          {{ form.lp_classical_composer }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          <h4>Year Released:</h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-2">
+          {{ form.lp_year }}
+        </div>
+      </div>
+    
+      <div class="row top20">
+        <div class="col-md-1">
+          <input type="submit" name="save" value="Save">
+        </div>
+        <div class="col-md-1">
+          <input type="submit" name="modify_tracks" value="Modify Tracks">
+        </div>
+        <div class="col-md-1">
+          <input type="submit" name="cancel" value="Cancel">
+        </div>
+      </div>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+{% endblock %}
