@@ -38,7 +38,8 @@ class NewLPMetaForm(LPMetaForm):
 
 class ModifyLPMetaForm(LPMetaForm):
     """ Form for modifying a LP"""
-    submit = SubmitField('Save')
+    save = SubmitField('Save')
+    save_and_modify_tracks = SubmitField('Save & Modify Tracks')
     modify_tracks = SubmitField('Modify Tracks')
     cancel = SubmitField('Cancel')
 

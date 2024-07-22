@@ -906,6 +906,10 @@ class _MEDIA():
     def title(self) -> str:
         return self._title
 
+    @title.setter
+    def title(self, value) -> None:
+        self._title = value
+
     @property
     def artists(self) -> List[_Artist]:
         return self._artists
@@ -928,13 +932,25 @@ class _MEDIA():
     def year(self) -> int:
         return self._year
 
+    @year.setter
+    def year(self, value) -> None:
+        self._year = value
+
     @property
     def mixer(self) -> Optional[_Artist]:
         return self._mixer
 
+    @mixer.setter
+    def mixer(self, value) -> None:
+        self._mixer = value
+
     @property
     def classical_composer(self) -> Optional[_Artist]:
         return self._classical_composer
+
+    @classical_composer.setter
+    def classical_composer(self, value) -> None:
+        self._classical_composer = value
 
     @property
     def tracks(self) -> List[TrackList]:

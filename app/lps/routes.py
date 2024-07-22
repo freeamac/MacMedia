@@ -38,6 +38,18 @@ def name_value_or_blank(data_value):
     return '' if data_value is None else data_value.name
 
 
+def massage_particle(particle):
+    # For word particles, we want to surround them with spaces. In the case
+    # of a comma, we only want a space at the end
+    massaged_particle = ''
+    if particle is not None and particle != '':
+        if particle == ',':
+            massaged_particle = ', '
+        else:
+            massaged_particle = ' ' + particle + ' '
+    return massaged_particle
+
+
 @lps.route('/')
 @login_required
 def index():
@@ -104,13 +116,7 @@ def add_lp():
                             lp_artist_particles = []
                             for artist_info in lp_additional_artists:
                                 particle = artist_info['additional_artist_particle'].data.strip()
-                                # For word particles, we want to surround them with spaces. In the case
-                                # of a comma, we only want a space at the end
-                                if particle is not None and particle != '':
-                                    if particle == ',':
-                                        particle += ' '
-                                    else:
-                                        particle = ' ' + particle + ' '
+                                particle = massage_particle(particle)
                                 additional_artist_str = artist_info['additional_artist'].data.strip()
                                 app.app.logger.info('Add artist is "{}"'.format(additional_artist_str))
                                 app.app.logger.info('Add artist particle is "{}"'.format(particle))
@@ -141,6 +147,8 @@ def add_lp():
                     return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
         except FormValidateException:
             pass
+        except Exception as e:
+            raise e
 
     return render_template('add_new_lp.html', form=form, lp_additional_artists=additional_artists)
 
@@ -351,7 +359,7 @@ def modify_lp(id):
                 additional_artists.append(additional_artist)
             for x in range(len(lp_data.artists), 6):
                 additional_artist = {'additional_artist_particle': '', 'additional_artist': ''}
-                additional_artists.append(additional_artist)      
+                additional_artists.append(additional_artist)
             # form.lp_additional_artists.append_entry(additional_artists)
         app.app.logger.info('Additional artits: {}'.format(additional_artists))
         form.process(lp_additional_artists=additional_artists)
@@ -366,66 +374,160 @@ def modify_lp(id):
         if form.cancel.data:
             return redirect(url_for('.index'))
 
-        if form.validate:
-            lp_title = form['lp_title'].data.strip()
-            lp_artist_str = form['lp_main_artist'].data.strip()
-            lp_additional_artists = form['lp_additional_artists']
-            lp_mixer_str = form['lp_mixer'].data.strip()
-            lp_classical_composer_str = form['lp_classical_composer'].data.strip()
-            lp_year = form['lp_year'].data
-            if lp_title is None or lp_title == '':
-                flash('Error: A title is required for an LP.')
-            elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
-                flash('Error a Main Artist or Mixer is required for an LP.')
+        try:
+            if form.validate:
+                if form.save.data or form.save_and_modify_tracks.data:
+                    lp_title = form['lp_title'].data.strip()
+                    lp_artist_str = form['lp_main_artist'].data.strip()
+                    lp_additional_artists = form['lp_additional_artists']
+                    lp_mixer_str = form['lp_mixer'].data.strip()
+                    lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+                    lp_year = form['lp_year'].data
+                    if lp_title is None or lp_title == '':
+                        flash('Error: A title is required for an LP.')
+                        raise FormValidateException
+                    elif (lp_artist_str is None or lp_artist_str == '') and (lp_mixer_str is None or lp_mixer_str == ''):
+                        flash('Error a Main Artist or Mixer is required for an LP.')
+                        raise FormValidateException
 
-            # See if any updates are required
+                    # See if any updates are required
+                    changes = False
 
-            # Check LP  does not already exist
-            lp_unique = True
-            results = LPs.find_lp_by_title(lp_title)
-            if len(results) > 0:
-                # Need to check hash id
-                new_album_hash = media_to_hash(MediaType.LP, lp_title, lp_artist_str)
-                for result in results:
-                    if result._hash == new_album_hash:
-                        lp_unique = False
-                        flash('LP already exists in music media library!')
-            if lp_unique:
-                # Start processing the new album data
-                if lp_artist_str is not None or lp_artist_str != '':
-                    lp_artists = [Artists.create_Artist(lp_artist_str)]
-                    if lp_additional_artists is None:
-                        lp_artist_particles = None
-                    else:
-                        lp_artist_particles = []
-                        for artist_info in lp_additional_artists:
-                            particle = artist_info['additional_artist_particle'].data  # Awkward: Need to maintain spacing
-                            additional_artist_str = artist_info['additional_artist'].data.strip()
-                            if additional_artist_str is None or additional_artist_str == '':
-                                continue
-                            lp_artist_particles.append(particle)
-                            additional_artist = Artists.create_Artist(additional_artist_str)
-                            lp_artists.append(additional_artist)
-                else:
-                    lp_artists = None
-                    lp_artist_particles = None
-                if lp_mixer_str is not None and lp_mixer_str != '':
-                    lp_mixer = Artists.create_Artist(lp_mixer_str)
-                else:
-                    lp_mixer = None
-                if lp_classical_composer_str is not None and lp_classical_composer_str != '':
-                    lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
-                else:
-                    lp_classical_composer = None
+                    # Check title change
+                    if lp_title != lp_data.title:
+                        # Check LP does not already exist
+                        results = LPs.find_lp_by_title(lp_title)
+                        if len(results) > 0:
+                            # Need to check hash id
+                            new_album_hash = media_to_hash(MediaType.LP, lp_title, lp_artist_str)
+                            for result in results:
+                                if result._hash == new_album_hash:
+                                    flash('LP already exists in music media library!')
+                                    raise FormValidateException
+                        changes = True
+                        lp_data.title = lp_title
+                        app.app.logger.info("title chaned")
 
-                new_lp = LPs.create_LP(media_type=MediaType.LP,
-                                       title=lp_title,
-                                       artists=lp_artists,
-                                       year=lp_year,
-                                       mixer=lp_mixer,
-                                       classical_composer=lp_classical_composer,
-                                       artist_particles=lp_artist_particles)
-                return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
+                    # Check main artist change
+                    if lp_artist_str != lp_data.artists[0].name:
+                        changes = True
+                        lp_data.artists[0].delete_media(lp_data)  # TO DO: perhaps they artist is still associated with a sone on the LP
+
+                        if lp_artist_str == '':
+                            lp_data.artists.remove(lp_data.artists[0])
+                        else:
+                            new_main_artist = Artists.create_Artist(lp_artist_str)
+                            lp_data.artists[0] = new_main_artist
+                            try:
+                                new_main_artist.add_media(lp_data)
+                            except LPException:
+                                pass  # Could be an artist on a song of the album
+                            except Exception as e:
+                                raise e
+                        app.app.logger.info("artist chaned")
+
+                    # Check mixer change
+                    if (lp_data.mixer is not None and lp_mixer_str != lp_data.mixer.name) or (lp_data.mixer is None and lp_mixer_str != ''):
+                        changes = True
+                        if lp_data.mixer is not None:
+                            lp_data.mixer.delete_media(lp_data)
+                        if lp_mixer_str == '':
+                            lp_data.mixer = None
+                        else:
+                            new_mixer = Artists.create_Artist(lp_mixer_str)
+                            lp_data.mixer = new_mixer
+                            try:
+                                new_mixer.add_media(lp_data)
+                            except LPException:
+                                pass   # Could be a mixer/artist of a song on the album
+                            except Exception as e:
+                                raise e
+                        app.app.logger.info("mixer chaned")
+
+                    # Check if classical composer change
+                    if (lp_data.classical_composer is not None and lp_classical_composer_str != lp_data.classical_composer.name) or\
+                       (lp_data.classical_composer is None and lp_classical_composer_str != ''):
+                        changes = True
+                        if lp_data.classical_composer is not None:
+                            lp_data.classical_composer.delete_media(lp_data)
+                        if lp_classical_composer_str == '':
+                            lp_data.classical_composer = None
+                        else:
+                            new_classical_composer = Artists.create_Artist(lp_classical_composer_str)
+                            lp_data.classical_composer = new_classical_composer
+                            try:
+                                new_classical_composer.add_media(lp_data)
+                            except LPException:
+                                pass   # Could be a classical composer of a song on the album
+                            except Exception as e:
+                                raise e
+                        app.app.logger.info("classical composer chaned")
+
+                    # Check if year change
+                    if lp_year != lp_data.year:
+                        changes = True
+                        lp_data.year = lp_year
+                        app.app.logger.info("year chaned")
+
+                    # Check for changes in the additional artists fields. These
+                    # fields are order dependent.
+                    for index, artist_info in enumerate(lp_additional_artists):
+                        app.app.logger.info('Index is {}'.format(index))
+                        particle = artist_info['additional_artist_particle'].data.strip()
+                        particle = massage_particle(particle)
+                        additional_artist_str = artist_info['additional_artist'].data.strip()
+                        if len(lp_data.artists) < index + 2:  # First artist is main artist
+                            if additional_artist_str == '':
+                                break
+                            new_additional_artist = Artists.create_Artist(additional_artist_str)
+                            lp_data.artists.append(new_additional_artist)
+                            try:
+                                new_additional_artist.add_media(lp_data)
+                            except LPException:
+                                pass   # Could be an artist of a song on the album
+                            except Exception as e:
+                                raise e
+                            changes = True
+                        elif additional_artist_str == '':  # Situation where we are deleting one or more additional artists
+                            for artist in lp_data.artists[index + 1:]:
+                                artist.delete_media(lp_data)
+                            del lp_data.artists[index + 1:]
+                            del lp_data.artist_particles[index:]
+                            changes = True
+                            break
+                        elif lp_data.artists[index + 1].name != additional_artist_str:
+                            new_additional_artist = Artists.create_Artist(additional_artist_str)
+                            lp_data.artists[index + 1].delete_media(lp_data)
+                            lp_data.artists[index + 1] = new_additional_artist
+                            try:
+                                new_additional_artist.add_media(lp_data)
+                            except LPException:
+                                pass   # Could be an artist of a song on the album
+                            except Exception as e:
+                                raise e
+                            changes = True
+                        if additional_artist_str == '' and index + 2 > len(lp_data.artists):
+                            break
+
+                        if particle != '' and len(lp_data.artist_particles) <= index:
+                            lp_data.artist_particles.append(particle)
+                            changes = True
+                        elif (lp_data.artist_particles[index] != particle):
+                            lp_data.artist_particles[index] = particle
+                            changes = True
+
+                    if not changes:
+                        flash('No changes made that need to be saved.')
+                        raise FormValidateException
+                        # return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
+
+                    if form.save.data:
+                        return redirect(url_for('.index'))
+
+        except FormValidateException:
+            pass
+        except Exception as e:
+            raise e
 
     return render_template('modify_lp.html', form=form, lp_additional_artists=additional_artists)
 
