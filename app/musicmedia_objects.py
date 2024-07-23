@@ -918,6 +918,10 @@ class _MEDIA():
     def artist_particles(self) -> Optional[List[str]]:
         return self._artist_particles
 
+    @artist_particles.setter
+    def artist_particles(self, particle_list) -> None:
+        self._artist_particles = particle_list
+
     @property
     def artists_text(self) -> str:
         if self.artist_particles is None:

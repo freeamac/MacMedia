@@ -113,11 +113,9 @@
     previous_button_id = artist_num - 1;
     $('.plus_button_'+previous_button_id).remove();
     if (artist_num > 1) {$('.minus_button_'+previous_button_id).remove()};
-    // var objTo = document.getElementById('additional_artist_fields');
     var objTo = document.getElementById('artist_row_'+previous_button_id);
     var divtest = document.createElement("div");
 	  divtest.setAttribute("class", "form-group removeclass"+artist_num);
-	  var rdiv = 'removeclass'+artist_num;
     divtest.innerHTML = '\
     <div class="row" id="artist_row_'+artist_num+'">\
       <div class="col-md-2"><h4>Particle:</h4></div>\

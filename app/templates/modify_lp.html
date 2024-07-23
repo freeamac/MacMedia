@@ -31,22 +31,43 @@
           {{ form.lp_main_artist}}
         </div>
       </div>
-      {% for additional_artist in form.lp_additional_artists %}
-        <div class="row">
-          <div class="col-md-2">
-            <h4>Particle:</h4>
+      <div id="additional_artists">
+        {% for additional_artist in form.lp_additional_artists %}
+          <div class="row removeclass{{ loop.index }}" id="artist_row_{{ loop.index }}">
+            <div class="col-md-2">
+              <h4>Particle:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ additional_artist.additional_artist_particle }}
+            </div>
+            <div class="col-md-2">
+              <h4>Additional Artist:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ additional_artist.additional_artist }}
+            </div>
+            <div class="col-md-2 minus_button_{{ loop.index }}">
+              <div class="input-group-btn">
+                <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields({{ loop.index }});"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            {% if loop.last %}
           </div>
-          <div class="col-md-2">
-            {{ additional_artist.form.additional_artist_particle }}
+      </div>
+          
+          <div class="row" id="plus_button">
+            <div class="col-md-2 plus_button_{{ loop.index }}">
+              <div class="input-group-btn">
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields({{ loop.index }});"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+              </div>
+            </div>
           </div>
-          <div class="col-md-2">
-            <h4>Additional Artist:</h4>
+          {% else %}
           </div>
-          <div class="col-md-2">
-            {{ additional_artist.additional_artist }}
-          </div>
-        </div>
-      {% endfor %}
+          {% endif %}
+
+        {% endfor %}
+
       <div class="row top10">
         <div class="col-md-2">
           <h4>Mixer:</h4>
@@ -100,4 +121,54 @@
 {% block scripts %}
 {{ super() }}
 {{ pagedown.include_pagedown() }}
+
+<script nonce="{{ csp_nonce() }}">
+  function additional_artist_fields(index) {
+ 
+    var next_index = index + 1
+    $('.plus_button_'+index).remove();
+    var objTo = document.getElementById('additional_artists');
+    var additionalArtistRow = document.createElement("div");
+	  additionalArtistRow.setAttribute("class", "row removeclass"+next_index);
+    additionalArtistRow.setAttribute("id", "artist_row_"+next_index)
+    additionalArtistRow.innerHTML = '\
+        <div class="col-md-2">\
+        <h4>Particle:</h4>\
+      </div>\
+      <div class="col-md-2">\
+        <input id="lp_additional_artists-'+next_index+'-additional_artist_particle" maxlength="20" minlength="0" name="lp_additional_artists-'+next_index+'-additional_artist_particle" type="text" value="">\
+      </div>\
+      <div class="col-md-2">\
+        <h4>Additional Artist:</h4>\
+      </div>\
+      <div class="col-md-2">\
+        <input id="lp_additional_artists-'+next_index+'-additional_artist" maxlength="40" minlength="0" name="lp_additional_artists-'+next_index+'-additional_artist" type="text" value="">\
+      </div>\
+      <div class="col-md-2 minus_button_'+next_index+'">\
+        <div class="input-group-btn">\
+          <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+next_index+');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+        </div>\
+      </div>\
+    ';
+    objTo.append(additionalArtistRow)
+
+    // Update the plus button with a new index
+    $('.plus_button_'+index).remove();
+    var objTo = document.getElementById("plus_button")
+    var plusButtonIcon = document.createElement("div");
+    plusButtonIcon.setAttribute("class", "plus_button_"+next_index)
+    plusButtonIcon.innerHTML ='\
+      <div class="input-group-btn">\
+        <button class="btn btn-success" type="button"  onclick="additional_artist_fields('+next_index+');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+      </div>\
+    </div>\
+    ';
+    objTo.append(plusButtonIcon)
+  }
+
+  function remove_additional_artist_fields(rid) {
+	  $('.removeclass'+rid).remove();
+  }
+</script>
+
 {% endblock %}

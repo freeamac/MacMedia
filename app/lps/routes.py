@@ -349,18 +349,19 @@ def modify_lp(id):
     form = ModifyLPMetaForm()
     lp_data = LPs.find_by_index(id)
 
+    # Build up tuple of additional artists and artist particles for
+    # future use
+    artist_particles_tuple = tuple([lp_data.artist_particles[x - 1] for x in range(1, len(lp_data.artists))])
+    additional_artists_name_tuple = tuple([lp_data.artists[x].name for x in range(1, len(lp_data.artists))])
+
     if request.method == 'GET':
 
         if len(lp_data.artists) > 1:
             app.app.logger.info('particles: {}'.format(lp_data.artist_particles))
-            for x in range(1, len(lp_data.artists)):
-                additional_artist = {'additional_artist_particle': lp_data.artist_particles[x - 1],
-                                     'additional_artist': lp_data.artists[x].name}
+            for x in range(len(additional_artists_name_tuple)):
+                additional_artist = {'additional_artist_particle': artist_particles_tuple[x],
+                                     'additional_artist': additional_artists_name_tuple[x]}
                 additional_artists.append(additional_artist)
-            for x in range(len(lp_data.artists), 6):
-                additional_artist = {'additional_artist_particle': '', 'additional_artist': ''}
-                additional_artists.append(additional_artist)
-            # form.lp_additional_artists.append_entry(additional_artists)
         app.app.logger.info('Additional artits: {}'.format(additional_artists))
         form.process(lp_additional_artists=additional_artists)
         form.lp_title.data = lp_data.title
@@ -469,17 +470,38 @@ def modify_lp(id):
                         lp_data.year = lp_year
                         app.app.logger.info("year chaned")
 
-                    # Check for changes in the additional artists fields. These
-                    # fields are order dependent.
-                    for index, artist_info in enumerate(lp_additional_artists):
-                        app.app.logger.info('Index is {}'.format(index))
-                        particle = artist_info['additional_artist_particle'].data.strip()
-                        particle = massage_particle(particle)
-                        additional_artist_str = artist_info['additional_artist'].data.strip()
-                        if len(lp_data.artists) < index + 2:  # First artist is main artist
-                            if additional_artist_str == '':
-                                break
-                            new_additional_artist = Artists.create_Artist(additional_artist_str)
+                    # Check for changes in the additional artists fields. First get
+                    # all the form data
+                    artist_particle_list = []
+                    additional_artists_name_list = []
+                    for artist_info in lp_additional_artists:
+                        if artist_info['additional_artist_particle'].data is None:
+                            # Handle non-existing data
+                            artist_particle_list.append('')
+                        else:
+                            particle = artist_info['additional_artist_particle'].data.strip()
+                            artist_particle_list.append(massage_particle(particle))
+                        if artist_info['additional_artist'].data is None:
+                            # Handle non-existing data
+                            additional_artists_name_list.append('')
+                        else:
+                            additional_artists_name_list.append(artist_info['additional_artist'].data.strip())
+                    # Compare form data versus existing data for any changes
+                    if not ((set(artist_particle_list) == set(artist_particles_tuple)) and
+                            (set(additional_artists_name_list) == set(additional_artists_name_tuple)) and
+                            (len(artist_particle_list) == len(additional_artists_name_tuple))):
+
+                        # With changes, we completely rebuild the LP's additional artists and particles list
+                        changes = True
+                        for index, artist_name in enumerate(additional_artists_name_tuple):
+                            if artist_name not in additional_artists_name_list:
+                                lp_data.artists[index + 1].delete_media(lp_data)  # Recall main artist at first entry
+
+                        lp_data.artist_particles = artist_particle_list
+                        # Remove original entries and rebuild additional artist list
+                        del lp_data.artists[1:]
+                        for artist_name in additional_artists_name_list:
+                            new_additional_artist = Artists.create_Artist(artist_name)
                             lp_data.artists.append(new_additional_artist)
                             try:
                                 new_additional_artist.add_media(lp_data)
@@ -487,34 +509,6 @@ def modify_lp(id):
                                 pass   # Could be an artist of a song on the album
                             except Exception as e:
                                 raise e
-                            changes = True
-                        elif additional_artist_str == '':  # Situation where we are deleting one or more additional artists
-                            for artist in lp_data.artists[index + 1:]:
-                                artist.delete_media(lp_data)
-                            del lp_data.artists[index + 1:]
-                            del lp_data.artist_particles[index:]
-                            changes = True
-                            break
-                        elif lp_data.artists[index + 1].name != additional_artist_str:
-                            new_additional_artist = Artists.create_Artist(additional_artist_str)
-                            lp_data.artists[index + 1].delete_media(lp_data)
-                            lp_data.artists[index + 1] = new_additional_artist
-                            try:
-                                new_additional_artist.add_media(lp_data)
-                            except LPException:
-                                pass   # Could be an artist of a song on the album
-                            except Exception as e:
-                                raise e
-                            changes = True
-                        if additional_artist_str == '' and index + 2 > len(lp_data.artists):
-                            break
-
-                        if particle != '' and len(lp_data.artist_particles) <= index:
-                            lp_data.artist_particles.append(particle)
-                            changes = True
-                        elif (lp_data.artist_particles[index] != particle):
-                            lp_data.artist_particles[index] = particle
-                            changes = True
 
                     if not changes:
                         flash('No changes made that need to be saved.')
