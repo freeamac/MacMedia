@@ -72,9 +72,11 @@ class NewLPTrackForm(LPTrackForm):
     cancel = SubmitField('Cancel')
 
 
-class ModifyTrackForm(LPTrackForm):
+class ModifyLPTrackForm(LPTrackForm):
     """ Form to modify song track of an LP """
+    new_track = BooleanField('Adding New Track')
     modify_next_track = SubmitField('Save And Modify Next Track')
+    modify_songs = SubmitField('Save And Modify Track Songs')
     save = SubmitField('Save And Finish')
     cancel = SubmitField('Cancel')
 

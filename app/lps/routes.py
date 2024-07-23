@@ -15,6 +15,7 @@ from app.musicmedia_objects import (
 from .forms import (
     DeleteLPForm,
     ModifyLPMetaForm,
+    ModifyLPTrackForm,
     NewLPMetaForm,
     NewLPTrackForm
 )
@@ -377,6 +378,10 @@ def modify_lp(id):
 
         try:
             if form.validate:
+
+                if form.modify_tracks:
+                    return redirect(url_for('.modify_lp_track', lp_id=lp_data.index, track_id=0))
+
                 if form.save.data or form.save_and_modify_tracks.data:
                     lp_title = form['lp_title'].data.strip()
                     lp_artist_str = form['lp_main_artist'].data.strip()
@@ -513,7 +518,6 @@ def modify_lp(id):
                     if not changes:
                         flash('No changes made that need to be saved.')
                         raise FormValidateException
-                        # return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
 
                     if form.save.data:
                         return redirect(url_for('.index'))
@@ -524,6 +528,57 @@ def modify_lp(id):
             raise e
 
     return render_template('modify_lp.html', form=form, lp_additional_artists=additional_artists)
+
+
+@lps.route('/modify_track/<int:lp_id>/<int:track_id>', methods=['GET', 'POST'])
+@login_required
+def modify_lp_track(lp_id, track_id):
+    """ Modify the data of a LP track """
+
+    form = ModifyLPTrackForm()
+    lp_data = LPs.find_by_index(lp_id)
+
+    if request.method == 'GET':
+        if len(lp_data.tracks) < track_id + 1:
+            # Adding a new track
+            form.track_name.data = ''
+            form.track_mixer.data = ''
+            form.new_track = True
+        else:
+            form.track_name.data = lp_data.tracks[track_id].side
+            form.track_mixer.data = lp_data.tracks[track_id].side_mixer
+            form.new_track = False
+
+    if request.method == 'POST':
+        if form.cancel.data:
+            return redirect(url_for('.modify_lp', id=lp_id))
+
+        if form.validate:
+            track_name = form['track_name'].data.strip()
+            track_mixer = form['track_mixer'].data.strip()
+
+            if len(lp_data.tracks) < track_id + 1:
+                # Adding a new track
+                if track_mixer == '':
+                    track_mixer = None
+                new_tracklist = TrackList(track_name, track_mixer)
+                lp_data.tracks.append(new_tracklist)
+            else:
+                if track_name != lp_data.tracks[track_id].side:
+                    lp_data.tracks[track_id].side = track_name
+                if track_mixer != lp_data.tracks[track_id].side_mixer:
+                    lp_data.tracks[track_id].side_mixer = track_mixer
+
+            if form.modify_next_track.data:
+                return redirect(url_for('.modify_lp_track', lp_id=lp_id, track_id=track_id + 1))
+
+            if form.modify_songs.data:
+                return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=0))
+
+            if form.save.data:
+                return redirect(url_for('.index'))
+
+    return render_template('modify_lp_track.html', form=form)
 
 
 @lps.route('/search/')
