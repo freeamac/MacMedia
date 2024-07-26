@@ -332,7 +332,7 @@ class MEDIATestCase(unittest.TestCase):
         self.assertEqual(puppini_sisters_christmas_album, buble_christmas_album)
         self.assertEqual(len(buble_christmas_album.tracks), 2)
         track1 = buble_christmas_album.tracks[0]
-        self.assertEqual(track1.side, 'Side A')
+        self.assertEqual(track1.name, 'Side A')
         track1_song_list = track1.song_list
         self.assertEqual(len(track1_song_list), 8)
         jingle_bells_song = track1.get_song_from_title('Jingle Bells')
@@ -343,7 +343,7 @@ class MEDIATestCase(unittest.TestCase):
         williams = all_artists.find_artist('John Williams')
         self.assertEqual(len(williams.lps), 1)
         track1 = williams.find_lp('Greatest Hits').tracks[0]
-        self.assertEqual(track1.side, 'Side 1')
+        self.assertEqual(track1.name, 'Side 1')
         bach_song_composer = track1.get_song_from_title('Gavotte From Fourth Lute Suite')
         self.assertEqual(bach_song_composer, track1.song_list[1])
         bach = all_artists.find_artist('Bach')

@@ -311,6 +311,7 @@ class Artists():
     def _clean_artists(cls):
         """ Private method to remove all artists from the collection. Useful in testing. """
         cls._artists = set()
+        cls._max_index = 0
 
     @classmethod
     def create_Artist(cls, name: str, skip_adding_to_artists_set: bool = False) -> _Artist:
@@ -416,6 +417,14 @@ class Additional_Artist():
     def artist(self):
         return self._artist
 
+    @property
+    def prequel(self):
+        return self._prequel
+
+    @property
+    def sequel(self):
+        return self._sequel
+
     def __init__(self, artist: _Artist, prequel: Optional[str] = None, sequel: Optional[str] = None) -> None:
         """ Create formatting structure for an addition artist.
 
@@ -440,8 +449,8 @@ class Additional_Artist():
         if type(artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(artist))
         self._artist = artist
-        self._prequel = prequel
-        self._sequel = sequel
+        self._prequel = '' if prequel is None else prequel
+        self._sequel = '' if sequel is None else sequel
 
     def to_html(self):
         """ Html representation of an additional artist.
@@ -455,12 +464,7 @@ class Additional_Artist():
         return html_str
 
     def __str__(self) -> str:
-        if self._prequel is not None:
-            string = '{}{}'.format(self._prequel, self._artist)
-        else:
-            string = '{}'.format(self._artist)
-        if self._sequel is not None:
-            string += self._sequel
+        string = '{}{}{}'.format(self._prequel, self._artist, self._sequel)
         return string
 
 
@@ -486,6 +490,14 @@ class Song():
         self._main_artist = new_artist
 
     @property
+    def exp_main_artist(self) -> bool:
+        return self._exp_main_artist
+
+    @exp_main_artist.setter
+    def exp_main_artist(self, value) -> None:
+        self._exp_main_artist = value
+
+    @property
     def additional_artists(self) -> List[_Artist]:
         return self._additional_artists
 
@@ -494,7 +506,7 @@ class Song():
         for artist in new_artists:
             if type(artist) is not Additional_Artist:
                 raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
-        self._additional_artists = new_artists
+        self._additional_artists = None if new_artists == [] else new_artists
 
     @property
     def album(self) -> str:
@@ -513,7 +525,7 @@ class Song():
         for composer in new_composers:
             if composer is not None and type(composer) is not _Artist:
                 raise ArtistException('{} is not an Artist object'.format(composer))
-        self.classical_composers = new_composers
+        self._classical_composers = None if new_composers == [] else new_composers
 
     @property
     def classical_work(self) -> str:
@@ -581,7 +593,7 @@ class Song():
             :param title:               The title of this song
             :type title:                str
 
-            :param main_artist:         The main artist of this song. If the album is by a single artitst, this
+            :param main_artist:         The main artist of this song. If the album is by a single artist, this
                                         is typically not given unless it is included in the song description
                                         on the album
             :type main_artist:          :class:`_Artist`
@@ -635,9 +647,9 @@ class Song():
         self._title = title
         self._main_artist = main_artist
         self._exp_main_artist = exp_main_artist
-        self._additional_artists = additional_artists
+        self._additional_artists = None if additional_artists == [] else additional_artists
         self._album = album
-        self._classical_composers = classical_composers
+        self._classical_composers = None if classical_composers == [] else classical_composers
         self._classical_work = classical_work
         self._country = country
         if year is not None and not isinstance(year, int):
@@ -742,12 +754,12 @@ class TrackList():
     """ A list of songs (tracklist) on one side of an album"""
 
     @property
-    def side(self) -> Optional[str]:
-        return self._side
+    def name(self) -> Optional[str]:
+        return self._name
 
-    @side.setter
-    def side(self, side_name) -> None:
-        self._side = side_name
+    @name.setter
+    def name(self, side_name) -> None:
+        self._name = side_name
 
     @property
     def side_mixer(self) -> Optional[str]:
@@ -775,7 +787,7 @@ class TrackList():
 
             :raises ArtistException:  If side_mixer is not a :class:`Artist`
         """
-        self._side = side_name
+        self._name = side_name
         if side_mixer_artist is not None and type(side_mixer_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(side_mixer_artist))
         self._side_mixer = side_mixer_artist
@@ -837,22 +849,23 @@ class TrackList():
             :rtype:    str
         """
         html_str = ''
-        if self.side is not None:
+        if self.name is not None:
             html_str += '<a rel="side">\n'
-            html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
+            html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.name, quote=False))
         if self.side_mixer is not None:
             html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
         html_str += '<ol>\n'
-        for song in self.song_list:
-            html_str += song.to_html()
+        if self.song_list is not None:
+            for song in self.song_list:
+             html_str += song.to_html()
         html_str += '</ol>\n'
-        if self.side is not None:
+        if self.name is not None:
             html_str += '</a>\n'
         return html_str
 
     def __str__(self) -> str:
-        if self._side is not None:
-            string = '{}'.format(self._side)
+        if self._name is not None:
+            string = '{}'.format(self._name)
         else:
             string = ''
         if self._side_mixer is not None:
@@ -862,6 +875,24 @@ class TrackList():
             for counter, song in enumerate(self._song_list):
                 string += '{:2d}. {}'.format(counter + 1, song)
         return string
+
+
+def media_to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
+    """ Create a hash for the media object based on title and artist_name.
+
+        :param media_type:   The media type of the album
+        :type media_type:    :class:`MediaType`
+
+        :param title:        The album title
+        :type title:         str
+
+        :param artist_name:  The name of the artist of the album
+        :type artist_name:   str
+
+        :returns:            md5 hash string
+        :rtype:              str
+    """
+    return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
 
 
 class _MEDIA():
@@ -880,6 +911,10 @@ class _MEDIA():
         return self._index
 
     @property
+    def hash(self) -> str:
+        return self._hash
+
+    @property
     def media_type(self) -> MediaType:
         return self._media_type
 
@@ -887,43 +922,59 @@ class _MEDIA():
     def title(self) -> str:
         return self._title
 
+    @title.setter
+    def title(self, value) -> None:
+        self._title = value
+
     @property
     def artists(self) -> List[_Artist]:
         return self._artists
 
     @property
+    def artist_particles(self) -> Optional[List[str]]:
+        return self._artist_particles
+
+    @artist_particles.setter
+    def artist_particles(self, particle_list) -> None:
+        self._artist_particles = particle_list
+
+    @property
+    def artists_text(self) -> str:
+        if self.artist_particles is None:
+            text = str(self.artists[0].name)
+        else:
+            text = str(self.artists[0].name)
+            for i, particle in enumerate(self.artist_particles):
+                text += particle + str(self.artists[i + 1].name)
+        return text
+
+    @property
     def year(self) -> int:
         return self._year
+
+    @year.setter
+    def year(self, value) -> None:
+        self._year = value
 
     @property
     def mixer(self) -> Optional[_Artist]:
         return self._mixer
 
+    @mixer.setter
+    def mixer(self, value) -> None:
+        self._mixer = value
+
     @property
     def classical_composer(self) -> Optional[_Artist]:
         return self._classical_composer
 
+    @classical_composer.setter
+    def classical_composer(self, value) -> None:
+        self._classical_composer = value
+
     @property
     def tracks(self) -> List[TrackList]:
         return self._tracks
-
-    @staticmethod
-    def to_hash(media_type: MediaType, title: str, artist_name: str) -> str:
-        """ Create a hash for the media object based on title and artist_name.
-
-            :param media_type:   The media type of the album
-            :type media_type:    :class:`MediaType`
-
-            :param title:        The album title
-            :type title:         str
-
-            :param artist_name:  The name of the artist of the album
-            :type artist_name:   str
-
-            :returns:            md5 has string
-            :rtype:              str
-        """
-        return md5(bytes(media_type.value + title + artist_name, 'utf-8')).hexdigest()  # nosec
 
     def __init__(self,
                  media_type: MediaType,
@@ -958,7 +1009,7 @@ class _MEDIA():
             raise ArtistException('{} is not an Artist object'.format(classical_composer))
         self._classical_composer = classical_composer
         # Create id hash based on first artist and title
-        self._hash = self.to_hash(media_type, title, artists[0].name)
+        self._hash = media_to_hash(media_type, title, artists[0].name)
         self._index = index
 
         # Tracks must be set at this level or a reference will exist in the
@@ -1418,7 +1469,7 @@ class MEDIA():
 
 
 class LPs():
-    """ A singleton set of all music LPs. """
+    """ A singleton list of all music LPs. """
     _instance = None
     _lps = []
     _max_index = 0
@@ -1436,6 +1487,7 @@ class LPs():
     def _clean_lps(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
         cls._lps = []
+        cls._max_index = 0
 
     @classmethod
     def create_LP(cls,
@@ -1449,7 +1501,7 @@ class LPs():
                   skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
-            By default a new album is added to the set of all albums.
+            By default a new album is added to the list of all albums.
 
             :param media_type:               The media type of the music album
             :type media_type:                :class:`MediaType`
@@ -1472,7 +1524,7 @@ class LPs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_lp_list:  If true, do not add new album to albums set
+            :param skip_addiing_to_lp_list:  If true, do not add new album to albums list
             :type skip_adding_to_lp_list:    bool
 
             :returns:                        The located or newly created album
@@ -1489,7 +1541,7 @@ class LPs():
         results = cls.find_lp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_album_hash = _LP.to_hash(media_type, title, artists[0].name)
+            new_album_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_album_hash:
                     return result
@@ -1506,12 +1558,12 @@ class LPs():
 
     @classmethod
     def add_lp(cls, lp: _LP) -> None:
-        """ Add an album to the set of all albums.
+        """ Add an album to the list of all albums.
 
             :param lp:            The album to add
             :type lp:             :class:`_LP`
 
-            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the set
+            :raises LPException:  If not passed a :class:`_LP` or the lp already exists in the list
         """
         if type(lp) is not _LP:
             raise LPException('{} is not an LP object'.format(lp))
@@ -1521,9 +1573,13 @@ class LPs():
 
     @classmethod
     def delete_lp(cls, lp: _LP) -> None:
-        """ Remove the album from the set of all albums.
+        """ Remove the album from the list of all albums.
 
-            Also remove the album from the set of all albums owned by
+            In actuality we pug the location in the list of
+            all albums with None to preserve the increasing
+            index scheme used in the list.
+
+            Also remove the album from the list of all albums owned by
             the album artist and album mixer (if they exist)
 
             :param lp:  The album to add
@@ -1534,23 +1590,41 @@ class LPs():
                 artist.delete_media(lp)
             if lp.mixer is not None:
                 lp.mixer.delete_media(lp)
-            cls._lps.remove(lp)
+            make_hole_index = lp.index
+            cls._lps[make_hole_index] = None
 
     @classmethod
     def lp_exists(cls, lp: _LP) -> bool:
-        """ Returns true of the album exists in the set of albums.
+        """ Returns true of the album exists in the list of albums.
 
             :param lp:  The album to add
             :type lp:   :class:`_LP`
 
-            :returns:   True if the album exists in the set of all albums
+            :returns:   True if the album exists in the list of all albums
             :rtype:     bool
         """
         return lp in cls._lps
 
     @classmethod
+    def find_by_index(cls, index: int) -> Optional[_LP]:
+        """ Return the album by its index or None if not found.
+
+            :param index:   The index in the list of albums of the album to locate
+            :type index:    int
+
+            :returns:    The album or None
+            :rtype:      class:`_LP` or None
+        """
+        lp = None
+        try:
+            lp = cls._lps[index]
+        except IndexError:
+            pass
+        return lp
+
+    @classmethod
     def find_lp_by_title(cls, title: str) -> List[_LP]:
-        """ Returns the albums in the set of all albums that matches the passed album title. Otherwise, empty list.
+        """ Returns the albums in the list of all albums that matches the passed album title. Otherwise, empty list.
 
             :param title:  The album title to search for
             :type title:   str
@@ -1560,8 +1634,9 @@ class LPs():
          """
         result = []
         for lp in cls._lps:
-            if lp.title == title:
-                result.append(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                if lp.title == title:
+                    result.append(lp)
         return result
 
     @classmethod
@@ -1576,8 +1651,9 @@ class LPs():
         """
         lps_found = []
         for lp in cls._lps:
-            if lp.year == year:
-                lps_found.append(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                if lp.year == year:
+                    lps_found.append(lp)
         if lps_found == []:
             return None
         return lps_found
@@ -1591,18 +1667,20 @@ class LPs():
         """
         html_str = ''
         for lp in cls._lps:
-            html_str += lp.to_html()
+            if lp is not None:  # Skip holes in the list due to deletions
+                html_str += lp.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for lp in self.lps:
-            string += str(lp)
+            if lp is not None:  # Skip holes in the list due to deletions
+                string += str(lp)
         return string
 
 
 class CDs():
-    """ A singleton set of all music CDs. """
+    """ A singleton list of all music CDs. """
     _instance = None
     _cds = []
     _max_index = 0
@@ -1620,6 +1698,7 @@ class CDs():
     def _clean_cds(cls):
         """ Private method to remove all albums from the collection. Useful in testing. """
         cls._cds = []
+        cls._max_index = 0
 
     @classmethod
     def create_CD(cls,
@@ -1633,7 +1712,7 @@ class CDs():
                   skip_adding_to_cd_list: bool = False) -> _CD:
         """ Return the named cd if it exists or create a new cd.
 
-            By default a new cd is added to the set of all cds.
+            By default a new cd is added to the list of all cds.
 
             :param media_type:               The media type of the music cd
             :type media_type:                :class:`MediaType`
@@ -1656,7 +1735,7 @@ class CDs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_cd_list:  If true, do not add new cd to cd sset
+            :param skip_addiing_to_cd_list:  If true, do not add new cd to cd list
             :type skip_adding_to_cd_list:    bool
 
             :returns:                        The located or newly created cd
@@ -1673,7 +1752,7 @@ class CDs():
         results = cls.find_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_cd_hash = _CD.to_hash(media_type, title, artists[0].name)
+            new_cd_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_cd_hash:
                     return result
@@ -1690,12 +1769,12 @@ class CDs():
 
     @classmethod
     def add_cd(cls, cd: _CD) -> None:
-        """ Add a cd to the set of all cds.
+        """ Add a cd to the list of all cds.
 
             :param cd:            The cd to add
             :type cd:             :class:`_CD`
 
-            :raises CDException:  If not passed a :class:`_CD` or the cd already exists in the set
+            :raises CDException:  If not passed a :class:`_CD` or the cd already exists in the list
         """
         if type(cd) is not _CD:
             raise CDException('{} is not a CD object'.format(cd))
@@ -1705,9 +1784,13 @@ class CDs():
 
     @classmethod
     def delete_cd(cls, cd: _LP) -> None:
-        """ Remove the cd from the set of all cd.
+        """ Remove the cd from the list of all cd.
 
-            Also remove the cd from the set of all cds owned by
+            In actuality we pug the location in the list of
+            all CDs with None to preserve the increasing
+            index scheme used in the list.
+
+            Also remove the cd from the list of all cds owned by
             the cd artist and cd mixer (if they exist)
 
             :param cd:  The cd to add
@@ -1718,23 +1801,24 @@ class CDs():
                 artist.delete_media(cd)
             if cd.mixer is not None:
                 cd.mixer.delete_media(cd)
-            cls._cds.remove(cd)
+            make_hole_index = cd.index
+            cls._cds[make_hole_index] = None
 
     @classmethod
     def cd_exists(cls, cd: _CD) -> bool:
-        """ Returns true of the cd exists in the set of cds.
+        """ Returns true of the cd exists in the list of cds.
 
             :param cd:  The cd to add
             :type cd:   :class:`_CD`
 
-            :returns:   True if the cd exists in the set of all cds
+            :returns:   True if the cd exists in the list of all cds
             :rtype:     bool
         """
         return cd in cls._cds
 
     @classmethod
     def find_cd_by_title(cls, title: str) -> List[_CD]:
-        """ Returns the cds in the set of all cds that matches the passed cd title. Otherwise, empty list.
+        """ Returns the cds in the list of all cds that matches the passed cd title. Otherwise, empty list.
 
             :param title:  The cd title to search for
             :type title:   str
@@ -1744,8 +1828,9 @@ class CDs():
          """
         result = []
         for cd in cls._cds:
-            if cd.title == title:
-                result.append(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                if cd.title == title:
+                    result.append(cd)
         return result
 
     @classmethod
@@ -1760,8 +1845,9 @@ class CDs():
         """
         cds_found = []
         for cd in cls._cds:
-            if cd.year == year:
-                cds_found.append(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                if cd.year == year:
+                    cds_found.append(cd)
         if cds_found == []:
             return None
         return cds_found
@@ -1775,18 +1861,20 @@ class CDs():
         """
         html_str = ''
         for cd in cls._cds:
-            html_str += cd.to_html()
+            if cd is not None:  # Skip holes in the list due to deletions
+                html_str += cd.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for cd in self.cds:
-            string += str(cd)
+            if cd is not None:  # Skip holes in the list due to deletions
+                string += str(cd)
         return string
 
 
 class ELPs():
-    """ A singleton set of all music ELPs. """
+    """ A singleton list of all music ELPs. """
     _instance = None
     _elps = []
     _max_index = 0
@@ -1804,6 +1892,7 @@ class ELPs():
     def _clean_elps(cls):
         """ Private method to remove all elps from the collection. Useful in testing. """
         cls._elps = []
+        cls._max_index = 0
 
     @classmethod
     def create_ELP(cls,
@@ -1817,7 +1906,7 @@ class ELPs():
                    skip_adding_to_elp_list: bool = False) -> _ELP:
         """ Return the named elp if it exists or create a new elp.
 
-            By default a new elp is added to the set of all elps.
+            By default a new elp is added to the list of all elps.
 
             :param media_type:               The media type of the music elp
             :type media_type:                :class:`MediaType`
@@ -1840,7 +1929,7 @@ class ELPs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_elp_list:  If true, do not add new elp to elps set
+            :param skip_addiing_to_elp_list:  If true, do not add new elp to elps list
             :type skip_adding_to_elp_list:    bool
 
             :returns:                        The located or newly created elp
@@ -1857,7 +1946,7 @@ class ELPs():
         results = cls.find_elp_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_elp_hash = _ELP.to_hash(media_type, title, artists[0].name)
+            new_elp_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_elp_hash:
                     return result
@@ -1874,12 +1963,12 @@ class ELPs():
 
     @classmethod
     def add_elp(cls, elp: _ELP) -> None:
-        """ Add an elp to the set of all elps.
+        """ Add an elp to the list of all elps.
 
             :param elp:            The elp to add
             :type elp:             :class:`_ELP`
 
-            :raises ELPException:  If not passed a :class:`_ELP` or the elp already exists in the set
+            :raises ELPException:  If not passed a :class:`_ELP` or the elp already exists in the list
         """
         if type(elp) is not _ELP:
             raise ELPException('{} is not an ELP object'.format(elp))
@@ -1889,9 +1978,13 @@ class ELPs():
 
     @classmethod
     def delete_elp(cls, elp: _ELP) -> None:
-        """ Remove the elp from the set of all elps.
+        """ Remove the elp from the list of all elps.
 
-            Also remove the elp from the set of all elps owned by
+            In actuality we pug the location in the list of
+            all ELPs with None to preserve the increasing
+            index scheme used in the list.
+
+            Also remove the elp from the list of all elps owned by
             the elp artist and elp mixer (if they exist)
 
             :param elp:  The elp to add
@@ -1902,23 +1995,24 @@ class ELPs():
                 artist.delete_media(elp)
             if elp.mixer is not None:
                 elp.mixer.delete_media(elp)
-            cls._elps.remove(elp)
+            make_hole_index = elp.index
+            cls.elps[make_hole_index] = None
 
     @classmethod
     def elp_exists(cls, elp: _ELP) -> bool:
-        """ Returns true of the elp exists in the set of elps.
+        """ Returns true of the elp exists in the list of elps.
 
             :param elp:  The elp to add
             :type elp:   :class:`_ELP`
 
-            :returns:   True if the elp exists in the set of all elps
+            :returns:   True if the elp exists in the list of all elps
             :rtype:     bool
         """
         return elp in cls._elps
 
     @classmethod
     def find_elp_by_title(cls, title: str) -> List[_ELP]:
-        """ Returns the elps in the set of all elps that matches the passed elp title. Otherwise, empty list.
+        """ Returns the elps in the list of all elps that matches the passed elp title. Otherwise, empty list.
 
             :param title:  The elp title to search for
             :type title:   str
@@ -1928,8 +2022,9 @@ class ELPs():
          """
         result = []
         for elp in cls._elps:
-            if elp.title == title:
-                result.append(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                if elp.title == title:
+                    result.append(elp)
         return result
 
     @classmethod
@@ -1944,8 +2039,9 @@ class ELPs():
         """
         elps_found = []
         for elp in cls._elps:
-            if elp.year == year:
-                elps_found.append(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                if elp.year == year:
+                    elps_found.append(elp)
         if elps_found == []:
             return None
         return elps_found
@@ -1959,18 +2055,20 @@ class ELPs():
         """
         html_str = ''
         for elp in cls._elps:
-            html_str += elp.to_html()
+            if elp is not None:  # Skip holes in the list due to deletions
+                html_str += elp.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for elp in self.elps:
-            string += str(elp)
+            if elp is not None:  # Skip holes in the list due to deletions
+                string += str(elp)
         return string
 
 
 class MINI_CDs():
-    """ A singleton set of all music mini CDs. """
+    """ A singleton list of all music mini CDs. """
     _instance = None
     _mini_cds = []
     _max_index = 0
@@ -1988,6 +2086,7 @@ class MINI_CDs():
     def _clean_mini_cds(cls):
         """ Private method to remove all mini CDs from the collection. Useful in testing. """
         cls._mini_cds = []
+        cls._max_index = 0
 
     @classmethod
     def create_MINI_CD(cls,
@@ -2001,7 +2100,7 @@ class MINI_CDs():
                        skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
         """ Return the named mini CD if it exists or create a new mini_cd.
 
-            By default a new mini CD is added to the set of all mini CDs.
+            By default a new mini CD is added to the list of all mini CDs.
 
             :param media_type:               The media type of the music mini CD
             :type media_type:                :class:`MediaType`
@@ -2024,7 +2123,7 @@ class MINI_CDs():
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str)
 
-            :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds set
+            :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds list
             :type skip_adding_to_mini_cd_list:    bool
 
             :returns:                        The located or newly created mini CD
@@ -2041,7 +2140,7 @@ class MINI_CDs():
         results = cls.find_mini_cd_by_title(title)
         if len(results) > 0:
             # Need to check hash id
-            new_mini_cd_hash = _MINI_CD.to_hash(media_type, title, artists[0].name)
+            new_mini_cd_hash = media_to_hash(media_type, title, artists[0].name)
             for result in results:
                 if result._hash == new_mini_cd_hash:
                     return result
@@ -2058,12 +2157,12 @@ class MINI_CDs():
 
     @classmethod
     def add_mini_cd(cls, mini_cd: _MINI_CD) -> None:
-        """ Add an mini_cd to the set of all mini CDs.
+        """ Add an mini_cd to the list of all mini CDs.
 
             :param mini_cd:            The mini CD to add
             :type mini_cd:             :class:`_MINI_CD`
 
-            :raises MINI_CDException:  If not passed a :class:`_MINI_CD` or the mini CD already exists in the set
+            :raises MINI_CDException:  If not passed a :class:`_MINI_CD` or the mini CD already exists in the list
         """
         if type(mini_cd) is not _MINI_CD:
             raise MiniCDException('{} is not an mini CD object'.format(mini_cd))
@@ -2073,9 +2172,13 @@ class MINI_CDs():
 
     @classmethod
     def delete_mini_cd(cls, mini_cd: _MINI_CD) -> None:
-        """ Remove the mini CD from the set of all mini CDs.
+        """ Remove the mini CD from the list of all mini CDs.
 
-            Also remove the mini_cd from the set of all mini CDs owned by
+            In actuality we pug the location in the list of
+            all ELPs with None to preserve the increasing
+            index scheme used in the list.
+
+            Also remove the mini_cd from the list of all mini CDs owned by
             the mini CD artist and mini CD mixer (if they exist)
 
             :param mini_cd:  The mini CD to add
@@ -2085,24 +2188,25 @@ class MINI_CDs():
             for artist in mini_cd.artists:
                 artist.delete_media(mini_cd)
             if mini_cd.mixer is not None:
-                mini_cd.mixer.media(mini_cd)
-            cls._mini_cds.remove(mini_cd)
+                mini_cd.mixer.delete_media(mini_cd)
+            make_hole_index = mini_cd.index
+            cls._mini_cds[make_hole_index] = None
 
     @classmethod
     def mini_cd_exists(cls, mini_cd: _MINI_CD) -> bool:
-        """ Returns true of the mini CD exists in the set of mini CDs.
+        """ Returns true of the mini CD exists in the list of mini CDs.
 
             :param mini_cd:  The mini CD to add
             :type mini_cd:   :class:`_MINI_CD`
 
-            :returns:   True if the mini CD exists in the set of all mini CDs
+            :returns:   True if the mini CD exists in the list of all mini CDs
             :rtype:     bool
         """
         return mini_cd in cls._mini_cds
 
     @classmethod
     def find_mini_cd_by_title(cls, title: str) -> List[_MINI_CD]:
-        """ Returns the mini CDs in the set of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
+        """ Returns the mini CDs in the list of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
 
             :param title:  The mini CD title to search for
             :type title:   str
@@ -2112,8 +2216,9 @@ class MINI_CDs():
          """
         result = []
         for mini_cd in cls._mini_cds:
-            if mini_cd.title == title:
-                result.append(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                if mini_cd.title == title:
+                    result.append(mini_cd)
         return result
 
     @classmethod
@@ -2128,8 +2233,9 @@ class MINI_CDs():
         """
         mini_cds_found = []
         for mini_cd in cls._mini_cds:
-            if mini_cd.year == year:
-                mini_cds_found.append(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                if mini_cd.year == year:
+                    mini_cds_found.append(mini_cd)
         if mini_cds_found == []:
             return None
         return mini_cds_found
@@ -2143,11 +2249,13 @@ class MINI_CDs():
         """
         html_str = ''
         for mini_cd in cls._mini_cds:
-            html_str += mini_cd.to_html()
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                html_str += mini_cd.to_html()
         return html_str
 
     def __str__(self) -> str:
         string = ''
         for mini_cd in self.mini_cds:
-            string += str(mini_cd)
+            if mini_cd is not None:  # Skip holes in the list due to deletions
+                string += str(mini_cd)
         return string

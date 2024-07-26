@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-lps = Blueprint('lps', __name__)
+lps = Blueprint('lps', __name__, url_prefix='/lps')
 
 # This must be imported after the Blueprint definition as the
 # definition is imported into the app creation call and then

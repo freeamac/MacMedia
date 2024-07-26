@@ -41,13 +41,15 @@ If you just want a terminal text display of test case coverage, use the same tar
 You can install a local Postgres server and connect to a development MacMedia database on PostgreSQL instance.
 You need to define all of the following environment variables:
 
-| Environment Variable | Purpose |
-|----------------------|---------|
-| DB_USER              | Database user privileged to access the MacMedia database |
-| DB_PASSWORD          | The password of the database user accessing the MacMedia database |
-| DATABASE             | The name of the MacMedia database |
+| Environment Variable | Purpose | Defatult |
+|----------------------|---------|----------|
+| DB_USER              | Database user privileged to access the MacMedia database | None |
+| DB_PASSWORD          | The password of the database user accessing the MacMedia database | None |
+| DB_HOST              | Host address | 127.0.0.1 |
+| DB_PORT              | Port used to connect to the database | 5432 |
+| DATABASE             | The name of the MacMedia database | None |
 
-The host value of the connection string will be "127.0.0.1", the localhost. Then to run:
+The default value of the connection string will be "127.0.0.1:5432", the localhost and default postgres port. Then to run:
 ```
     flask --app app/app.py run --debug
 ```

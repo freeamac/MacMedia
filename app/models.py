@@ -89,11 +89,11 @@ class User(UserMixin, DB.Model):
 def load_initial_users(db):
    user = User()
    user.username = 'Andy'
-   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
+   user.password = 'pbkdf2:sha256:600000$HnyeSdOCt2RuMZrR$7ace957bbb8626e5ef8e4a17155be146fb723bd16cf248877dfdd4591a245aa3'  # nosec
    db.session.add(user)
    db.session.commit()
    user = User()
    user.username = 'Tomomi'
-   user.password = 'pbkdf2:sha256:260000$s4wuv5pHJy7TwTYL$e52ee054fc1364bd00a069b2d9301ac70813f174cca00bc95a3c0e233782935e'  # nosec
+   user.password = 'pbkdf2:sha256:600000$HnyeSdOCt2RuMZrR$7ace957bbb8626e5ef8e4a17155be146fb723bd16cf248877dfdd4591a245aa3'  # nosec
    db.session.add(user)
    db.session.commit()
