@@ -16,6 +16,7 @@ from .forms import (
     DeleteLPForm,
     ModifyLPMetaForm,
     ModifyLPTrackForm,
+    ModifySongForm,
     NewLPMetaForm,
     NewLPTrackForm
 )
@@ -119,8 +120,6 @@ def add_lp():
                                 particle = artist_info['additional_artist_particle'].data.strip()
                                 particle = massage_particle(particle)
                                 additional_artist_str = artist_info['additional_artist'].data.strip()
-                                app.app.logger.info('Add artist is "{}"'.format(additional_artist_str))
-                                app.app.logger.info('Add artist particle is "{}"'.format(particle))
                                 if additional_artist_str is None or additional_artist_str == '':
                                     continue
                                 lp_artist_particles.append(particle)
@@ -165,6 +164,7 @@ def add_lp_track(album_id, track_id):
     form = NewLPTrackForm()
 
     if request.method == "GET":
+        form.track_num = track_id
         form.track_name.data = ''
         form.track_mixer.data = ''
 
@@ -279,7 +279,7 @@ def add_lp_track(album_id, track_id):
                     try:
                         artist.add_media(lp)
                     except LPException as e:
-                        app.app.logger.info('LP Exception {} ignored. Assumed to be associated with multiple songs'.format(e))
+                        app.app.logger.warning('LP Exception {} ignored. Assumed to be associated with multiple songs'.format(e))
 
             if form.add_track.data:
                 track_id += 1
@@ -358,12 +358,10 @@ def modify_lp(id):
     if request.method == 'GET':
 
         if len(lp_data.artists) > 1:
-            app.app.logger.info('particles: {}'.format(lp_data.artist_particles))
             for x in range(len(additional_artists_name_tuple)):
                 additional_artist = {'additional_artist_particle': artist_particles_tuple[x],
                                      'additional_artist': additional_artists_name_tuple[x]}
                 additional_artists.append(additional_artist)
-        app.app.logger.info('Additional artits: {}'.format(additional_artists))
         form.process(lp_additional_artists=additional_artists)
         form.lp_title.data = lp_data.title
         form.lp_main_artist.data = lp_data.artists[0].name
@@ -412,7 +410,6 @@ def modify_lp(id):
                                     raise FormValidateException
                         changes = True
                         lp_data.title = lp_title
-                        app.app.logger.info("title chaned")
 
                     # Check main artist change
                     if lp_artist_str != lp_data.artists[0].name:
@@ -426,11 +423,11 @@ def modify_lp(id):
                             lp_data.artists[0] = new_main_artist
                             try:
                                 new_main_artist.add_media(lp_data)
-                            except LPException:
-                                pass  # Could be an artist on a song of the album
+                            except LPException as e:
+                                # Could be an artist on a song of the album
+                                app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs on the LP'.format(e))
                             except Exception as e:
                                 raise e
-                        app.app.logger.info("artist chaned")
 
                     # Check mixer change
                     if (lp_data.mixer is not None and lp_mixer_str != lp_data.mixer.name) or (lp_data.mixer is None and lp_mixer_str != ''):
@@ -444,11 +441,11 @@ def modify_lp(id):
                             lp_data.mixer = new_mixer
                             try:
                                 new_mixer.add_media(lp_data)
-                            except LPException:
-                                pass   # Could be a mixer/artist of a song on the album
+                            except LPException as e:
+                                # Could be a mixer/artist of a song on the album
+                                app.app.logger.warning('LP Exception {} ignored. Assumed to be LP Mixer associated with multiple songs'.format(e))
                             except Exception as e:
                                 raise e
-                        app.app.logger.info("mixer chaned")
 
                     # Check if classical composer change
                     if (lp_data.classical_composer is not None and lp_classical_composer_str != lp_data.classical_composer.name) or\
@@ -463,17 +460,16 @@ def modify_lp(id):
                             lp_data.classical_composer = new_classical_composer
                             try:
                                 new_classical_composer.add_media(lp_data)
-                            except LPException:
-                                pass   # Could be a classical composer of a song on the album
+                            except LPException as e:
+                                # Could be a classical composer of a song on the album
+                                app.app.logger.warning('LP Exception {} ignored. Assuming classical composer to be associated with multiple songs or the LP'.format(e))
                             except Exception as e:
                                 raise e
-                        app.app.logger.info("classical composer chaned")
 
                     # Check if year change
                     if lp_year != lp_data.year:
                         changes = True
                         lp_data.year = lp_year
-                        app.app.logger.info("year chaned")
 
                     # Check for changes in the additional artists fields. First get
                     # all the form data
@@ -510,8 +506,9 @@ def modify_lp(id):
                             lp_data.artists.append(new_additional_artist)
                             try:
                                 new_additional_artist.add_media(lp_data)
-                            except LPException:
-                                pass   # Could be an artist of a song on the album
+                            except LPException as e:
+                                # Could be an artist of a song on the album
+                                app.app.logger.warning('LP Exception {} ignored. Assuming additional artist to be associated with other songs on LP'.format(e))
                             except Exception as e:
                                 raise e
 
@@ -537,16 +534,19 @@ def modify_lp_track(lp_id, track_id):
 
     form = ModifyLPTrackForm()
     lp_data = LPs.find_by_index(lp_id)
+    form.lp_title = lp_data.title
 
     if request.method == 'GET':
         if len(lp_data.tracks) < track_id + 1:
             # Adding a new track
             form.track_name.data = ''
             form.track_mixer.data = ''
+            form.track_num = 0
             form.new_track = True
         else:
-            form.track_name.data = lp_data.tracks[track_id].side
+            form.track_name.data = lp_data.tracks[track_id].name
             form.track_mixer.data = lp_data.tracks[track_id].side_mixer
+            form.track_num = track_id
             form.new_track = False
 
     if request.method == 'POST':
@@ -564,8 +564,8 @@ def modify_lp_track(lp_id, track_id):
                 new_tracklist = TrackList(track_name, track_mixer)
                 lp_data.tracks.append(new_tracklist)
             else:
-                if track_name != lp_data.tracks[track_id].side:
-                    lp_data.tracks[track_id].side = track_name
+                if track_name != lp_data.tracks[track_id].name:
+                    lp_data.tracks[track_id].name = track_name
                 if track_mixer != lp_data.tracks[track_id].side_mixer:
                     lp_data.tracks[track_id].side_mixer = track_mixer
 
@@ -579,6 +579,330 @@ def modify_lp_track(lp_id, track_id):
                 return redirect(url_for('.index'))
 
     return render_template('modify_lp_track.html', form=form)
+
+
+@lps.route('/modify_track_song/<int:lp_id>/<int:track_id>/<int(signed=True):song_id>', methods=['GET', 'POST'])
+@login_required
+def modify_lp_track_song(lp_id, track_id, song_id):
+    """ Modify the data of a LP track """
+
+    # NEed a way to determine when we are inserting a new song at the beginning
+    # of the track as -0 == 0. We use a sentinel value with the assumption we will
+    # never have 1001 song entries on a tracklist.
+    NEW_FIRST_SONG_SENTINEL = -1000
+
+    form = ModifySongForm()
+    lp_data = LPs.find_by_index(lp_id)
+    lp_title = lp_data.title
+    tracklist = lp_data.tracks[track_id]
+    track_name = tracklist.name
+
+    song_additional_artists = []
+    if song_id < 0:
+        # Adding a new song.
+        template_new_song = True
+        template_last_song = True if len(tracklist.song_list) == -1 * song_id else False   # TODO Fix
+
+    else:
+        # Existing song
+        template_new_song = False
+        template_last_song = True if len(tracklist.song_list) == song_id + 1 else False
+        song_data = tracklist.song_list[song_id]
+
+        # Build data used in both GET and POST requests
+        additional_artists_prequels = []
+        additional_artists_names = []
+        additional_artists_sequels = []
+        additional_artists = song_data.additional_artists
+        if additional_artists is not None:
+
+            for additional_artist in additional_artists:
+                song_additional_artists.append({'additional_artist_prequel': additional_artist.prequel,
+                                                'additional_artist': additional_artist.artist.name,
+                                                'additional_artist_sequel': additional_artist.sequel})
+                additional_artists_prequels.append(additional_artist.prequel)
+                additional_artists_names.append(additional_artist.artist.name)
+                additional_artists_sequels.append(additional_artist.seequel)
+        additional_artists_prequel_tuple = tuple(additional_artists_prequels)
+        additional_artists_name_tuple = tuple(additional_artists_names)
+        additional_artists_sequel_tuple = tuple(additional_artists_sequels)
+        classical_composer_names = []
+        if song_data.classical_composers is not None:
+            for composer in song_data.classical_composers:
+                classical_composer_names.append(composer.name)
+        classical_composers_name_tuple = tuple(classical_composer_names)
+
+    if request.method == 'GET':
+        template_song_id = song_id + 1
+
+        # Needs to be done first to "process" and avoid blanking out the info later
+        form.process(song_additional_artists=song_additional_artists)
+
+        if song_id < 0:
+            # Handle new song addition
+            form.song_title.data = ''
+            form.song_mix.data = ''
+            form.song_featured_in.data = ''
+            form.song_list_main_artist.data = False
+            form.song_country.data = ''
+            form.song_year.data = ''
+            form.song_mix.data = ''
+            form.song_parts.data = ''
+            form.song_classical_work.data = ''
+            form.process(song_additional_artists=song_additional_artists)
+        else:
+            # Pre-populate with existing song information
+            form.song_title.data = song_data.title
+            form.song_featured_in.data = song_data.featured_in
+            form.song_list_main_artist.data = song_data.exp_main_artist
+            form.song_country.data = song_data.country
+            form.song_year.data = song_data.year
+            form.song_mix.data = song_data.mix
+            form.song_parts.data = '\n'.join(song_data.parts)
+            if song_data.classical_composers is not None:
+                if len(song_data.classical_composers) == 2:
+                    form.song_classical_composer_1.data = classical_composer_names[0]
+                    form.song_classical_composer_2.data = classical_composer_names[1]
+                elif len(song_data.classical_composers) == 1:
+                    form.song_classical_composer_1.data = classical_composer_names[0]
+            form.song_classical_work.data = song_data.classical_work
+
+    if request.method == 'POST':
+        if form.cancel.data:
+            return redirect(url_for('.index'))
+
+        if form.previous_song.data:
+            if song_id < 0:
+                new_display_song_id = -1 * song_id - 1
+            else:
+                new_display_song_id = song_id - 1
+            return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=new_display_song_id))
+
+        if form.insert_song.data:
+            if song_id == 0:
+                new_song_insertion_id = NEW_FIRST_SONG_SENTINEL
+            else:
+                new_song_insertion_id = -1 * song_id
+            return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=new_song_insertion_id))
+
+        if form.append_new_song.data:
+            new_song_insertion_id = -1 * (song_id + 1)
+            return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=new_song_insertion_id))
+
+        if form.delete_song.data:
+            # Delete the current song
+            if song_id + 1 == len(tracklist.song_list):
+                # Move back a song to display
+                new_display_song_id = song_id - 1
+            else:
+                new_display_song_id = song_id
+            del tracklist.song_list[song_id]  # TODP: Handle removal of LP from song artists
+            return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=new_display_song_id))
+
+        if form.next_song.data:
+            if song_id == NEW_FIRST_SONG_SENTINEL:
+                new_display_song_id = 0
+            elif song_id < 0:
+                new_display_song_id = -1 * song_id
+            else:
+                new_display_song_id = song_id + 1
+            return redirect(url_for('.modify_lp_track_song', lp_id=lp_id, track_id=track_id, song_id=new_display_song_id))
+
+        if form.validate:
+            try:
+                # Process song data
+                if form['song_title'].data is None or form['song_title'] == '':
+                    flash('Error: A title is required for a song.')
+                    raise FormValidateException()
+                song_title_str = form['song_title'].data.strip()
+
+                # Handle simple song fields
+                song_mix = field_value_or_none(form, 'song_mix')
+                song_featured_in = field_value_or_none(form, 'song_featured_in')
+                list_main_artist = form['song_list_main_artist'].data
+                song_country = field_value_or_none(form, 'song_country')
+
+                # Cleanly handle year of song which could be invalid
+                song_year = field_value_or_none(form, 'song_year')
+                if song_year is not None:
+                    try:
+                        song_year = int(song_year)
+                    except ValueError:
+                        flash('Error: Year in Song #{} is not an integer.'.format(song_id + 1))
+                        raise FormValidateException()
+
+                # Handle additional song artists
+                additional_artists_prequel_list = []
+                additional_artists_name_list = []
+                additional_artists_sequel_list = []
+                additional_artists = form['song_additional_artists']
+                for additional_artist in additional_artists:
+                    additional_artist_str = field_value_or_none(additional_artist, 'additional_artist')
+                    if additional_artist_str is None:
+                        continue
+                    additional_artist_prequel = field_value_or_none(additional_artist, 'additional_artist_prequel')
+                    additional_artist_sequel = field_value_or_none(additional_artist, 'additional_artist_sequel')
+                    additional_artists_prequel_list.append(additional_artist_prequel)
+                    additional_artists_name_list.append(additional_artist_str)
+                    additional_artists_sequel_list.append(additional_artist_sequel)
+
+                # Handle classical musical aspects of a song
+                classical_composer_1_str = field_value_or_none(form, 'song_classical_composer_1')
+                classical_composer_2_str = field_value_or_none(form, 'song_classical_composer_2')
+                classical_composers_name_list = []
+                if classical_composer_1_str is not None:
+                    classical_composers_name_list.append(classical_composer_1_str)
+                if classical_composer_2_str is not None:
+                    classical_composers_name_list.append(classical_composer_2_str)
+                song_classical_work = field_value_or_none(form, 'song_classical_work')
+
+                # Handle song parts
+                song_parts = []
+                song_parts_text = form['song_parts'].data
+                if song_parts_text is not None and song_parts_text != '':
+                    song_parts_lines = song_parts_text.split('\n')
+                    for line in song_parts_lines:
+                        if line.strip() != '':
+                            song_parts.append(line.strip())
+
+                # Now make changes where the data differs
+                if template_new_song:
+                    # Create and add a new song to the track list
+                    classical_composers = []
+                    for classical_composer in classical_composers_name_list:
+                        new_classical_composer = Artists.create_Artist(classical_composer)
+                        classical_composers.append(new_classical_composer)
+                        try:
+                            new_classical_composer.add_media(lp_data)
+                        except LPException as e:
+                            # Could be an artist of a song on the album
+                            app.app.logger.warning('LP Exception {} ignored. Assuming classical composer associated with other songs or the LP'.format(e))
+                        except Exception as e:
+                            raise e
+                    additional_artists = []
+                    for index, artist_name in enumerate(additional_artists_name_list):
+                        new_additional_artist = Artists.create_Artist(artist_name)
+                        new_additional_artist = Additional_Artist(artist=new_additional_artist,
+                                                                  prequel=additional_artists_prequel_list[index],
+                                                                  sequel=additional_artists_sequel_list[index])
+                        additional_artists.append(new_additional_artist)
+                        try:
+                            new_additional_artist.add_media(lp_data)
+                        except LPException as e:
+                            # Could be an artist of a song on the album
+                            app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
+                        except Exception as e:
+                            raise e
+
+                    new_song = Song(title=song_title_str,
+                                    main_artist=lp_data.artists[0],
+                                    exp_main_artist=list_main_artist,
+                                    album=lp_data.title,
+                                    additional_artists=additional_artists,
+                                    classical_composers=classical_composers,
+                                    classical_work=song_classical_work,
+                                    country=song_country,
+                                    year=song_year,
+                                    mix=song_mix,
+                                    featured_in=song_featured_in,
+                                    parts=song_parts)
+                    if song_id == NEW_FIRST_SONG_SENTINEL:
+                        tracklist.song_list.insert(0, new_song)
+                    elif template_last_song:
+                        tracklist.song_list.append(new_song)
+                    else:
+                        tracklist.song_list.insert(-1 * song_id, new_song)
+
+                # Update existing song
+                else:
+                    # Handle simple fields first
+                    if song_data.title != song_title_str:
+                        song_data.title = song_title_str
+                    if song_data.mix != song_mix:
+                        song_data.mix = song_mix
+                    if song_data.featured_in != song_featured_in:
+                        song_data.featured_in = song_featured_in
+                    if song_data.year != song_year:
+                        song_data.year = song_year
+                    if song_data.country != song_country:
+                        song_data.country = song_country
+                    if song_data.classical_work != song_classical_work:
+                        song_data.classical_work = song_classical_work
+                    if song_data.exp_main_artist != list_main_artist:
+                        song_data.exp_main_artist = list_main_artist
+                        if list_main_artist:
+                            # Add in main LP artist
+                            song_data.main_artist = lp_data.artists[0]
+
+                    # Blindly update parts if it has data
+                    if song_parts is not None and song_parts != []:
+                        song_data.parts = song_parts
+                    else:
+                        song_data.parts = None
+
+                    # Handle classical composer changes
+                    # First, compare form data versus existing data for any changes
+                    if not ((set(classical_composers_name_list) == set(classical_composers_name_tuple)) and
+                            (len(classical_composers_name_list) == len(classical_composers_name_tuple))):
+                        # With changes, completely rebuild the song's classical composers list
+                        for index, composer_name in enumerate(classical_composers_name_tuple):
+                            if composer_name not in classical_composers_name_list:
+                                song_data.classical_composers[index].delete_media(lp_data)
+                        new_composers = []
+                        for classical_composer in classical_composers_name_list:
+                            new_classical_composer = Artists.create_Artist(classical_composer)
+                            new_composers.append(new_classical_composer)
+                            try:
+                                new_classical_composer.add_media(lp_data)
+                            except LPException as e:
+                                # Could be an artist of a song on the album
+                                app.app.logger.warning('LP Exception {} ignored. Assuming classical composer associated with other songs or the LP'.format(e))
+
+                            except Exception as e:
+                                raise e
+                        song_data.classical_composers = new_composers
+
+                    # Handle additional artist changes
+                    # First, compare form data versus existing data for any changes
+                    if not ((set(additional_artists_prequel_list) == set(additional_artists_prequel_tuple)) and
+                            (set(additional_artists_name_list) == set(additional_artists_name_tuple)) and
+                            (set(additional_artists_sequel_list) == set(additional_artists_sequel_tuple)) and
+                            (len(additional_artists_name_list) == len(additional_artists_name_tuple))):
+
+                        # With changes, we completely rebuild the song's additional artists and particles list
+                        for index, artist_name in enumerate(additional_artists_name_tuple):
+                            if artist_name not in additional_artists_name_list:
+                                song_data.additional_artists[index].artist.delete_media(lp_data)
+
+                        song_data.additional_artists = []
+                        for index, artist_name in enumerate(additional_artists_name_list):
+                            new_additional_artist = Artists.create_Artist(artist_name)
+                            new_additional_artist = Additional_Artist(artist=new_additional_artist,
+                                                                      prequel=additional_artists_prequel_list[index],
+                                                                      sequel=additional_artists_sequel_list[index])
+                            song_data.additional_artists.append(new_additional_artist)
+                            try:
+                                new_additional_artist.add_media(lp_data)
+                            except LPException as e:
+                                # Could be an artist of a song on the album
+                                app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
+                            except Exception as e:
+                                raise e
+                return redirect(url_for('.index'))
+
+            except FormValidateException:
+               pass
+            except Exception as e:
+                raise e
+
+    return render_template('modify_lp_track_song.html',
+                           form=form,
+                           song_additional_artists=song_additional_artists,
+                           lp_title=lp_title,
+                           song_id=template_song_id,
+                           template_new_song=template_new_song,
+                           template_last_song=template_last_song,
+                           track_name=track_name)
 
 
 @lps.route('/search/')

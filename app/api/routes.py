@@ -1,7 +1,7 @@
 from flask import url_for
 
 from . import api
-from app import app, db
+from app import db
 from app.musicmedia_objects import LPs
 from app.queries import get_all_dvds
 

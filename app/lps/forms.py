@@ -22,7 +22,7 @@ class AdditionalArtistForm(Form):
 
 class LPMetaForm(FlaskForm):
     """ Form to defining a LP """
-    lp_title = StringField('LP Title', validators=[Length(0, 120)])
+    lp_title = StringField('LP Title', validators=[Length(1, 120)])
     lp_main_artist = StringField('Main Artist', validators=[Length(0, 40)])
     lp_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=5)
     lp_mixer = StringField('Mixer', validators=[Length(0, 40)])
@@ -46,16 +46,28 @@ class ModifyLPMetaForm(LPMetaForm):
 
 class SongForm(FlaskForm):
     """ Form for a song entry on a track """
-    song_title = StringField('Song Title', validators=[Length(0, 60)])
-    song_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=4, max_entries=4)
+    song_title = StringField('Song Title', validators=[Length(1, 60)])
+    song_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=4)
     song_featured_in = StringField('Feat. In', validators=[Length(0, 40)])
     song_list_main_artist = BooleanField('List Main Artist?')
-    song_classical_composers = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=2, max_entries=2)
+    song_classical_composer_1 = StringField('Classical Comp. 1', validators=[Length(0, 40)])
+    song_classical_composer_2 = StringField('Classical Comp. 2', validators=[Length(0, 40)])
     song_classical_work = StringField('Classical Work', validators=[Length(0, 40)])
     song_country = StringField('Country', validators=[Length(0, 20)])
     song_year = StringField('Release Year', validators=[Length(0, 4)])
     song_mix = StringField('Mix', validators=[Length(0, 40)])
     song_parts = TextAreaField('Song Parts')
+
+
+class ModifySongForm(SongForm):
+    """ Modify a song entry on a track """
+    previous_song = SubmitField('Go To Previous Song')
+    insert_song = SubmitField('Insert New Song')
+    append_new_song = SubmitField('Append New Song')
+    delete_song = SubmitField('Delete Song')
+    next_song = SubmitField('Go To Next Song')
+    save = SubmitField('Save And Finish')
+    cancel = SubmitField('Cancel')
 
 
 class LPTrackForm(FlaskForm):

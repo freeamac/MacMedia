@@ -417,6 +417,14 @@ class Additional_Artist():
     def artist(self):
         return self._artist
 
+    @property
+    def prequel(self):
+        return self._prequel
+
+    @property
+    def sequel(self):
+        return self._sequel
+
     def __init__(self, artist: _Artist, prequel: Optional[str] = None, sequel: Optional[str] = None) -> None:
         """ Create formatting structure for an addition artist.
 
@@ -482,6 +490,14 @@ class Song():
         self._main_artist = new_artist
 
     @property
+    def exp_main_artist(self) -> bool:
+        return self._exp_main_artist
+
+    @exp_main_artist.setter
+    def exp_main_artist(self, value) -> None:
+        self._exp_main_artist = value
+
+    @property
     def additional_artists(self) -> List[_Artist]:
         return self._additional_artists
 
@@ -490,7 +506,7 @@ class Song():
         for artist in new_artists:
             if type(artist) is not Additional_Artist:
                 raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
-        self._additional_artists = new_artists
+        self._additional_artists = None if new_artists == [] else new_artists
 
     @property
     def album(self) -> str:
@@ -509,7 +525,7 @@ class Song():
         for composer in new_composers:
             if composer is not None and type(composer) is not _Artist:
                 raise ArtistException('{} is not an Artist object'.format(composer))
-        self.classical_composers = new_composers
+        self._classical_composers = None if new_composers == [] else new_composers
 
     @property
     def classical_work(self) -> str:
@@ -631,9 +647,9 @@ class Song():
         self._title = title
         self._main_artist = main_artist
         self._exp_main_artist = exp_main_artist
-        self._additional_artists = additional_artists
+        self._additional_artists = None if additional_artists == [] else additional_artists
         self._album = album
-        self._classical_composers = classical_composers
+        self._classical_composers = None if classical_composers == [] else classical_composers
         self._classical_work = classical_work
         self._country = country
         if year is not None and not isinstance(year, int):
@@ -738,12 +754,12 @@ class TrackList():
     """ A list of songs (tracklist) on one side of an album"""
 
     @property
-    def side(self) -> Optional[str]:
-        return self._side
+    def name(self) -> Optional[str]:
+        return self._name
 
-    @side.setter
-    def side(self, side_name) -> None:
-        self._side = side_name
+    @name.setter
+    def name(self, side_name) -> None:
+        self._name = side_name
 
     @property
     def side_mixer(self) -> Optional[str]:
@@ -771,7 +787,7 @@ class TrackList():
 
             :raises ArtistException:  If side_mixer is not a :class:`Artist`
         """
-        self._side = side_name
+        self._name = side_name
         if side_mixer_artist is not None and type(side_mixer_artist) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(side_mixer_artist))
         self._side_mixer = side_mixer_artist
@@ -833,9 +849,9 @@ class TrackList():
             :rtype:    str
         """
         html_str = ''
-        if self.side is not None:
+        if self.name is not None:
             html_str += '<a rel="side">\n'
-            html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.side, quote=False))
+            html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.name, quote=False))
         if self.side_mixer is not None:
             html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
         html_str += '<ol>\n'
@@ -843,13 +859,13 @@ class TrackList():
             for song in self.song_list:
              html_str += song.to_html()
         html_str += '</ol>\n'
-        if self.side is not None:
+        if self.name is not None:
             html_str += '</a>\n'
         return html_str
 
     def __str__(self) -> str:
-        if self._side is not None:
-            string = '{}'.format(self._side)
+        if self._name is not None:
+            string = '{}'.format(self._name)
         else:
             string = ''
         if self._side_mixer is not None:
