@@ -128,7 +128,7 @@ def build_classical_composer_names_tuple(classical_composers):
     return classical_composers_name_tuple
 
 
-def replace_artist(artist_element, new_artist_name, lp_info):
+def replace_artist(artist_element, new_artist_name, lp_data):
     """ Replace the Artist in the passed element (eg. Song, LP, etc) with a newly constructed Artist.
 
         The replacement also requires an update to associated LP information. This means remove the LP
@@ -141,20 +141,20 @@ def replace_artist(artist_element, new_artist_name, lp_info):
         :param new_artist_name:  The name of the new Artist to create
         :type new_artist_name:   str
 
-        :param lp_info:          The LP to remove from the old Artist and add to the new Artist
-        :type lp_info:           :class:`_LP`
+        :param lp_data:          The LP to remove from the old Artist and add to the new Artist
+        :type lp_data:           :class:`_LP`
 
         :raises Exception:       Only class:`LPException` is caught when adding the LP to the new Artist
                                  under the assumption the Artist may have already be associated on another
                                  song or the LP
     """
     if artist_element is not None:
-        artist_element.delete_media(lp_info)  # TO DO: perhaps they artist is still associated with a sone on the LP
+        artist_element.delete_media(lp_data)  # TO DO: perhaps they artist is still associated with a sone on the LP
 
     new_artist = Artists.create_Artist(new_artist_name)
     artist_element = new_artist
     try:
-        new_artist.add_media(lp_info)
+        new_artist.add_media(lp_data)
     except LPException as e:
         # Could be an artist on a song of the album
         app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs on the LP'.format(e))
@@ -162,7 +162,7 @@ def replace_artist(artist_element, new_artist_name, lp_info):
         raise e
 
 
-def append_new_artists(artists_list, new_artist_names, lp_info):
+def append_new_artists(artists_list, new_artist_names, lp_data):
     """ Create a new Artist and append them to the passed list of artists.
 
         Each new Artist will also be associated with the passed LP
@@ -173,8 +173,8 @@ def append_new_artists(artists_list, new_artist_names, lp_info):
         :param new_artist_names:   The names of the new Artists to create
         :type new_artist_names:    list(str)
 
-        :param lp_info:            The LP to associate with the new Artist
-        :type lp_info:             :class:`_LP`
+        :param lp_data:            The LP to associate with the new Artist
+        :type lp_data:             :class:`_LP`
 
         :raises Exception:         Only class:`LPException` is caught when adding the LP to the new Artist
                                    under the assumption the Artist may have already be associated on another
@@ -184,7 +184,7 @@ def append_new_artists(artists_list, new_artist_names, lp_info):
         new_additional_artist = Artists.create_Artist(artist_name)
         artists_list.append(new_additional_artist)
         try:
-            new_additional_artist.add_media(lp_info)
+            new_additional_artist.add_media(lp_data)
         except LPException as e:
             # Could be an artist of a song on the album
             app.app.logger.warning('LP Exception {} ignored. Assuming additional artist to be associated with other songs on LP'.format(e))
@@ -196,7 +196,7 @@ def append_new_additional_artists(additional_artists_list,
                                   new_additional_artist_names,
                                   new_additional_artist_prequels,
                                   new_additional_artist_sequels,
-                                  lp_info):
+                                  lp_data):
     """ Create a new Additional Artist and append them to the passed list of additional artists.
 
         Each new Additional Artist will also be associated with the passed LP
@@ -213,8 +213,8 @@ def append_new_additional_artists(additional_artists_list,
         :param new_additional_artist_sequels:   The sequels for the new Additional Artists
         :type new_additional_artist_sequels:    list(str)
 
-        :param lp_info:                         The LP to associate with the new Artist
-        :type lp_info:                          :class:`_LP`
+        :param lp_data:                         The LP to associate with the new Artist
+        :type lp_data:                          :class:`_LP`
 
         :raises Exception:                      Only class:`LPException` is caught when adding the LP to
                                                 the new Artist under the assumption the Artist may have
@@ -227,7 +227,7 @@ def append_new_additional_artists(additional_artists_list,
                                                   sequel=new_additional_artist_sequels[index])
         additional_artists_list.append(new_additional_artist)
         try:
-            new_additional_artist.add_media(lp_info)
+            new_additional_artist.add_media(lp_data)
         except LPException as e:
             # Could be an artist of a song on the album
             app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
