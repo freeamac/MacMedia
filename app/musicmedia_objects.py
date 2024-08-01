@@ -690,8 +690,12 @@ class Song():
             html_str = '  <li>'
         else:
             html_str = '  <li><a rel="song">{title}</a>'.format(title=escape(self.title, quote=False))
-        if self.additional_artists is not None:
+        if self.exp_main_artist:
             html_str += '<br>'
+            html_str += '\n' + spaceit('{artist}'.format(artist=self.main_artist.to_html(song_artist=True)), 6)
+        if self.additional_artists is not None:
+            if not self.exp_main_artist:
+                html_str += '<br>'
             for additional_artist in self.additional_artists:
                 # html_str += '\n      {}'.format(additional_artist.to_html())
                 html_str += '\n' + spaceit('{artist}'.format(artist=additional_artist.to_html()), 6)
@@ -1083,7 +1087,7 @@ class _MEDIA():
         if self.classical_composers is not None:
             html_str += '<h3><a rel="classical-composer">{composer}</a>'.format(composer=escape(self.classical_composers[0].name, quote=False))
             if len(self.classical_composers) == 2:
-                html_str += ', <a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composers[1].name, quote=False))
+                html_str += ' and <a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composers[1].name, quote=False))
             else:
                 html_str += '</h3>\n'
         if self.mixer is not None:
@@ -1235,6 +1239,7 @@ class MEDIA():
             """
             main_artist = media_artist
             other_artists = []
+            exp_main_artist = False
             first_prequel = ''
             song_metadata_block = song_block.find('br')
             if song_metadata_block is not None:
@@ -1247,19 +1252,26 @@ class MEDIA():
                         # but the consecutivity of the artists allows the following to work
                         artist_name_block = artist_block.find('a', rel="song-artist")
                         if artist_name_block is not None:
+                            first_block = False
                             prequel = sequel = ''
                             artist_name = artist_name_block.text.strip()
                             song_artist = Artists.create_Artist(artist_name)
                             if artist_block == all_artist_blocks[0]:
-                                prequel = first_prequel
                                 # Special handling of first block for the prequel and main artist
+                                first_block = True
+                                prequel = first_prequel
                                 if media_artist.name.upper() == Artists.VARIOUS_ARTISTS:
                                     main_artist = song_artist
+                                elif song_artist.name.upper() == media_artist.name.upper():
+                                    exp_main_artist = True
 
                             if isinstance(artist_block.next_sibling, NavigableString):
                                 sequel = artist_block.next_sibling.text.split('\n')[0]
 
-                            other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
+                            # Do not add to the additional artists list if dealing with an exported
+                            # album main artist
+                            if (first_block and not exp_main_artist) or not first_block:
+                                other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
 
             return main_artist, other_artists, exp_main_artist
 
