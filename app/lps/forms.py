@@ -26,7 +26,8 @@ class LPMetaForm(FlaskForm):
     lp_main_artist = StringField('Main Artist', validators=[Length(0, 40)])
     lp_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=5)
     lp_mixer = StringField('Mixer', validators=[Length(0, 40)])
-    lp_classical_composer = StringField('Classical Composer', validators=[Length(0, 40)])
+    lp_classical_composer_1 = StringField('Classical Composer 1', validators=[Length(0, 40)])
+    lp_classical_composer_2 = StringField('Classical Composer 2', validators=[Length(0, 40)])
     lp_year = IntegerField('Year Of Release', validators=[DataRequiredNoFlags()], default=date.today().year)
 
 
@@ -97,7 +98,8 @@ class DeleteLPForm(FlaskForm):
     """ Form for deleting a LP"""
     lp_title = StringField('LP Title', render_kw={'readonly': True})
     lp_artists = StringField('Artist(s)', render_kw={'readonly': True})
-    lp_composer = StringField('Classical Composer', render_kw={'readonly': True})
+    lp_classical_composer_1 = StringField('Classical Composer 1', render_kw={'readonly': True})
+    lp_classical_composer_2 = StringField('Classical Composer 2', render_kw={'readonly': True})
     lp_mixer = StringField('Mixer', render_kw={'readonly': True})
     lp_year = StringField('Year Of Release', render_kw={'readonly': True})
 

@@ -27,12 +27,16 @@ def lps_data():
             lp_artists = str(lp.artists[0].name)
             for i, particle in enumerate(lp.artist_particles):
                 lp_artists += particle + str(lp.artists[i + 1].name)
-        classical_composer = '' if lp.classical_composer is None else str(lp.classical_composer.name)
+
+        if lp.classical_composers is None:
+            classical_composers = ''
+        else:
+            classical_composers = ', '.join([classical_composer.name for classical_composer in lp.classical_composers])
         mixer = '' if lp.mixer is None else str(lp.mixer.name)
         lp_data = {'id': lp.index,
                    'title': lp.title,
                    'artists': lp_artists,
-                   'classical_composer': classical_composer,
+                   'classical_composers': classical_composers,
                    'mixer': mixer,
                    'year': lp.year,
                    'expand_url_title': '<a href="{}">{}</a>'.format(url_for('lps.expand_lps', id=lp.index), lp.title)

@@ -965,12 +965,12 @@ class _MEDIA():
         self._mixer = value
 
     @property
-    def classical_composer(self) -> Optional[_Artist]:
-        return self._classical_composer
+    def classical_composers(self) -> Optional[_Artist]:
+        return self._classical_composers
 
-    @classical_composer.setter
-    def classical_composer(self, value) -> None:
-        self._classical_composer = value
+    @classical_composers.setter
+    def classical_composers(self, value) -> None:
+        self._classical_composers = value
 
     @property
     def tracks(self) -> List[TrackList]:
@@ -983,7 +983,7 @@ class _MEDIA():
                  year: int,
                  index: int,
                  mixer: Optional[_Artist] = None,
-                 classical_composer: Optional[_Artist] = None,
+                 classical_composers: Optional[_Artist] = None,
                  artist_particles: Optional[List[str]] = None) -> None:
         if not isinstance(media_type, MediaType):
             raise MediaTypeException('{} is not a valid MediaType'.format(media_type))
@@ -1005,9 +1005,13 @@ class _MEDIA():
         if mixer is not None and type(mixer) is not _Artist:
             raise ArtistException('{} is not an Artist object'.format(mixer))
         self._mixer = mixer
-        if classical_composer is not None and type(classical_composer) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(classical_composer))
-        self._classical_composer = classical_composer
+        if classical_composers is not None:
+            if not isinstance(classical_composers, list):
+                raise ArtistException('{} is not a list of Artist objects'.format(classical_composers))
+            for classical_composer in classical_composers:
+                if type(classical_composer) is not _Artist:
+                    raise ArtistException('{} is not an Artist object'.format(classical_composer))
+        self._classical_composers = classical_composers
         # Create id hash based on first artist and title
         self._hash = media_to_hash(media_type, title, artists[0].name)
         self._index = index
@@ -1076,8 +1080,12 @@ class _MEDIA():
             if index < len(self._artist_particles):
                 html_str += escape(self._artist_particles[index], quote=False)
         html_str += '</h3>\n'
-        if self.classical_composer is not None:
-            html_str += '<h3><a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composer.name, quote=False))
+        if self.classical_composers is not None:
+            html_str += '<h3><a rel="classical-composer">{composer}</a>'.format(composer=escape(self.classical_composers[0].name, quote=False))
+            if len(self.classical_composers) == 2:
+                html_str += ', <a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composers[1].name, quote=False))
+            else:
+                html_str += '</h3>\n'
         if self.mixer is not None:
             html_str += '<h3>Mixed By <a rel="mixer">{mixer_name}</a></h3>\n'.format(mixer_name=self.mixer)
         html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
@@ -1173,7 +1181,8 @@ class MEDIA():
                             media_classical_composer_elements = h3_element.find_all('a', rel='classical-composer')
                             for media_classical_composer_element in media_classical_composer_elements:
                                 media_classical_composer_name = media_classical_composer_element.text.strip()
-                                media_classical_composers.append(Artists.create_Artist(media_classical_composer_name))
+                                media_classical_composer = Artists.create_Artist(media_classical_composer_name)
+                                media_classical_composers.append(media_classical_composer)
                         elif rel_value == 'date':
                             media_date = anchor_tag.text.strip()
                 elif isinstance(anchor_tag, NavigableString):
@@ -1183,10 +1192,10 @@ class MEDIA():
                         media_mixer_name = media_mixer_element.text.strip()
                         media_mixers.append(Artists.create_Artist(media_mixer_name))
 
-            # Track down albums with more than one classical composer credit
-            if len(media_classical_composers) > 1:
+            # Track down albums with more than two classical composer credits
+            if len(media_classical_composers) > 2:
                 print('Title: {}'.format(media_title))
-                assert (len(media_classical_composers) == 1)  # nosec
+                assert (len(media_classical_composers) <= 2)  # nosec
 
             # Track down albums with more than one mixer credit
             if len(media_mixers) > 1:
@@ -1373,9 +1382,7 @@ class MEDIA():
                 else:
                     media_mixer = media_mixers[0]
                 if media_classical_composers == []:
-                    media_classical_composer = None
-                else:
-                    media_classical_composer = media_classical_composers[0]
+                    media_classical_composers = None
 
                 # This is a bit awkward but to keep the integrity of the
                 # media type singletons, we farm out the data creation and
@@ -1389,7 +1396,7 @@ class MEDIA():
                                               artists=media_artists,
                                               year=int(media_date),
                                               mixer=media_mixer,
-                                              classical_composer=media_classical_composer,
+                                              classical_composers=media_classical_composers,
                                               artist_particles=media_artist_particles)
 
                 # Handle CD music media
@@ -1399,7 +1406,7 @@ class MEDIA():
                                               artists=media_artists,
                                               year=int(media_date),
                                               mixer=media_mixer,
-                                              classical_composer=media_classical_composer,
+                                              classical_composers=media_classical_composers,
                                               artist_particles=media_artist_particles)
 
                 # Handle ELP music media
@@ -1409,7 +1416,7 @@ class MEDIA():
                                                 artists=media_artists,
                                                 year=int(media_date),
                                                 mixer=media_mixer,
-                                                classical_composer=media_classical_composer,
+                                                classical_composers=media_classical_composers,
                                                 artist_particles=media_artist_particles)
 
                 # Handle mini CD music media
@@ -1419,7 +1426,7 @@ class MEDIA():
                                                         artists=media_artists,
                                                         year=int(media_date),
                                                         mixer=media_mixer,
-                                                        classical_composer=media_classical_composer,
+                                                        classical_composers=media_classical_composers,
                                                         artist_particles=media_artist_particles)
                 for tracklist in media_tracklist:
                     new_Media.add_track(tracklist)
@@ -1496,7 +1503,7 @@ class LPs():
                   artists: List[_Artist],
                   year: int,
                   mixer: Optional[_Artist] = None,
-                  classical_composer: Optional[_Artist] = None,
+                  classical_composers: Optional[_Artist] = None,
                   artist_particles: List[str] = None,
                   skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
@@ -1516,13 +1523,13 @@ class LPs():
             :type year:                      int
 
             :param mixer:                   Optional album mixer
-            :type mixer:                    :class:`_Artist`
+            :type mixer:                    :class:`_Artist` | None
 
-            :param classical_composer:      Optional album classical composer
-            :type classical_composer:       :class:`_Artist`
+            :param classical_composers:     Optional album classical composers
+            :type classical_composers:      list(:class:`_Artist`) | None
 
             :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str)
+            :type artist_particles:          list(str) | None
 
             :param skip_addiing_to_lp_list:  If true, do not add new album to albums list
             :type skip_adding_to_lp_list:    bool
@@ -1546,12 +1553,15 @@ class LPs():
                 if result._hash == new_album_hash:
                     return result
         # Create the new album
-        new_lp = _LP(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        new_lp = _LP(media_type, title, artists, year, cls._max_index, mixer, classical_composers, artist_particles)
         cls._max_index += 1
         for artist in artists:
             artist.add_media(new_lp)
         if mixer is not None:
             mixer.add_media(new_lp)
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                classical_composer.add_media(new_lp)
         if not skip_adding_to_lp_list:
             cls.add_lp(new_lp)
         return new_lp
@@ -1707,7 +1717,7 @@ class CDs():
                   artists: List[_Artist],
                   year: int,
                   mixer: Optional[_Artist] = None,
-                  classical_composer: Optional[_Artist] = None,
+                  classical_composers: Optional[_Artist] = None,
                   artist_particles: List[str] = None,
                   skip_adding_to_cd_list: bool = False) -> _CD:
         """ Return the named cd if it exists or create a new cd.
@@ -1727,13 +1737,13 @@ class CDs():
             :type year:                      int
 
             :param mixer:                   Optional cd mixer
-            :type mixer:                    :class:`_Artist`
+            :type mixer:                    :class:`_Artist` | None
 
-            :param classical_composer:      Optional cd classical composer
-            :type classical_composer:       :class:`_Artist`
+            :param classical_composers:     Optional cd classical composers
+            :type classical_composers:      list(:class:`_Artist`) | None
 
             :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str)
+            :type artist_particles:          list(str) | None
 
             :param skip_addiing_to_cd_list:  If true, do not add new cd to cd list
             :type skip_adding_to_cd_list:    bool
@@ -1757,12 +1767,16 @@ class CDs():
                 if result._hash == new_cd_hash:
                     return result
         # Create the new album
-        new_cd = _CD(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        new_cd = _CD(media_type, title, artists, year, cls._max_index, mixer, classical_composers, artist_particles)
         cls._max_index += 1
         for artist in artists:
             artist.add_media(new_cd)
         if mixer is not None:
             mixer.add_media(new_cd)
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                classical_composer.add_media(new_cd)
+
         if not skip_adding_to_cd_list:
             cls.add_cd(new_cd)
         return new_cd
@@ -1901,7 +1915,7 @@ class ELPs():
                    artists: List[_Artist],
                    year: int,
                    mixer: Optional[_Artist] = None,
-                   classical_composer: Optional[_Artist] = None,
+                   classical_composers: Optional[_Artist] = None,
                    artist_particles: List[str] = None,
                    skip_adding_to_elp_list: bool = False) -> _ELP:
         """ Return the named elp if it exists or create a new elp.
@@ -1921,13 +1935,13 @@ class ELPs():
             :type year:                      int
 
             :param mixer:                   Optional elp mixer
-            :type mixer:                    :class:`_Artist`
+            :type mixer:                    :class:`_Artist` | None
 
-            :param classical_composer:      Optional elp classical composer
-            :type classical_composer:       :class:`_Artist`
+            :param classical_composers:     Optional elp classical composers
+            :type classical_composers:      list(:class:`_Artist`) | None
 
             :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str)
+            :type artist_particles:          list(str) | NOne
 
             :param skip_addiing_to_elp_list:  If true, do not add new elp to elps list
             :type skip_adding_to_elp_list:    bool
@@ -1951,12 +1965,16 @@ class ELPs():
                 if result._hash == new_elp_hash:
                     return result
         # Create the new elp
-        new_elp = _ELP(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        new_elp = _ELP(media_type, title, artists, year, cls._max_index, mixer, classical_composers, artist_particles)
         cls._max_index += 1
         for artist in artists:
             artist.add_media(new_elp)
         if mixer is not None:
             mixer.add_media(new_elp)
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                classical_composer.add_media(new_elp)
+
         if not skip_adding_to_elp_list:
             cls.add_elp(new_elp)
         return new_elp
@@ -2095,7 +2113,7 @@ class MINI_CDs():
                        artists: List[_Artist],
                        year: int,
                        mixer: Optional[_Artist] = None,
-                       classical_composer: Optional[_Artist] = None,
+                       classical_composers: Optional[_Artist] = None,
                        artist_particles: List[str] = None,
                        skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
         """ Return the named mini CD if it exists or create a new mini_cd.
@@ -2114,14 +2132,14 @@ class MINI_CDs():
             :param year:                     The year the mini CD was published
             :type year:                      int
 
-            :param mixer:                   Optional mini CD mixer
-            :type mixer:                    :class:`_Artist`
+            :param mixer:                    Optional mini CD mixer
+            :type mixer:                     :class:`_Artist` | None
 
-            :param classical_composer:      Optional mini CD classical composer
-            :type classical_composer:       :class:`_Artist`
+            :param classical_composers:      Optional mini CD classical composers
+            :type classical_composers:       list(:class:`_Artist`) | None
 
             :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str)
+            :type artist_particles:          list(str) | None
 
             :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds list
             :type skip_adding_to_mini_cd_list:    bool
@@ -2145,12 +2163,16 @@ class MINI_CDs():
                 if result._hash == new_mini_cd_hash:
                     return result
         # Create the new mini CD
-        new_mini_cd = _MINI_CD(media_type, title, artists, year, cls._max_index, mixer, classical_composer, artist_particles)
+        new_mini_cd = _MINI_CD(media_type, title, artists, year, cls._max_index, mixer, classical_composers, artist_particles)
         cls._max_index += 1
         for artist in artists:
             artist.add_media(new_mini_cd)
         if mixer is not None:
             mixer.add_media(new_mini_cd)
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                classical_composer.add_media(new_mini_cd)
+
         if not skip_adding_to_mini_cd_list:
             cls.add_mini_cd(new_mini_cd)
         return new_mini_cd

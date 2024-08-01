@@ -214,3 +214,8 @@ The schema for a single song entry looks like:
 
 Note that for multiple artists and composers, textual pieces will linking them
 together are not included in the above example. 
+
+## Additional Notes
+
+* Up to 4 Additional Artists are supported
+* Up to 2 Classical Composers are supported

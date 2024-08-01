@@ -29,20 +29,48 @@ class FormValidateException(Exception):
 
 
 def field_value_or_none(form, field):
-    """ Return the field value on the form or None if empty """
+    """ Return the field value on the form or None if empty.
+
+        None that the field value is stripped of surrounding white space.
+
+        :param form:   The form to query.
+        :type form:    :class:`wtforms.Form`
+
+        :param field:  Field of the form to query. The key of the form dict to query.
+        :type field:   str
+
+        : returns:     The field value or None if empty
+        :rtype:        str | None
+    """
     value = form[field].data.strip()
     if value is not None and value != '':
         return value
 
 
 def name_value_or_blank(data_value):
-    """ Return the data value or '' if None"""
+    """ Return the Artist's name or '' if the Artist is set to None.
+
+        :param data_value:  The Artist whose name is checked
+        :type data_value:   :class:`_Artist`
+
+        :returns:           The Artist's name or '' if the Artist is None
+        :rtype:             str
+    """
     return '' if data_value is None else data_value.name
 
 
 def massage_particle(particle):
-    # For word particles, we want to surround them with spaces. In the case
-    # of a comma, we only want a space at the end
+    """ Massage an Artist particle to the correct format.
+
+        For word particles, we want to surround them with spaces. In the case
+        of a comma, we only want a space at the end.
+
+        :param particle:  The Artist particle to format
+        :type particle:   str
+
+        :returns:         The correctly formatted Artist particle
+        :rtype:           srt
+    """
     massaged_particle = ''
     if particle is not None and particle != '':
         if particle == ',':
@@ -50,6 +78,161 @@ def massage_particle(particle):
         else:
             massaged_particle = ' ' + particle + ' '
     return massaged_particle
+
+
+def build_additional_artist_tuples(additional_artists):
+    """ Build all the additional artist info list and tuples (prequels, names, sequels).
+
+        :param additional_artists:   A list of Additional Artists information
+        :type additional_artists:    list(:class:`Additional_Artist`)
+
+        :returns:                    A tuple containing a list of Additional Artists info, a tuple of
+                                     the Additional Artists' prequels, a tuple of the Additinal Artists' names,
+                                     a tuple of the Additional Artists' sequels
+        :rtype:                      tuple(list(dict()), tuple(str), tuple(str), tuple(str))
+    """
+    additional_artists_prequels = []
+    additional_artists_names = []
+    additional_artists_sequels = []
+    additional_artists_info = []
+    if additional_artists is not None:
+
+        for additional_artist in additional_artists:
+            additional_artists_info.append({'additional_artist_prequel': additional_artist.prequel,
+                                            'additional_artist': additional_artist.artist.name,
+                                            'additional_artist_sequel': additional_artist.sequel})
+            additional_artists_prequels.append(additional_artist.prequel)
+            additional_artists_names.append(additional_artist.artist.name)
+            additional_artists_sequels.append(additional_artist.seequel)
+    additional_artists_prequel_tuple = tuple(additional_artists_prequels)
+    additional_artists_name_tuple = tuple(additional_artists_names)
+    additional_artists_sequel_tuple = tuple(additional_artists_sequels)
+
+    return additional_artists_info, additional_artists_prequel_tuple, additional_artists_name_tuple, additional_artists_sequel_tuple
+
+
+def build_classical_composer_names_tuple(classical_composers):
+    """ Build a tuple of the classical composer names
+
+    :param classical_composers:  The list of classical composers
+    :type classical_composers:   list(:class:`_Artist`)
+
+    :returns:                    A tuple of the classical composer names
+    :rtype:                      tuple(str)
+    """
+    classical_composer_names = []
+    if classical_composers is not None:
+        for composer in classical_composers:
+            classical_composer_names.append(composer.name)
+    classical_composers_name_tuple = tuple(classical_composer_names)
+    return classical_composers_name_tuple
+
+
+def replace_artist(artist_element, new_artist_name, lp_info):
+    """ Replace the Artist in the passed element (eg. Song, LP, etc) with a newly constructed Artist.
+
+        The replacement also requires an update to associated LP information. This means remove the LP
+        from the old Artist, create a new Artist, replace the old with the new Artist and add associate
+        the LP with the new Artist.
+
+        :param artist_element:  The element which is associated with the Artist
+        :type artist_element:   class:`_Artist`
+
+        :param new_artist_name:  The name of the new Artist to create
+        :type new_artist_name:   str
+
+        :param lp_info:          The LP to remove from the old Artist and add to the new Artist
+        :type lp_info:           :class:`_LP`
+
+        :raises Exception:       Only class:`LPException` is caught when adding the LP to the new Artist
+                                 under the assumption the Artist may have already be associated on another
+                                 song or the LP
+    """
+    if artist_element is not None:
+        artist_element.delete_media(lp_info)  # TO DO: perhaps they artist is still associated with a sone on the LP
+
+    new_artist = Artists.create_Artist(new_artist_name)
+    artist_element = new_artist
+    try:
+        new_artist.add_media(lp_info)
+    except LPException as e:
+        # Could be an artist on a song of the album
+        app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs on the LP'.format(e))
+    except Exception as e:
+        raise e
+
+
+def append_new_artists(artists_list, new_artist_names, lp_info):
+    """ Create a new Artist and append them to the passed list of artists.
+
+        Each new Artist will also be associated with the passed LP
+
+        :param artists_list:       The list of Artists to append to
+        :type artisst_list:        list(:class:`_Artist`)
+
+        :param new_artist_names:   The names of the new Artists to create
+        :type new_artist_names:    list(str)
+
+        :param lp_info:            The LP to associate with the new Artist
+        :type lp_info:             :class:`_LP`
+
+        :raises Exception:         Only class:`LPException` is caught when adding the LP to the new Artist
+                                   under the assumption the Artist may have already be associated on another
+                                   song or the LP
+    """
+    for artist_name in new_artist_names:
+        new_additional_artist = Artists.create_Artist(artist_name)
+        artists_list.append(new_additional_artist)
+        try:
+            new_additional_artist.add_media(lp_info)
+        except LPException as e:
+            # Could be an artist of a song on the album
+            app.app.logger.warning('LP Exception {} ignored. Assuming additional artist to be associated with other songs on LP'.format(e))
+        except Exception as e:
+            raise e
+
+
+def append_new_additional_artists(additional_artists_list,
+                                  new_additional_artist_names,
+                                  new_additional_artist_prequels,
+                                  new_additional_artist_sequels,
+                                  lp_info):
+    """ Create a new Additional Artist and append them to the passed list of additional artists.
+
+        Each new Additional Artist will also be associated with the passed LP
+
+        :param additional_artists_list:         The list of Additional Artists to append to
+        :type additional_artists_list:          list(:class:`Additional_Artist`)
+
+        :param new_additional_artist_names:     The names of the new Additional Artists to create
+        :type new_additional_artist_names:      list(str)
+
+        :param new_additional_artist_prequels:  The prequels for the new Additional Artists
+        :type new_additional_artist_prequels:   list(str)
+
+        :param new_additional_artist_sequels:   The sequels for the new Additional Artists
+        :type new_additional_artist_sequels:    list(str)
+
+        :param lp_info:                         The LP to associate with the new Artist
+        :type lp_info:                          :class:`_LP`
+
+        :raises Exception:                      Only class:`LPException` is caught when adding the LP to
+                                                the new Artist under the assumption the Artist may have
+                                                already be associated on another
+    """
+    for index, artist_name in enumerate(new_additional_artist_names):
+        new_additional_artist = Artists.create_Artist(artist_name)
+        new_additional_artist = Additional_Artist(artist=new_additional_artist,
+                                                  prequel=new_additional_artist_prequels[index],
+                                                  sequel=new_additional_artist_sequels[index])
+        additional_artists_list.append(new_additional_artist)
+        try:
+            new_additional_artist.add_media(lp_info)
+        except LPException as e:
+            # Could be an artist of a song on the album
+            app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
+        except Exception as e:
+            raise e
 
 
 @lps.route('/')
@@ -76,7 +259,8 @@ def add_lp():
         form.lp_title.data = ''
         form.lp_main_artist.data = ''
         form.lp_mixer.data = ''
-        form.lp_classical_composer.data = ''
+        form.lp_classical_composer_1.data = ''
+        form.lp_classical_composer_2.data = ''
 
     if request.method == 'POST':
         if form.cancel.data:
@@ -88,7 +272,8 @@ def add_lp():
                 lp_artist_str = form['lp_main_artist'].data.strip()
                 lp_additional_artists = form['lp_additional_artists']
                 lp_mixer_str = form['lp_mixer'].data.strip()
-                lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+                lp_classical_composer_1_str = form['lp_classical_composer_1'].data.strip()
+                lp_classical_composer_2_str = form['lp_classical_composer_2'].data.strip()
                 lp_year = form['lp_year'].data
                 if lp_title is None or lp_title == '':
                     flash('Error: A title is required for a new LP.')
@@ -132,17 +317,22 @@ def add_lp():
                         lp_mixer = Artists.create_Artist(lp_mixer_str)
                     else:
                         lp_mixer = None
-                    if lp_classical_composer_str is not None and lp_classical_composer_str != '':
-                        lp_classical_composer = Artists.create_Artist(lp_classical_composer_str)
-                    else:
-                        lp_classical_composer = None
+
+                    # Handle addition of up to two classical composers
+                    lp_classical_composers = []
+                    if lp_classical_composer_1_str is not None and lp_classical_composer_1_str != '':
+                        lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_1_str))
+                    if lp_classical_composer_2_str is not None and lp_classical_composer_2_str != '':
+                        lp_classical_composers.append(Artists.create_Artist(lp_classical_composer_2_str))
+                    if lp_classical_composers == []:
+                        lp_classical_composers = None
 
                     new_lp = LPs.create_LP(media_type=MediaType.LP,
                                            title=lp_title,
                                            artists=lp_artists,
                                            year=lp_year,
                                            mixer=lp_mixer,
-                                           classical_composer=lp_classical_composer,
+                                           classical_composers=lp_classical_composers,
                                            artist_particles=lp_artist_particles)
                     return redirect(url_for('.add_lp_track', album_id=new_lp.index, track_id=0))
         except FormValidateException:
@@ -310,8 +500,12 @@ def delete_lps(id):
         form.lp_artists.data = lp_data.artists_text
         if lp_data.mixer is not None:
             form.lp_mixer.data = lp_data.mixer
-        if lp_data.classical_composer is not None:
-            form.lp_classical_composer.data = lp_data.classical_composer
+        form.lp_classical_composer_1.data = ''
+        form.lp_classical_composer_2.data = ''
+        if lp_data.classical_composers is not None:
+            form.lp_classical_composer_1.data = lp_data.classical_composers[0].name
+            if len(lp_data.classical_composers) == 2:
+                form.lp_classical_composer_2.data = lp_data.classical_composers[1].name
         form.lp_year.data = str(lp_data.year)
 
     if request.method == 'POST':
@@ -354,6 +548,7 @@ def modify_lp(id):
     # future use
     artist_particles_tuple = tuple([lp_data.artist_particles[x - 1] for x in range(1, len(lp_data.artists))])
     additional_artists_name_tuple = tuple([lp_data.artists[x].name for x in range(1, len(lp_data.artists))])
+    classical_composer_names_tuple = ()
 
     if request.method == 'GET':
 
@@ -367,7 +562,14 @@ def modify_lp(id):
         form.lp_main_artist.data = lp_data.artists[0].name
         form.lp_mixer.data = name_value_or_blank(lp_data.mixer)
 
-        form.lp_classical_composer.data = name_value_or_blank(lp_data.classical_composer)
+        form.lp_classical_composer_1.data = ''
+        form.lp_classical_composer_2.data = ''
+        classical_composer_names_tuple = build_classical_composer_names_tuple(lp_data.classical_composers)
+        if lp_data.classical_composers is not None:
+            form.lp_classical_composer_1.data = lp_data.classical_composers[0].name
+            if len(lp_data.classical_composers) == 2:
+                form.lp_classical_composer_2.data = lp_data.classical_composers[1].name
+
         form.lp_year.data = lp_data.year
 
     if request.method == 'POST':
@@ -377,7 +579,7 @@ def modify_lp(id):
         try:
             if form.validate:
 
-                if form.modify_tracks:
+                if form.modify_tracks.data:
                     return redirect(url_for('.modify_lp_track', lp_id=lp_data.index, track_id=0))
 
                 if form.save.data or form.save_and_modify_tracks.data:
@@ -385,7 +587,13 @@ def modify_lp(id):
                     lp_artist_str = form['lp_main_artist'].data.strip()
                     lp_additional_artists = form['lp_additional_artists']
                     lp_mixer_str = form['lp_mixer'].data.strip()
-                    lp_classical_composer_str = form['lp_classical_composer'].data.strip()
+                    new_classical_composer_names = []
+                    lp_classical_composer_1_str = form['lp_classical_composer_1'].data.strip()
+                    if lp_classical_composer_1_str is not None and lp_classical_composer_1_str != '':
+                        new_classical_composer_names.append(lp_classical_composer_1_str)
+                    lp_classical_composer_2_str = form['lp_classical_composer_2'].data.strip()
+                    if lp_classical_composer_2_str is not None and lp_classical_composer_2_str != '':
+                        new_classical_composer_names.append(lp_classical_composer_2_str)
                     lp_year = form['lp_year'].data
                     if lp_title is None or lp_title == '':
                         flash('Error: A title is required for an LP.')
@@ -414,57 +622,35 @@ def modify_lp(id):
                     # Check main artist change
                     if lp_artist_str != lp_data.artists[0].name:
                         changes = True
-                        lp_data.artists[0].delete_media(lp_data)  # TO DO: perhaps they artist is still associated with a sone on the LP
 
                         if lp_artist_str == '':
+                            lp_data.artists[0].delete_media(lp_data)  # TO DO: perhaps they artist is still associated with a sone on the LP
                             lp_data.artists.remove(lp_data.artists[0])
                         else:
-                            new_main_artist = Artists.create_Artist(lp_artist_str)
-                            lp_data.artists[0] = new_main_artist
-                            try:
-                                new_main_artist.add_media(lp_data)
-                            except LPException as e:
-                                # Could be an artist on a song of the album
-                                app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs on the LP'.format(e))
-                            except Exception as e:
-                                raise e
+                            replace_artist(lp_data.artists[0], lp_artist_str, lp_data)
 
                     # Check mixer change
                     if (lp_data.mixer is not None and lp_mixer_str != lp_data.mixer.name) or (lp_data.mixer is None and lp_mixer_str != ''):
                         changes = True
-                        if lp_data.mixer is not None:
-                            lp_data.mixer.delete_media(lp_data)
                         if lp_mixer_str == '':
+                            if lp_data.mixer is not None:
+                                lp_data.mixer.delete_media(lp_data)
                             lp_data.mixer = None
                         else:
-                            new_mixer = Artists.create_Artist(lp_mixer_str)
-                            lp_data.mixer = new_mixer
-                            try:
-                                new_mixer.add_media(lp_data)
-                            except LPException as e:
-                                # Could be a mixer/artist of a song on the album
-                                app.app.logger.warning('LP Exception {} ignored. Assumed to be LP Mixer associated with multiple songs'.format(e))
-                            except Exception as e:
-                                raise e
+                            replace_artist(lp_data.mixer, lp_mixer_str, lp_data)
 
-                    # Check if classical composer change
-                    if (lp_data.classical_composer is not None and lp_classical_composer_str != lp_data.classical_composer.name) or\
-                       (lp_data.classical_composer is None and lp_classical_composer_str != ''):
+                    # Check if classical composers change. If so, rebuild completely
+                    if (set(classical_composer_names_tuple) != set(new_classical_composer_names)):
                         changes = True
-                        if lp_data.classical_composer is not None:
-                            lp_data.classical_composer.delete_media(lp_data)
-                        if lp_classical_composer_str == '':
-                            lp_data.classical_composer = None
+                        if lp_data.classical_composers is not None:
+                            for classical_composer in lp_data.classical_composers:
+                                classical_composer.delete_media(lp_data)
+
+                        lp_data.classical_composers = []
+                        if len(new_classical_composer_names) == 0:
+                            lp_data.classical_composers = None
                         else:
-                            new_classical_composer = Artists.create_Artist(lp_classical_composer_str)
-                            lp_data.classical_composer = new_classical_composer
-                            try:
-                                new_classical_composer.add_media(lp_data)
-                            except LPException as e:
-                                # Could be a classical composer of a song on the album
-                                app.app.logger.warning('LP Exception {} ignored. Assuming classical composer to be associated with multiple songs or the LP'.format(e))
-                            except Exception as e:
-                                raise e
+                            append_new_artists(lp_data.classical_composers, new_classical_composer_names, lp_data)
 
                     # Check if year change
                     if lp_year != lp_data.year:
@@ -498,19 +684,13 @@ def modify_lp(id):
                             if artist_name not in additional_artists_name_list:
                                 lp_data.artists[index + 1].delete_media(lp_data)  # Recall main artist at first entry
 
-                        lp_data.artist_particles = artist_particle_list
-                        # Remove original entries and rebuild additional artist list
+                        # Check we have additional artists and update appropriately
                         del lp_data.artists[1:]
-                        for artist_name in additional_artists_name_list:
-                            new_additional_artist = Artists.create_Artist(artist_name)
-                            lp_data.artists.append(new_additional_artist)
-                            try:
-                                new_additional_artist.add_media(lp_data)
-                            except LPException as e:
-                                # Could be an artist of a song on the album
-                                app.app.logger.warning('LP Exception {} ignored. Assuming additional artist to be associated with other songs on LP'.format(e))
-                            except Exception as e:
-                                raise e
+                        if set(additional_artists_name_list) == set(['']):
+                            lp_data.artist_particles = None
+                        else:
+                            lp_data.artist_particles = artist_particle_list
+                            append_new_artists(additional_artists_name_list, lp_data.artists, lp_data)
 
                     if not changes:
                         flash('No changes made that need to be saved.')
@@ -610,27 +790,10 @@ def modify_lp_track_song(lp_id, track_id, song_id):
         song_data = tracklist.song_list[song_id]
 
         # Build data used in both GET and POST requests
-        additional_artists_prequels = []
-        additional_artists_names = []
-        additional_artists_sequels = []
-        additional_artists = song_data.additional_artists
-        if additional_artists is not None:
+        (song_additional_artists, additional_artists_prequel_tuple,
+         additional_artists_name_tuple, additional_artists_sequel_tuple) = build_additional_artist_tuples(song_data.additional_artists)
 
-            for additional_artist in additional_artists:
-                song_additional_artists.append({'additional_artist_prequel': additional_artist.prequel,
-                                                'additional_artist': additional_artist.artist.name,
-                                                'additional_artist_sequel': additional_artist.sequel})
-                additional_artists_prequels.append(additional_artist.prequel)
-                additional_artists_names.append(additional_artist.artist.name)
-                additional_artists_sequels.append(additional_artist.seequel)
-        additional_artists_prequel_tuple = tuple(additional_artists_prequels)
-        additional_artists_name_tuple = tuple(additional_artists_names)
-        additional_artists_sequel_tuple = tuple(additional_artists_sequels)
-        classical_composer_names = []
-        if song_data.classical_composers is not None:
-            for composer in song_data.classical_composers:
-                classical_composer_names.append(composer.name)
-        classical_composers_name_tuple = tuple(classical_composer_names)
+        classical_composers_name_tuple = build_classical_composer_names_tuple(song_data.classical_composers)
 
     if request.method == 'GET':
         template_song_id = song_id + 1
@@ -660,11 +823,10 @@ def modify_lp_track_song(lp_id, track_id, song_id):
             form.song_mix.data = song_data.mix
             form.song_parts.data = '\n'.join(song_data.parts)
             if song_data.classical_composers is not None:
+                form.song_classical_composer_1.data = song_data.classical_composers[0].name
                 if len(song_data.classical_composers) == 2:
-                    form.song_classical_composer_1.data = classical_composer_names[0]
-                    form.song_classical_composer_2.data = classical_composer_names[1]
-                elif len(song_data.classical_composers) == 1:
-                    form.song_classical_composer_1.data = classical_composer_names[0]
+                    form.song_classical_composer_2.data = song_data.classical_composers[1].namne
+
             form.song_classical_work.data = song_data.classical_work
 
     if request.method == 'POST':
@@ -769,30 +931,14 @@ def modify_lp_track_song(lp_id, track_id, song_id):
                 if template_new_song:
                     # Create and add a new song to the track list
                     classical_composers = []
-                    for classical_composer in classical_composers_name_list:
-                        new_classical_composer = Artists.create_Artist(classical_composer)
-                        classical_composers.append(new_classical_composer)
-                        try:
-                            new_classical_composer.add_media(lp_data)
-                        except LPException as e:
-                            # Could be an artist of a song on the album
-                            app.app.logger.warning('LP Exception {} ignored. Assuming classical composer associated with other songs or the LP'.format(e))
-                        except Exception as e:
-                            raise e
+                    append_new_artists(classical_composers, classical_composers_name_list, lp_data)
+
                     additional_artists = []
-                    for index, artist_name in enumerate(additional_artists_name_list):
-                        new_additional_artist = Artists.create_Artist(artist_name)
-                        new_additional_artist = Additional_Artist(artist=new_additional_artist,
-                                                                  prequel=additional_artists_prequel_list[index],
-                                                                  sequel=additional_artists_sequel_list[index])
-                        additional_artists.append(new_additional_artist)
-                        try:
-                            new_additional_artist.add_media(lp_data)
-                        except LPException as e:
-                            # Could be an artist of a song on the album
-                            app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
-                        except Exception as e:
-                            raise e
+                    append_new_additional_artists(additional_artists,
+                                                  additional_artists_name_list,
+                                                  additional_artists_prequel_list,
+                                                  additional_artists_sequel_list,
+                                                  lp_data)
 
                     new_song = Song(title=song_title_str,
                                     main_artist=lp_data.artists[0],
@@ -849,17 +995,7 @@ def modify_lp_track_song(lp_id, track_id, song_id):
                             if composer_name not in classical_composers_name_list:
                                 song_data.classical_composers[index].delete_media(lp_data)
                         new_composers = []
-                        for classical_composer in classical_composers_name_list:
-                            new_classical_composer = Artists.create_Artist(classical_composer)
-                            new_composers.append(new_classical_composer)
-                            try:
-                                new_classical_composer.add_media(lp_data)
-                            except LPException as e:
-                                # Could be an artist of a song on the album
-                                app.app.logger.warning('LP Exception {} ignored. Assuming classical composer associated with other songs or the LP'.format(e))
-
-                            except Exception as e:
-                                raise e
+                        append_new_artists(new_composers, classical_composers_name_list, lp_data)
                         song_data.classical_composers = new_composers
 
                     # Handle additional artist changes
@@ -875,19 +1011,12 @@ def modify_lp_track_song(lp_id, track_id, song_id):
                                 song_data.additional_artists[index].artist.delete_media(lp_data)
 
                         song_data.additional_artists = []
-                        for index, artist_name in enumerate(additional_artists_name_list):
-                            new_additional_artist = Artists.create_Artist(artist_name)
-                            new_additional_artist = Additional_Artist(artist=new_additional_artist,
-                                                                      prequel=additional_artists_prequel_list[index],
-                                                                      sequel=additional_artists_sequel_list[index])
-                            song_data.additional_artists.append(new_additional_artist)
-                            try:
-                                new_additional_artist.add_media(lp_data)
-                            except LPException as e:
-                                # Could be an artist of a song on the album
-                                app.app.logger.warning('LP Exception {} ignored. Assuming artist associated with other songs or the LP'.format(e))
-                            except Exception as e:
-                                raise e
+                        append_new_additional_artists(song_data.additional_artists,
+                                                      additional_artists_name_list,
+                                                      additional_artists_prequel_list,
+                                                      additional_artists_sequel_list,
+                                                      lp_data)
+
                 return redirect(url_for('.index'))
 
             except FormValidateException:
