@@ -1081,7 +1081,7 @@ class _MEDIA():
         html_str += '<h3>'
         for index, artist in enumerate(self.artists):
             html_str += '<a rel="artist">{artist}</a>'.format(artist=escape(artist.name, quote=False))
-            if index < len(self._artist_particles):
+            if self._artist_particles is not None and index < len(self._artist_particles):
                 html_str += escape(self._artist_particles[index], quote=False)
         html_str += '</h3>\n'
         if self.classical_composers is not None:
