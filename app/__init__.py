@@ -11,7 +11,7 @@ from flask_talisman import Talisman
 from flask_wtf import CSRFProtect
 from sqlalchemy import inspect
 
-from app.musicmedia_objects import MEDIA
+from app.musicmedia.musicmedia_objects import MEDIA
 
 import config
 

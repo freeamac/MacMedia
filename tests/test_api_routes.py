@@ -6,7 +6,7 @@ from flask_login import FlaskLoginClient
 
 from app.app import app, db
 from app.demo_helpers import DVDs_data, load_demo_data
-from app.musicmedia_objects import Artists, CDs, ELPs, LPs, MEDIA, MINI_CDs
+from app.musicmedia.musicmedia_objects import Artists, CDs, ELPs, LPs, MEDIA, MINI_CDs
 from app.models import User
 
 

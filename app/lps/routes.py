@@ -2,7 +2,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
 from . import lps
-from app.musicmedia_objects import (
+from app.musicmedia.musicmedia_objects import (
     Additional_Artist,
     Artists,
     LPException,

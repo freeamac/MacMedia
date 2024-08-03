@@ -3,7 +3,7 @@ import unittest
 
 import pytest
 
-from app.musicmedia_objects import (
+from app.musicmedia.musicmedia_objects import (
     Additional_Artist,
     ArtistException,
     Artists,

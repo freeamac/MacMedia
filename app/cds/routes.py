@@ -3,8 +3,8 @@ from flask_login import login_required
 
 from . import cds
 
-from app.musicmedia_objects import MediaType
-from app.musicmedia_routes import (
+from app.musicmedia.musicmedia_objects import MediaType
+from app.musicmedia.musicmedia_routes import (
     add,
     add_track,
     delete,
