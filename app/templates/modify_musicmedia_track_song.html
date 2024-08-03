@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Modify A Song On An {{ media_str }} Track{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+	<h1>Modify A Song On Track "<b>{{ track_name }}</b>" of {{ media_str }} "<b>{{ title }}</b>"</h1>
+</div>
+
+<div class="container">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+        <div class="row">
+          {% if song_id != 1 and song_id != -999 %}
+            <div class="col-md-2">
+              <input type="submit" name="previous_song" value="Go To Previous Song">
+            </div>
+          {% else %}
+            <div class="col-md-2"></div>
+          {% endif %}
+
+          {% if template_new_song %}
+            <div class="col-md-2"></div>
+            <div class="col-md-2"></div>
+          {% else %}
+            <div class="col-md-2">
+              <input type="submit" name="insert_song" value="Insert New Song">
+            </div>
+            <div class="col-md-2">
+              <input type="submit" name="delete_song" value="Delete Song">
+            </div>
+          {% endif %}
+
+          {% if template_last_song %}
+            {% if song_id < 0 %}
+              <div class="="col-md-2"></div>
+            {% else %}
+              <div class="col-md-2">
+                <input type="submit" name="append_new_song" value="Append New Song">
+              </div>
+            {% endif %}
+          {% else %}
+            <div class="col-md-2">
+              <input type="submit" name="next_song" value="Go To Next Song">
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="row top20">
+          <div class="col-md-2">
+            {% if template_new_song %}
+            <h1><u><b>New Song:</b></u></h1>
+            {% else %}
+            <h3><u><b>Song #{{ song_id }}:</b></u></h3>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Collect song meta information -->
+        <div class="row">
+          <div class="col-md-1">
+            <h4><b>Song Title:</b></h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_title }}
+          </div>
+          <div class="col-md-1">
+            <h4><b>Mix:</b></h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_mix }}
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-1">
+            <h4><b>Feat. In:</b></h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_featured_in }}
+          </div><div class="col-md-2">
+            <h4><b>List Main Artist?</b></h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_list_main_artist }}
+          </div>
+        </div>
+
+        <!-- Collect additional song artists -->
+        <hr width="45%"\>
+        {% for additional_artist in form.song_additional_artists %}
+          <div class="row removeclass_artist{{ loop.index0 }}" id="artist_row_{{ loop.index0 }}">
+            <div class="col-md-1">
+              <h4><b></b>Additional Artist<b></b></h4>
+            </div>
+            <div class="col-md-1">
+              <h5><b>Prequel</b></h5>
+            </div>
+            <div class="col-md-2">
+              {{ additional_artist.additional_artist_prequel }}
+            </div>
+            <div class="col-md-1">
+              <h5><b>Artist Name</b></h5>
+            </div>
+            <div class="col-md-2">
+              {{ additional_artist.additional_artist }}
+            </div>
+            <div class="col-md-1">
+              <h5><b>Sequel</b></h5>
+            </div>
+            <div class="col-md-2">
+              {{ additional_artist.additional_artist_sequel }}
+            </div>
+            <div class="col-sm-1 plus_artist_button_{{ loop.index0 }}">
+              <div class="input-group-btn">
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+        <!-- Collect classical song meta information-->
+        <hr width="45%"\>
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.song_classical_work.label }}:</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_classical_work }}
+          </div>
+        </div>
+
+        <!-- Collect classical song composers -->
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.song_classical_composer_1.label }}</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_classical_composer_1 }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.song_classical_composer_2.label }}</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_classical_composer_2 }}
+          </div>
+        </div>
+
+        <!-- Collect extraneous song information -->
+        <hr width="45%"\>
+        <div class="row">
+          <div class="col-md-1">
+            <h4>{{ form.song_country.label }}:</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_country }}
+          </div>
+          <div class="col-md-1">
+            <h5>{{ form.song_year.label }}</h5>
+          </div>
+          <div class="col-md-1">
+            {{ form.song_year }}
+          </div>
+        </div>
+
+        <!-- Collect song parts -->
+        <hr width="45%"\>
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.song_parts.label }}:</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.song_parts(cols=40, rows=7) }}
+          </div>
+        </div>
+
+        <div class="row top20">
+          <div class="col-md-2">
+            <input type="submit" name="save" value="Save And Finish">
+          </div>
+          <div class="col-md-2">
+            <input type="submit" name="cancel" value="Cancel">
+          </div>
+        </div>
+
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+<script nonce="{{ csp_nonce() }}">
+  
+  var song_num = 0;
+  var artist_num = 0;
+
+  function additional_artist_fields() {
+ 
+    artist_num++;
+    previous_button_id = artist_num - 1;
+    $('.plus_artist_button_'+previous_button_id).remove();
+    if (artist_num > 1) {$('.minus_artist_button_'+previous_button_id).remove()};
+    var objTo = document.getElementById('artist_row_'+previous_button_id);
+    var divAdditionalArtist = document.createElement("div");
+    divAdditionalArtist.setAttribute("class", "row removeclass_artist"+artist_num);
+    divAdditionalArtist.setAttribute("id", "artist_row_"+artist_num)
+    divAdditionalArtist.innerHTML = '\
+            <div class="col-md-1">\
+              <h4><b></b>Additional Artist<b></b></h4>\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Prequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+                <input id="song_additional_artists-'+artist_num+'-additional_artist_prequel" maxlength="20" minlength="0" name="song_additional_artists-'+artist_num+'-additional_artist_prequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Artist Name</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+                <input id="song_additional_artists-'+artist_num+'-additional_artist" maxlength="40" minlength="0" name="song_additional_artists-'+artist_num+'-additional_artist" type="text" value="">\
+            </div>\
+            <div class="col-md-1">\
+              <h5><b>Sequel</b></h5>\
+            </div>\
+            <div class="col-md-2">\
+                <input id="song_additional_artists-'+artist_num+'-additional_artist_sequel" maxlength="20" minlength="0" name="song_additional_artists-'+artist_num+'-additional_artist_sequel" type="text" value="">\
+            </div>\
+            <div class="col-md-1 plus_artist_button_'+artist_num+'">\
+              <div class="input-group-btn">\
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+              </div>\
+            </div>\
+            <div class="col-md-1 minus_artist_button_'+artist_num+'">\
+              <div class="input-group-btn">\
+               <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+ artist_num +');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+              </div>\
+            </div>\
+          </div>\
+      ';
+    objTo.after(divAdditionalArtist)
+
+  }
+
+  function remove_additional_artist_fields(rid) {
+	  $('.removeclass_artist'+rid).remove();
+    artist_num = rid - 1;
+    var objTo = document.getElementById('artist_row_'+artist_num);
+    var plusButton = document.createElement("div");
+	  plusButton.setAttribute("class", "col-md-1 plus_artist_button_"+artist_num);
+    plusButton.innerHTML = '\
+      <div class="input-group-btn">\
+        <button class="btn btn-success" type="button"  onclick="additional_artist_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+      </div>';
+    objTo.appendChild(plusButton);
+    if (artist_num != 0) {
+      var minusButton = document.createElement("div");
+      minusButton.setAttribute("class", "col-md-1 minus_artist_button_"+artist_num);
+      minusButton.innerHTML = '\
+        <div class="input-group-btn">\
+          <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+ artist_num +');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+        </div>';
+      plusButton.after(minusButton);
+    };
+  }
+
+</script>
+{% endblock %}

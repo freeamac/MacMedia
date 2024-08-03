@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-cds = Blueprint('cds', __name__)
+cds = Blueprint('cds', __name__, url_prefix='/cds')
 
 # This must be imported after the Blueprint definition as the
 # definition is imported into the app creation call and then

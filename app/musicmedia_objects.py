@@ -904,10 +904,10 @@ class _MEDIA():
 
         Note: Should only be instantiated by calling media type object contructor:
 
-              - :func:`LPs().create_LP`
-              - :func:`LPs().create_CD`
-              - :func:`ELPs().create_ELP`
-              - :func:`MINI_CDs().create_MINI_CD`
+              - :func:`LPs().create`
+              - :func:`LPs().create`
+              - :func:`ELPs().create`
+              - :func:`MINI_CDs().create`
     """
 
     @property
@@ -1403,43 +1403,43 @@ class MEDIA():
 
                 # Handle LP music media
                 if media_type == MediaType.CD:
-                    new_Media = CDs.create_CD(media_type=media_type,
-                                              title=media_title,
-                                              artists=media_artists,
-                                              year=int(media_date),
-                                              mixer=media_mixer,
-                                              classical_composers=media_classical_composers,
-                                              artist_particles=media_artist_particles)
+                    new_Media = CDs.create(media_type=media_type,
+                                           title=media_title,
+                                           artists=media_artists,
+                                           year=int(media_date),
+                                           mixer=media_mixer,
+                                           classical_composers=media_classical_composers,
+                                           artist_particles=media_artist_particles)
 
                 # Handle CD music media
                 elif media_type == MediaType.LP:
-                    new_Media = LPs.create_LP(media_type=media_type,
-                                              title=media_title,
-                                              artists=media_artists,
-                                              year=int(media_date),
-                                              mixer=media_mixer,
-                                              classical_composers=media_classical_composers,
-                                              artist_particles=media_artist_particles)
+                    new_Media = LPs.create(media_type=media_type,
+                                           title=media_title,
+                                           artists=media_artists,
+                                           year=int(media_date),
+                                           mixer=media_mixer,
+                                           classical_composers=media_classical_composers,
+                                           artist_particles=media_artist_particles)
 
                 # Handle ELP music media
                 elif media_type == MediaType.ELP:
-                    new_Media = ELPs.create_ELP(media_type=media_type,
+                    new_Media = ELPs.create(media_type=media_type,
+                                            title=media_title,
+                                            artists=media_artists,
+                                            year=int(media_date),
+                                            mixer=media_mixer,
+                                            classical_composers=media_classical_composers,
+                                            artist_particles=media_artist_particles)
+
+                # Handle mini CD music media
+                elif media_type == MediaType.MINI_CD:
+                    new_Media = MINI_CDs.create(media_type=media_type,
                                                 title=media_title,
                                                 artists=media_artists,
                                                 year=int(media_date),
                                                 mixer=media_mixer,
                                                 classical_composers=media_classical_composers,
                                                 artist_particles=media_artist_particles)
-
-                # Handle mini CD music media
-                elif media_type == MediaType.MINI_CD:
-                    new_Media = MINI_CDs.create_MINI_CD(media_type=media_type,
-                                                        title=media_title,
-                                                        artists=media_artists,
-                                                        year=int(media_date),
-                                                        mixer=media_mixer,
-                                                        classical_composers=media_classical_composers,
-                                                        artist_particles=media_artist_particles)
                 for tracklist in media_tracklist:
                     new_Media.add_track(tracklist)
 
@@ -1509,15 +1509,15 @@ class LPs():
         cls._max_index = 0
 
     @classmethod
-    def create_LP(cls,
-                  media_type: MediaType,
-                  title: str,
-                  artists: List[_Artist],
-                  year: int,
-                  mixer: Optional[_Artist] = None,
-                  classical_composers: Optional[_Artist] = None,
-                  artist_particles: List[str] = None,
-                  skip_adding_to_lp_list: bool = False) -> _LP:
+    def create(cls,
+               media_type: MediaType,
+               title: str,
+               artists: List[_Artist],
+               year: int,
+               mixer: Optional[_Artist] = None,
+               classical_composers: Optional[_Artist] = None,
+               artist_particles: List[str] = None,
+               skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
 
             By default a new album is added to the list of all albums.
@@ -1557,7 +1557,7 @@ class LPs():
             if not isinstance(artist, _Artist):
                 raise ArtistException('{} is not a an artist'.format(artist))
 
-        results = cls.find_lp_by_title(title)
+        results = cls.find_by_title(title)
         if len(results) > 0:
             # Need to check hash id
             new_album_hash = media_to_hash(media_type, title, artists[0].name)
@@ -1575,11 +1575,11 @@ class LPs():
             for classical_composer in classical_composers:
                 classical_composer.add_media(new_lp)
         if not skip_adding_to_lp_list:
-            cls.add_lp(new_lp)
+            cls.add(new_lp)
         return new_lp
 
     @classmethod
-    def add_lp(cls, lp: _LP) -> None:
+    def add(cls, lp: _LP) -> None:
         """ Add an album to the list of all albums.
 
             :param lp:            The album to add
@@ -1594,7 +1594,7 @@ class LPs():
         cls._lps.append(lp)
 
     @classmethod
-    def delete_lp(cls, lp: _LP) -> None:
+    def delete(cls, lp: _LP) -> None:
         """ Remove the album from the list of all albums.
 
             In actuality we pug the location in the list of
@@ -1616,7 +1616,7 @@ class LPs():
             cls._lps[make_hole_index] = None
 
     @classmethod
-    def lp_exists(cls, lp: _LP) -> bool:
+    def exists(cls, lp: _LP) -> bool:
         """ Returns true of the album exists in the list of albums.
 
             :param lp:  The album to add
@@ -1634,8 +1634,8 @@ class LPs():
             :param index:   The index in the list of albums of the album to locate
             :type index:    int
 
-            :returns:    The album or None
-            :rtype:      class:`_LP` or None
+            :returns:       The album or None
+            :rtype:         class:`_LP` or None
         """
         lp = None
         try:
@@ -1645,7 +1645,7 @@ class LPs():
         return lp
 
     @classmethod
-    def find_lp_by_title(cls, title: str) -> List[_LP]:
+    def find_by_title(cls, title: str) -> List[_LP]:
         """ Returns the albums in the list of all albums that matches the passed album title. Otherwise, empty list.
 
             :param title:  The album title to search for
@@ -1662,7 +1662,7 @@ class LPs():
         return result
 
     @classmethod
-    def find_lps_by_year(cls, year: int) -> List[_LP]:
+    def find_by_year(cls, year: int) -> List[_LP]:
         """ Return a list of albums produced in the passed year.
 
             :param year:  Find albums produced in this year
@@ -1723,15 +1723,15 @@ class CDs():
         cls._max_index = 0
 
     @classmethod
-    def create_CD(cls,
-                  media_type: MediaType,
-                  title: str,
-                  artists: List[_Artist],
-                  year: int,
-                  mixer: Optional[_Artist] = None,
-                  classical_composers: Optional[_Artist] = None,
-                  artist_particles: List[str] = None,
-                  skip_adding_to_cd_list: bool = False) -> _CD:
+    def create(cls,
+               media_type: MediaType,
+               title: str,
+               artists: List[_Artist],
+               year: int,
+               mixer: Optional[_Artist] = None,
+               classical_composers: Optional[_Artist] = None,
+               artist_particles: List[str] = None,
+               skip_adding_to_cd_list: bool = False) -> _CD:
         """ Return the named cd if it exists or create a new cd.
 
             By default a new cd is added to the list of all cds.
@@ -1748,11 +1748,11 @@ class CDs():
             :param year:                     The year the cd was published
             :type year:                      int
 
-            :param mixer:                   Optional cd mixer
-            :type mixer:                    :class:`_Artist` | None
+            :param mixer:                    Optional cd mixer
+            :type mixer:                     :class:`_Artist` | None
 
-            :param classical_composers:     Optional cd classical composers
-            :type classical_composers:      list(:class:`_Artist`) | None
+            :param classical_composers:      Optional cd classical composers
+            :type classical_composers:       list(:class:`_Artist`) | None
 
             :param artist_particles:         Particle text linking artists
             :type artist_particles:          list(str) | None
@@ -1771,7 +1771,7 @@ class CDs():
             if not isinstance(artist, _Artist):
                 raise ArtistException('{} is not a an artist'.format(artist))
 
-        results = cls.find_cd_by_title(title)
+        results = cls.find_by_title(title)
         if len(results) > 0:
             # Need to check hash id
             new_cd_hash = media_to_hash(media_type, title, artists[0].name)
@@ -1790,11 +1790,11 @@ class CDs():
                 classical_composer.add_media(new_cd)
 
         if not skip_adding_to_cd_list:
-            cls.add_cd(new_cd)
+            cls.add(new_cd)
         return new_cd
 
     @classmethod
-    def add_cd(cls, cd: _CD) -> None:
+    def add(cls, cd: _CD) -> None:
         """ Add a cd to the list of all cds.
 
             :param cd:            The cd to add
@@ -1809,7 +1809,7 @@ class CDs():
         cls._cds.append(cd)
 
     @classmethod
-    def delete_cd(cls, cd: _LP) -> None:
+    def delete(cls, cd: _LP) -> None:
         """ Remove the cd from the list of all cd.
 
             In actuality we pug the location in the list of
@@ -1831,7 +1831,7 @@ class CDs():
             cls._cds[make_hole_index] = None
 
     @classmethod
-    def cd_exists(cls, cd: _CD) -> bool:
+    def exists(cls, cd: _CD) -> bool:
         """ Returns true of the cd exists in the list of cds.
 
             :param cd:  The cd to add
@@ -1843,7 +1843,24 @@ class CDs():
         return cd in cls._cds
 
     @classmethod
-    def find_cd_by_title(cls, title: str) -> List[_CD]:
+    def find_by_index(cls, index: int) -> Optional[_CD]:
+        """ Return the cd by its index or None if not found.
+
+            :param index:   The index in the list of cds of the cd to locate
+            :type index:    int
+
+            :returns:       The cd or None
+            :rtype:         class:`_CD` or None
+        """
+        cd = None
+        try:
+            cd = cls._cds[index]
+        except IndexError:
+            pass
+        return cd
+
+    @classmethod
+    def find_by_title(cls, title: str) -> List[_CD]:
         """ Returns the cds in the list of all cds that matches the passed cd title. Otherwise, empty list.
 
             :param title:  The cd title to search for
@@ -1860,7 +1877,7 @@ class CDs():
         return result
 
     @classmethod
-    def find_cds_by_year(cls, year: int) -> List[_LP]:
+    def find_by_year(cls, year: int) -> List[_LP]:
         """ Return a list of cds produced in the passed year.
 
             :param year:  Find cds produced in this year
@@ -1921,45 +1938,45 @@ class ELPs():
         cls._max_index = 0
 
     @classmethod
-    def create_ELP(cls,
-                   media_type: MediaType,
-                   title: str,
-                   artists: List[_Artist],
-                   year: int,
-                   mixer: Optional[_Artist] = None,
-                   classical_composers: Optional[_Artist] = None,
-                   artist_particles: List[str] = None,
-                   skip_adding_to_elp_list: bool = False) -> _ELP:
+    def create(cls,
+               media_type: MediaType,
+               title: str,
+               artists: List[_Artist],
+               year: int,
+               mixer: Optional[_Artist] = None,
+               classical_composers: Optional[_Artist] = None,
+               artist_particles: List[str] = None,
+               skip_adding_to_elp_list: bool = False) -> _ELP:
         """ Return the named elp if it exists or create a new elp.
 
             By default a new elp is added to the list of all elps.
 
-            :param media_type:               The media type of the music elp
-            :type media_type:                :class:`MediaType`
+            :param media_type:                The media type of the music elp
+            :type media_type:                 :class:`MediaType`
 
-            :param title:                    The title of the new elp
-            :type name:                      str
+            :param title:                     The title of the new elp
+            :type name:                       str
 
-            :param artists:                  The list of elp artists
-            :type artists:                   list(:class:`_Artist`)
+            :param artists:                   The list of elp artists
+            :type artists:                    list(:class:`_Artist`)
 
-            :param year:                     The year the elp was published
-            :type year:                      int
+            :param year:                      The year the elp was published
+            :type year:                       int
 
-            :param mixer:                   Optional elp mixer
-            :type mixer:                    :class:`_Artist` | None
+            :param mixer:                     Optional elp mixer
+            :type mixer:                      :class:`_Artist` | None
 
-            :param classical_composers:     Optional elp classical composers
-            :type classical_composers:      list(:class:`_Artist`) | None
+            :param classical_composers:       Optional elp classical composers
+            :type classical_composers:        list(:class:`_Artist`) | None
 
-            :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str) | NOne
+            :param artist_particles:          Particle text linking artists
+            :type artist_particles:           list(str) | NOne
 
             :param skip_addiing_to_elp_list:  If true, do not add new elp to elps list
             :type skip_adding_to_elp_list:    bool
 
-            :returns:                        The located or newly created elp
-            :rtype:                          :class:`_ELP`
+            :returns:                         The located or newly created elp
+            :rtype:                           :class:`_ELP`
         """
         # We need to perform this check before searching for an existing elp as we need a valid
         # artist name to search
@@ -1969,7 +1986,7 @@ class ELPs():
             if not isinstance(artist, _Artist):
                 raise ArtistException('{} is not a an artist'.format(artist))
 
-        results = cls.find_elp_by_title(title)
+        results = cls.find_by_title(title)
         if len(results) > 0:
             # Need to check hash id
             new_elp_hash = media_to_hash(media_type, title, artists[0].name)
@@ -1988,11 +2005,11 @@ class ELPs():
                 classical_composer.add_media(new_elp)
 
         if not skip_adding_to_elp_list:
-            cls.add_elp(new_elp)
+            cls.add(new_elp)
         return new_elp
 
     @classmethod
-    def add_elp(cls, elp: _ELP) -> None:
+    def add(cls, elp: _ELP) -> None:
         """ Add an elp to the list of all elps.
 
             :param elp:            The elp to add
@@ -2007,7 +2024,7 @@ class ELPs():
         cls._elps.append(elp)
 
     @classmethod
-    def delete_elp(cls, elp: _ELP) -> None:
+    def delete(cls, elp: _ELP) -> None:
         """ Remove the elp from the list of all elps.
 
             In actuality we pug the location in the list of
@@ -2029,19 +2046,36 @@ class ELPs():
             cls.elps[make_hole_index] = None
 
     @classmethod
-    def elp_exists(cls, elp: _ELP) -> bool:
+    def exists(cls, elp: _ELP) -> bool:
         """ Returns true of the elp exists in the list of elps.
 
             :param elp:  The elp to add
             :type elp:   :class:`_ELP`
 
-            :returns:   True if the elp exists in the list of all elps
-            :rtype:     bool
+            :returns:    True if the elp exists in the list of all elps
+            :rtype:      bool
         """
         return elp in cls._elps
 
     @classmethod
-    def find_elp_by_title(cls, title: str) -> List[_ELP]:
+    def find_by_index(cls, index: int) -> Optional[_ELP]:
+        """ Return the elp by its index or None if not found.
+
+            :param index:   The index in the list of elps of the elp to locate
+            :type index:    int
+
+            :returns:       The elp or None
+            :rtype:         class:`_ELP` or None
+        """
+        elp = None
+        try:
+            elp = cls._elps[index]
+        except IndexError:
+            pass
+        return elp
+
+    @classmethod
+    def find_by_title(cls, title: str) -> List[_ELP]:
         """ Returns the elps in the list of all elps that matches the passed elp title. Otherwise, empty list.
 
             :param title:  The elp title to search for
@@ -2058,7 +2092,7 @@ class ELPs():
         return result
 
     @classmethod
-    def find_elps_by_year(cls, year: int) -> List[_ELP]:
+    def find_by_year(cls, year: int) -> List[_ELP]:
         """ Return a list of elps produced in the passed year.
 
             :param year:  Find elps produced in this year
@@ -2119,45 +2153,45 @@ class MINI_CDs():
         cls._max_index = 0
 
     @classmethod
-    def create_MINI_CD(cls,
-                       media_type: MediaType,
-                       title: str,
-                       artists: List[_Artist],
-                       year: int,
-                       mixer: Optional[_Artist] = None,
-                       classical_composers: Optional[_Artist] = None,
-                       artist_particles: List[str] = None,
-                       skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
+    def create(cls,
+               media_type: MediaType,
+               title: str,
+               artists: List[_Artist],
+               year: int,
+               mixer: Optional[_Artist] = None,
+               classical_composers: Optional[_Artist] = None,
+               artist_particles: List[str] = None,
+               skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
         """ Return the named mini CD if it exists or create a new mini_cd.
 
             By default a new mini CD is added to the list of all mini CDs.
 
-            :param media_type:               The media type of the music mini CD
-            :type media_type:                :class:`MediaType`
+            :param media_type:                    The media type of the music mini CD
+            :type media_type:                     :class:`MediaType`
 
-            :param title:                    The title of the new mini CD
-            :type name:                      str
+            :param title:                         The title of the new mini CD
+            :type name:                           str
 
-            :param artists:                  The list of mini CD artists
-            :type artists:                   list(:class:`_Artist`)
+            :param artists:                       The list of mini CD artists
+            :type artists:                        list(:class:`_Artist`)
 
-            :param year:                     The year the mini CD was published
-            :type year:                      int
+            :param year:                          The year the mini CD was published
+            :type year:                           int
 
-            :param mixer:                    Optional mini CD mixer
-            :type mixer:                     :class:`_Artist` | None
+            :param mixer:                         Optional mini CD mixer
+            :type mixer:                          :class:`_Artist` | None
 
-            :param classical_composers:      Optional mini CD classical composers
-            :type classical_composers:       list(:class:`_Artist`) | None
+            :param classical_composers:           Optional mini CD classical composers
+            :type classical_composers:            list(:class:`_Artist`) | None
 
-            :param artist_particles:         Particle text linking artists
-            :type artist_particles:          list(str) | None
+            :param artist_particles:              Particle text linking artists
+            :type artist_particles:               list(str) | None
 
             :param skip_addiing_to_mini_cd_list:  If true, do not add new mini CD to mini_cds list
             :type skip_adding_to_mini_cd_list:    bool
 
-            :returns:                        The located or newly created mini CD
-            :rtype:                          :class:`_MINI_CD`
+            :returns:                             The located or newly created mini CD
+            :rtype:                               :class:`_MINI_CD`
         """
         # We need to perform this check before searching for an existing mini CD as we need a valid
         # artist name to search
@@ -2167,7 +2201,7 @@ class MINI_CDs():
             if not isinstance(artist, _Artist):
                 raise ArtistException('{} is not a an artist'.format(artist))
 
-        results = cls.find_mini_cd_by_title(title)
+        results = cls.find_by_title(title)
         if len(results) > 0:
             # Need to check hash id
             new_mini_cd_hash = media_to_hash(media_type, title, artists[0].name)
@@ -2186,11 +2220,11 @@ class MINI_CDs():
                 classical_composer.add_media(new_mini_cd)
 
         if not skip_adding_to_mini_cd_list:
-            cls.add_mini_cd(new_mini_cd)
+            cls.add(new_mini_cd)
         return new_mini_cd
 
     @classmethod
-    def add_mini_cd(cls, mini_cd: _MINI_CD) -> None:
+    def add(cls, mini_cd: _MINI_CD) -> None:
         """ Add an mini_cd to the list of all mini CDs.
 
             :param mini_cd:            The mini CD to add
@@ -2205,7 +2239,7 @@ class MINI_CDs():
         cls._mini_cds.append(mini_cd)
 
     @classmethod
-    def delete_mini_cd(cls, mini_cd: _MINI_CD) -> None:
+    def delete(cls, mini_cd: _MINI_CD) -> None:
         """ Remove the mini CD from the list of all mini CDs.
 
             In actuality we pug the location in the list of
@@ -2227,19 +2261,36 @@ class MINI_CDs():
             cls._mini_cds[make_hole_index] = None
 
     @classmethod
-    def mini_cd_exists(cls, mini_cd: _MINI_CD) -> bool:
+    def exists(cls, mini_cd: _MINI_CD) -> bool:
         """ Returns true of the mini CD exists in the list of mini CDs.
 
             :param mini_cd:  The mini CD to add
             :type mini_cd:   :class:`_MINI_CD`
 
-            :returns:   True if the mini CD exists in the list of all mini CDs
-            :rtype:     bool
+            :returns:        True if the mini CD exists in the list of all mini CDs
+            :rtype:          bool
         """
         return mini_cd in cls._mini_cds
 
     @classmethod
-    def find_mini_cd_by_title(cls, title: str) -> List[_MINI_CD]:
+    def find_by_index(cls, index: int) -> Optional[_MINI_CD]:
+        """ Return the mini CD by its index or None if not found.
+
+            :param index:   The index in the list of mini CDs of the mini CD to locate
+            :type index:    int
+
+            :returns:       The mini CD or None
+            :rtype:         class:`_MINI_CD` or None
+        """
+        mini_cd = None
+        try:
+            mini_cd = cls._mini_cds[index]
+        except IndexError:
+            pass
+        return mini_cd
+
+    @classmethod
+    def find_by_title(cls, title: str) -> List[_MINI_CD]:
         """ Returns the mini CDs in the list of all mini CDs that matches the passed mini CD title. Otherwise, empty list.
 
             :param title:  The mini CD title to search for
@@ -2256,7 +2307,7 @@ class MINI_CDs():
         return result
 
     @classmethod
-    def find_mini_cds_by_year(cls, year: int) -> List[_MINI_CD]:
+    def find__by_year(cls, year: int) -> List[_MINI_CD]:
         """ Return a list of mini CDs produced in the passed year.
 
             :param year:  Find mini CDs produced in this year

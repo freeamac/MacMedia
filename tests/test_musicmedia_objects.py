@@ -160,7 +160,7 @@ class MEDIATestCase(unittest.TestCase):
 
         album_artist = Artists().create_Artist('Various Artists')
         album_mixer = Artists().create_Artist('DJ Funk')
-        album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 3', artists=[album_artist], year=1992, mixer=album_mixer)
+        album = LPs().create(MediaType.LP, 'Club Cutz Volume 3', artists=[album_artist], year=1992, mixer=album_mixer)
         album.add_track(track=track)
 
         # Test properties creation
@@ -177,15 +177,15 @@ class MEDIATestCase(unittest.TestCase):
 
         # Test error conditions
         with pytest.raises(TypeError):
-            album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 9', [album_artist], '1992')
+            album = LPs().create(MediaType.LP, 'Club Cutz Volume 9', [album_artist], '1992')
         with pytest.raises(ArtistException):
-            album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 9', 'DC Magnet', 1992)
+            album = LPs().create(MediaType.LP, 'Club Cutz Volume 9', 'DC Magnet', 1992)
         with pytest.raises(ArtistException):
-            album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 9', ['DC Magnet'], 1992)
+            album = LPs().create(MediaType.LP, 'Club Cutz Volume 9', ['DC Magnet'], 1992)
         with pytest.raises(TrackListException):
             album.add_track('Hello')
         with pytest.raises(ArtistException):
-            album = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 9', artists=[album_artist], year=1992, mixer='Hello')
+            album = LPs().create(MediaType.LP, 'Club Cutz Volume 9', artists=[album_artist], year=1992, mixer='Hello')
 
         # Test string output
         expected_string = 'lp\n'
@@ -207,7 +207,7 @@ class MEDIATestCase(unittest.TestCase):
         artists = Artists()
         artists._clean_artists()
 
-        self.assertEqual([], all_lps.find_lp_by_title('Club Cutz Volume 3'))
+        self.assertEqual([], all_lps.find_by_title('Club Cutz Volume 3'))
         self.assertEqual(0, len(all_lps.lps))
 
         artist_1 = artists.create_Artist('Various Artists')
@@ -226,7 +226,7 @@ class MEDIATestCase(unittest.TestCase):
         track_1.add_song(song_2)
         track_1.add_song(song_3)
 
-        album_1 = LPs().create_LP(MediaType.LP, 'Club Cutz Volume 3', artists=[artist_1], year=1992)
+        album_1 = LPs().create(MediaType.LP, 'Club Cutz Volume 3', artists=[artist_1], year=1992)
         album_1.add_track(track=track_1)
 
         song_4 = Song('He\'s All I Want', artist_5, mix='Cappery Mix')
@@ -237,7 +237,7 @@ class MEDIATestCase(unittest.TestCase):
         track_2.add_song(song_5)
         track_2.add_song(song_6)
         album_2_artist = Artists().create_Artist('Various Artists')
-        album_2 = LPs().create_LP(media_type=MediaType.LP, title='Various: 01 Dance Music: Modernlife', artists=[album_2_artist], year=2000)
+        album_2 = LPs().create(media_type=MediaType.LP, title='Various: 01 Dance Music: Modernlife', artists=[album_2_artist], year=2000)
         album_2.add_track(track_2)
 
         # Test Singleton
@@ -245,29 +245,29 @@ class MEDIATestCase(unittest.TestCase):
         self.assertEqual(all_lps, all_lps_2)
 
         # Test existence
-        self.assertTrue(all_lps.lp_exists(album_2))
-        missing_album = LPs().create_LP(media_type=MediaType.LP,
-                                        title='Missing Gold',
-                                        artists=[Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_set=True)],
-                                        year=1920,
-                                        skip_adding_to_lp_list=True)
-        self.assertFalse(all_lps.lp_exists(missing_album))
+        self.assertTrue(all_lps.exists(album_2))
+        missing_album = LPs().create(media_type=MediaType.LP,
+                                     title='Missing Gold',
+                                     artists=[Artists().create_Artist('The Gold Diggers', skip_adding_to_artists_set=True)],
+                                     year=1920,
+                                     skip_adding_to_lp_list=True)
+        self.assertFalse(all_lps.exists(missing_album))
 
         # Test we can only add valid albums
         with pytest.raises(LPException):
-            all_lps.add_lp('Hello')
+            all_lps.add('Hello')
 
         # Test adding an album
-        all_lps.add_lp(missing_album)
-        self.assertTrue(all_lps.lp_exists(missing_album))
+        all_lps.add(missing_album)
+        self.assertTrue(all_lps.exists(missing_album))
 
         # Test deleting an album
-        all_lps.delete_lp(missing_album)
-        self.assertFalse(all_lps.lp_exists(missing_album))
+        all_lps.delete(missing_album)
+        self.assertFalse(all_lps.exists(missing_album))
 
         # Test finding an album by title
-        self.assertEqual([], all_lps.find_lp_by_title('Missing Gold'))
-        search_results = all_lps.find_lp_by_title('Club Cutz Volume 3')
+        self.assertEqual([], all_lps.find_by_title('Missing Gold'))
+        search_results = all_lps.find_by_title('Club Cutz Volume 3')
         self.assertEqual(1, len(search_results))
         self.assertEqual(album_1, search_results[0])
 
@@ -294,9 +294,9 @@ class MEDIATestCase(unittest.TestCase):
 
         # Test that we correctly create a new album when the title matches an
         # existing album
-        new_album = LPs().create_LP(media_type=MediaType.LP, title='Club Cutz Volume 3', artists=[artist_2], year=1992)
+        new_album = LPs().create(media_type=MediaType.LP, title='Club Cutz Volume 3', artists=[artist_2], year=1992)
         self.assertNotEqual(album_1, new_album)
-        search_results = all_lps.find_lp_by_title('Club Cutz Volume 3')
+        search_results = all_lps.find_by_title('Club Cutz Volume 3')
         self.assertEqual(2, len(search_results))
 
         # Now we have some artist data collected as collateral to creating albums, test that
@@ -355,17 +355,17 @@ class MEDIATestCase(unittest.TestCase):
         additional_artists = set([additional_artist.artist.name for additional_artist in adagio_song.additional_artists])
         self.assertEqual(adagio_song_additional_artists, additional_artists)
 
-        whos_zoo = all_lps.find_lp_by_title('Who\'s Zoo')[0]
+        whos_zoo = all_lps.find_by_title('Who\'s Zoo')[0]
         self.assertEqual(len(whos_zoo.tracks), 4)
         im_the_face_song = whos_zoo.get_song_from_title('I\'m The Face')
         self.assertEqual(im_the_face_song.year, 1964)
         self.assertEqual(im_the_face_song.additional_artists[0].artist.name, 'The High Numbers')
 
-        not_fragile = all_lps.find_lp_by_title('Not Fragile')[0]
-        moontan = all_lps.find_lp_by_title('Moontan')[0]
-        know_your_jazz = all_lps.find_lp_by_title('Know Your Jazz')[0]
+        not_fragile = all_lps.find_by_title('Not Fragile')[0]
+        moontan = all_lps.find_by_title('Moontan')[0]
+        know_your_jazz = all_lps.find_by_title('Know Your Jazz')[0]
 
-        self.assertListEqual(all_lps.find_lps_by_year(1974), [whos_zoo, moontan, know_your_jazz, not_fragile])
+        self.assertListEqual(all_lps.find_by_year(1974), [whos_zoo, moontan, know_your_jazz, not_fragile])
 
     def test_read_cds_html(self):
         # Test the reading of a music html file to extract all the CDs

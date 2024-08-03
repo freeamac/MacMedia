@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Modify {{ media_str }} Track Information{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>Modify "<b>{{ form.title }}</b>" Track Information</h1>
+</div>
+
+
+
+<div class="container">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="row">
+            {% if form.new_track %}
+            <div class="col-md-3">
+		    <h2>Adding New Track To {{ media_str }}:</h2>
+            </div>
+            {% endif %}
+          <div class="col-md-2">
+            <h4>{{ form.track_name.label }}</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.track_name }}
+          </div>
+          <div class="col-md-2">
+            <h4>{{ form.track_mixer.label }}</h4>
+          </div>
+          <div class="col-md-2">
+            {{ form.track_mixer }}
+          </div>
+        </div>
+
+        <div class="row top20">
+          <div class="col-md-2">
+            <input type="submit" name="save" value="Save And Finish">
+          </div>
+          <div class="col-md-2">
+            <input type="submit" name="modify_next_track" value="Save And Modify Next Track">
+          </div>
+          <div class="col-md-2">
+            <input type="submit" name="modify_songs" value="Save And Modify Track Songs">
+          </div>
+          <div class="col-md-2">
+            <input type="submit" name="cancel" value="Cancel">
+          </div>
+        </div>
+        
+    </form>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+
+{% endblock %}
