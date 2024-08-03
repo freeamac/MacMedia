@@ -489,6 +489,9 @@ def modify(media_type, id):
                     if form.save.data:
                         return redirect(url_for('.index'))
 
+                    if form.save_and_modify_tracks.data:
+                        return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track', id=item.index, track_id=0))
+
         except FormValidateException:
             pass
         except Exception as e:
