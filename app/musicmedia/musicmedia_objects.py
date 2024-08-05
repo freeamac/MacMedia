@@ -934,6 +934,15 @@ class _MEDIA():
     def artists(self) -> List[_Artist]:
         return self._artists
 
+    @artists.setter
+    def artists(self, new_artists) -> None:
+        if not isinstance(new_artists, list):
+            raise ArtistException('{} is not a list of Artist objects'.format(new_artists))
+        for artist in new_artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not an Artist object'.format(artist))
+        self._artists = new_artists
+
     @property
     def artist_particles(self) -> Optional[List[str]]:
         return self._artist_particles

@@ -86,7 +86,7 @@ def build_additional_artist_tuples(additional_artists):
                                             'additional_artist_sequel': additional_artist.sequel})
             additional_artists_prequels.append(additional_artist.prequel)
             additional_artists_names.append(additional_artist.artist.name)
-            additional_artists_sequels.append(additional_artist.seequel)
+            additional_artists_sequels.append(additional_artist.sequel)
     additional_artists_prequel_tuple = tuple(additional_artists_prequels)
     additional_artists_name_tuple = tuple(additional_artists_names)
     additional_artists_sequel_tuple = tuple(additional_artists_sequels)
@@ -112,7 +112,7 @@ def build_classical_composer_names_tuple(classical_composers):
 
 
 def append_new_artists(artists_list, new_artist_names, item_data):
-    """ Create a new Artist and append them to the passed list of artists.
+    """ Create a new Artist and append them to the passed list of artists returning the updated list.
 
         Each new Artist will also be associated with the passed Music Media item
 
@@ -124,6 +124,9 @@ def append_new_artists(artists_list, new_artist_names, item_data):
 
         :param item_data:          The Music Media item to associate with the new Artist
         :type item_data:           :class:`_Media`
+
+        :returns:                  The updated list
+        :rtype:                    list(:class:`_Artist`)
 
         :raises Exception:         Only class:`MediaException` is caught when adding the Music Media item to the
                                    new Artist under the assumption the Artist may have already be associated on
@@ -139,6 +142,7 @@ def append_new_artists(artists_list, new_artist_names, item_data):
             app.app.logger.warning('Media Exception {} ignored. Assuming additional artist to be associated with other songs on the Music Media item'.format(e))
         except Exception as e:
             raise e
+    return artists_list
 
 
 def append_new_additional_artists(additional_artists_list,
@@ -146,7 +150,7 @@ def append_new_additional_artists(additional_artists_list,
                                   new_additional_artist_prequels,
                                   new_additional_artist_sequels,
                                   item_data):
-    """ Create a new Additional Artist and append them to the passed list of additional artists.
+    """ Create a new Additional Artist and append them to the passed list of additional artists returning the updated list.
 
         Each new Additional Artist will also be associated with the passed Music Media item
 
@@ -165,57 +169,29 @@ def append_new_additional_artists(additional_artists_list,
         :param item_data:                       The Music Media item to associate with the new Artist
         :type item_data:                        :class:`_Media`
 
+        :returns:                               The new updated list
+        :rtype:                                 list(:class:`Additional_Artist`)
+
         :raises Exception:                      Only class:`MediaException` is caught when adding the Music
                                                 Media item to the new Artist under the assumption the Artist
                                                 may have already be associated on another
     """
+    if additional_artists_list is None:
+        additional_artists_list = []
     for index, artist_name in enumerate(new_additional_artist_names):
-        new_additional_artist = Artists.create_Artist(artist_name)
-        new_additional_artist = Additional_Artist(artist=new_additional_artist,
+        new_artist = Artists.create_Artist(artist_name)
+        new_additional_artist = Additional_Artist(artist=new_artist,
                                                   prequel=new_additional_artist_prequels[index],
                                                   sequel=new_additional_artist_sequels[index])
         additional_artists_list.append(new_additional_artist)
         try:
-            new_additional_artist.add_media(item_data)
+            new_artist.add_media(item_data)
         except MediaException as e:
             # Could be an artist of a song on the album
             app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs or the Music Media item'.format(e))
         except Exception as e:
             raise e
-
-
-def replace_artist(artist_element, new_artist_name, item_data):
-    """ Replace the Artist in the passed element (eg. Song, LP, CD, etc) with a newly constructed Artist.
-
-        The replacement also requires an update to associated LP information. This means remove the Music Media
-        item from the old Artist, create a new Artist, replace the old with the new Artist and associate the
-        Music Media item with the new Artist.
-
-        :param artist_element:  The element which is associated with the Artist
-        :type artist_element:   class:`_Artist`
-
-        :param new_artist_name:  The name of the new Artist to create
-        :type new_artist_name:   str
-
-        :param item_data:        The Music Media item to remove from the old Artist and add to the new Artist
-        :type item_data:         :class:`_Media`
-
-        :raises Exception:       Only class:`MediaException` is caught when adding the Music Media item to the
-                                 new Artist under the assumption the Artist may have already be associated on
-                                 another song or the Music Media item
-    """
-    if artist_element is not None:
-        artist_element.delete_media(item_data)  # TO DO: perhaps they artist is still associated with a sone on the LP
-
-    new_artist = Artists.create_Artist(new_artist_name)
-    artist_element = new_artist
-    try:
-        new_artist.add_media(item_data)
-    except MediaException as e:
-        # Could be an artist on a song of the Music Media item
-        app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs on the Music Media item'.format(e))
-    except Exception as e:
-        raise e
+    return additional_artists_list
 
 
 def get_macmedia_library(media_type):

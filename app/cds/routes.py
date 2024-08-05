@@ -69,7 +69,7 @@ def modify_cd_track(id, track_id):
 
 
 @cds.route('/modify_track_song/<int:id>/<int:track_id>/<int(signed=True):song_id>', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def modify_cd_track_song(id, track_id, song_id):
     """ Modify the data of a CD track """
     return modify_track_song(MediaType.CD, id, track_id, song_id)

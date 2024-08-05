@@ -26,7 +26,6 @@ from .route_utilities import (
     get_macmedia_library,
     name_value_or_blank,
     massage_particle,
-    replace_artist,
 )
 
 
@@ -181,7 +180,7 @@ def add(media_type):
         except Exception as e:
             raise e
 
-    return render_template('add_new_musicmedia_item.html', media_str=musicmedia_str, form=form, lp_additional_artists=additional_artists)
+    return render_template('add_new_musicmedia_item.html', media_str=musicmedia_str, form=form, additional_artists=additional_artists)
 
 
 def add_track(media_type, id, track_id):
@@ -347,7 +346,7 @@ def modify(media_type, id):
                 additional_artist = {'additional_artist_particle': artist_particles_tuple[x],
                                      'additional_artist': additional_artists_name_tuple[x]}
                 additional_artists.append(additional_artist)
-        form.process(lp_additional_artists=additional_artists)
+        form.process(additional_artists=additional_artists)
         form.title.data = item.title
         form.main_artist.data = item.artists[0].name
         form.mixer.data = name_value_or_blank(item.mixer)
@@ -413,11 +412,19 @@ def modify(media_type, id):
                     if artist_str != item.artists[0].name:
                         changes = True
 
+                        item.artists[0].delete_media(item)  # TO DO: perhaps they artist is still associated with a sone on the LP
                         if artist_str == '':
-                            item.artists[0].delete_media(item)  # TO DO: perhaps they artist is still associated with a sone on the LP
                             item.artists.remove(item.artists[0])
                         else:
-                            replace_artist(item.artists[0], artist_str, item)
+                            new_artist = Artists.create_Artist(artist_str)
+                            item.artists[0] = new_artist
+                            try:
+                                new_artist.add_media(item)
+                            except MediaException as e:
+                                # Could be an artist on a song of the Music Media item
+                                app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs on the Music Media item'.format(e))
+                            except Exception as e:
+                                raise e
 
                     # Check mixer change
                     if (item.mixer is not None and mixer_str != item.mixer.name) or (item.mixer is None and mixer_str != ''):
@@ -427,7 +434,15 @@ def modify(media_type, id):
                                 item.mixer.delete_media(item)
                             item.mixer = None
                         else:
-                            replace_artist(item.mixer, mixer_str, item)
+                            new_mixer = Artists.create_Artist(mixer_str)
+                            item.mixer = new_mixer
+                            try:
+                                new_mixer.add_media(item)
+                            except MediaException as e:
+                                # Could be an artist on a song of the Music Media item
+                                app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs on the Music Media item'.format(e))
+                            except Exception as e:
+                                raise e
 
                     # Check if classical composers change. If so, rebuild completely
                     if (set(classical_composer_names_tuple) != set(new_classical_composer_names)):
@@ -440,7 +455,7 @@ def modify(media_type, id):
                         if len(new_classical_composer_names) == 0:
                             item.classical_composers = None
                         else:
-                            append_new_artists(item.classical_composers, new_classical_composer_names, item)
+                            item.classical_composers = append_new_artists(item.classical_composers, new_classical_composer_names, item)
 
                     # Check if year change
                     if year != item.year:
@@ -480,7 +495,7 @@ def modify(media_type, id):
                             item.artist_particles = None
                         else:
                             item.artist_particles = artist_particle_list
-                            append_new_artists(additional_artists_name_list, item.artists, item)
+                            item.artists = append_new_artists(item.artists, additional_artists_name_list, item)
 
                     if not changes:
                         flash('No changes made that need to be saved.')
@@ -616,7 +631,10 @@ def modify_track_song(media_type, id, track_id, song_id):
             form.song_country.data = song_data.country
             form.song_year.data = song_data.year
             form.song_mix.data = song_data.mix
-            form.song_parts.data = '\n'.join(song_data.parts)
+            if song_data.parts is None:
+                form.song_parts.data = ''
+            else:
+                form.song_parts.data = '\n'.join(song_data.parts)
             if song_data.classical_composers is not None:
                 form.song_classical_composer_1.data = song_data.classical_composers[0].name
                 if len(song_data.classical_composers) == 2:
@@ -726,14 +744,14 @@ def modify_track_song(media_type, id, track_id, song_id):
                 if template_new_song:
                     # Create and add a new song to the track list
                     classical_composers = []
-                    append_new_artists(classical_composers, classical_composers_name_list, item)
+                    classical_composers = append_new_artists(classical_composers, classical_composers_name_list, item)
 
                     additional_artists = []
-                    append_new_additional_artists(additional_artists,
-                                                  additional_artists_name_list,
-                                                  additional_artists_prequel_list,
-                                                  additional_artists_sequel_list,
-                                                  item)
+                    additional_artists = append_new_additional_artists(additional_artists,
+                                                                       additional_artists_name_list,
+                                                                       additional_artists_prequel_list,
+                                                                       additional_artists_sequel_list,
+                                                                       item)
 
                     new_song = Song(title=song_title_str,
                                     main_artist=item.artists[0],
@@ -790,7 +808,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                             if composer_name not in classical_composers_name_list:
                                 song_data.classical_composers[index].delete_media(item)
                         new_composers = []
-                        append_new_artists(new_composers, classical_composers_name_list, item)
+                        new_composers = append_new_artists(new_composers, classical_composers_name_list, item)
                         song_data.classical_composers = new_composers
 
                     # Handle additional artist changes
@@ -806,11 +824,11 @@ def modify_track_song(media_type, id, track_id, song_id):
                                 song_data.additional_artists[index].artist.delete_media(item)
 
                         song_data.additional_artists = []
-                        append_new_additional_artists(song_data.additional_artists,
-                                                      additional_artists_name_list,
-                                                      additional_artists_prequel_list,
-                                                      additional_artists_sequel_list,
-                                                      item)
+                        song_data.additional_artists = append_new_additional_artists(song_data.additional_artists,
+                                                                                     additional_artists_name_list,
+                                                                                     additional_artists_prequel_list,
+                                                                                     additional_artists_sequel_list,
+                                                                                     item)
 
                 return redirect(url_for('.index'))
 
@@ -823,7 +841,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                            media_str=musicmedia_str,
                            form=form,
                            song_additional_artists=song_additional_artists,
-                           lp_title=title,
+                           title=title,
                            song_id=template_song_id,
                            template_new_song=template_new_song,
                            template_last_song=template_last_song,

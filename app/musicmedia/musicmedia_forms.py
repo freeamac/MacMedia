@@ -17,7 +17,6 @@ class AdditionalArtistForm(Form):
     additional_artist_prequel = StringField('Prequel', validators=[Length(0, 20)])
     additional_artist_sequel = StringField('Sequel', validators=[Length(0, 20)])
     additional_artist = StringField('Artist Name', validators=[Length(0, 40)])
-    classical_composer = StringField('Classical Composer', validators=[Length(0, 40)])
 
 
 class MusicMediaMetaForm(FlaskForm):
