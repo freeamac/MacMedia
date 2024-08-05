@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Modify {{ media_str }} Track Information{% endblock %}
+{% block title %}Modify {{ media_str.upper() }} Track Information{% endblock %}
 
 {% block page_content %}
 <div class="page-header">
@@ -16,7 +16,7 @@
         <div class="row">
             {% if form.new_track %}
             <div class="col-md-3">
-		    <h2>Adding New Track To {{ media_str }}:</h2>
+		    <h2>Adding New Track To {{ media_str.upper() }}:</h2>
             </div>
             {% endif %}
           <div class="col-md-2">

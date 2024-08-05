@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}{{ media_str }} Information{% endblock %}
+{% block title %}{{ media_str.upper() }} Information{% endblock %}
 
 {% block page_content %}
 {{ html_str | safe }}

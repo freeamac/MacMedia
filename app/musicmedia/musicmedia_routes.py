@@ -36,7 +36,7 @@ class FormValidateException(Exception):
 def expand(media_type, id):
     """ Expand the Music Media information of the passed Music Media id. """
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     musicmedia_data = musicmedia_library.find_by_index(id)
     if musicmedia_data is None:
@@ -49,7 +49,7 @@ def expand(media_type, id):
 def delete(media_type, id):
     """ Delete the Music Media from the list """
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     musicmedia_data = musicmedia_library.find_by_index(id)
     if musicmedia_data is None:
@@ -83,13 +83,13 @@ def delete(media_type, id):
 
         return redirect(url_for('.index'))
 
-    return render_template('delete_musicmedia.html', form=form, media_str=musicmedia_str)
+    return render_template('delete_musicmedia.html', media_str=musicmedia_str, form=form)
 
 
-def add(media_type):
+def add_media(media_type):
     """ Add a new Music Media item """
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     additional_artists = [{'artist_particle': '', 'additional_artist': ''}] * 5
 
@@ -186,7 +186,7 @@ def add(media_type):
 def add_track(media_type, id, track_id):
     """ Add a new track to the Music Media item """
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     track_songs = [{'song_title': ''}] * 30
     track_songs_additional_artists = [{'song_additional_artist': ''}] * 3
@@ -236,7 +236,8 @@ def add_track(media_type, id, track_id):
                         song_year = int(song_year)
                     except ValueError:
                         flash('Error: Year in Song #{} is not an integer.'.format(song_num + 1))
-                        return render_template('add_musicmedia_track.html', form=form, track_songs=track_songs,
+                        return render_template('add_musicmedia_track.html', media_str=musicmedia_str, form=form,
+                                               track_songs=track_songs,
                                                track_songs_additional_artists=track_songs_additional_artists,
                                                track_song_classical_composers=track_song_classical_composers)
 
@@ -317,7 +318,8 @@ def add_track(media_type, id, track_id):
 
             return redirect(url_for('.index'))
 
-    return render_template('add_musicmedia_track.html', form=form, track_songs=track_songs,
+    return render_template('add_musicmedia_track.html', media_str=musicmedia_str, form=form,
+                           track_songs=track_songs,
                            track_songs_additional_artists=track_songs_additional_artists,
                            track_song_classical_composers=track_song_classical_composers)
 
@@ -326,7 +328,7 @@ def modify(media_type, id):
     """ Modify the data of a Music Media item """
 
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     additional_artists = []
 
@@ -519,7 +521,7 @@ def modify_track(media_type, id, track_id):
     """ Modify the data of a Music Media track """
 
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     form = ModifyMusicMediaTrackForm()
     item = musicmedia_library.find_by_index(id)
@@ -567,14 +569,14 @@ def modify_track(media_type, id, track_id):
             if form.save.data:
                 return redirect(url_for('.index'))
 
-    return render_template('modify_musicmedia_track.html', form=form)
+    return render_template('modify_musicmedia_track.html', media_str=musicmedia_str, form=form)
 
 
 def modify_track_song(media_type, id, track_id, song_id):
     """ Modify the data of a Music Media item track song """
 
     musicmedia_library = get_macmedia_library(media_type)
-    musicmedia_str = media_type.value.upper()
+    musicmedia_str = media_type.value
 
     # Need a way to determine when we are inserting a new song at the beginning
     # of the track as -0 == 0. We use a sentinel value with the assumption we will

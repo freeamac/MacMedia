@@ -6,7 +6,7 @@ from flask_login import FlaskLoginClient
 
 from app.app import app, db
 from app.demo_helpers import DVDs_data, load_demo_data
-from app.musicmedia.musicmedia_objects import Artists, CDs, ELPs, LPs, MEDIA, MINI_CDs
+from app.musicmedia.musicmedia_objects import Artists, CDs, ELPs, LPs, MEDIA, MediaType, MINI_CDs
 from app.models import User
 
 
@@ -112,7 +112,7 @@ class ApiLPsRoutesTestCase(unittest.TestCase):
         print('Number of lps found: {}'.format(len(all_lps.lps)))
 
         # Grab all LP information from the api call
-        response = self.client.get('/api/v1/lps', follow_redirects=True)
+        response = self.client.get('/api/v1/musicmedia_data/' + MediaType.LP.value, follow_redirects=True)
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertTrue(response.mimetype, 'application/json')
 

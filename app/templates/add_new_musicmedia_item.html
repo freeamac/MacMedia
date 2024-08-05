@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Add New {{ media_str }} To Music Media Library{% endblock %}
+{% block title %}Add New {{ media_str.upper() }} To Music Media Library{% endblock %}
 
 {% block page_content %}
 <div class="page-header">
-	<h1>Add A New {{ media_str }} To The Music Media Library</h1>
+	<h1>Add A New {{ media_str.upper() }} To The Music Media Library</h1>
 </div>
 
 <div class="container">

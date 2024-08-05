@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Modify {{ media_str }} Information{% endblock %}
+{% block title %}Modify {{ media_str.upper() }} Information{% endblock %}
 
 {% block page_content %}
 <div class="page-header">
-	<h1>Modify {{ media_str }} Information</h1>
+	<h1>Modify {{ media_str.upper() }} Information</h1>
 </div>
 
 <div class="container">

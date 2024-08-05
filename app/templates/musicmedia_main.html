@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Music Media Library {{ media_str }}s Main Page{% endblock %}
+{% block title %}Music Media Library {{ media_str.upper() }}s Main Page{% endblock %}
 
 {% block page_content %}
 
 <div class="page-header">
-    <h1>Music Media Library {{ media_str }} Main Page</h1>
+    <h1>Music Media Library {{ media_str.upper() }} Main Page</h1>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </div>
 
-<h2><a href="{{ url_for('.add_cd') }}" class="btn btn-success">Add New {{ media_str }} To Music Media Library</a></h2>
+<h2><a href="{{ url_for('.add') }}" class="btn btn-success">Add New {{ media_str.upper() }} To Music Media Library</a></h2>
 
 <table id="medialist" class="table table-striped" border="10">
     <thead>
@@ -37,7 +37,7 @@
 <script nonce="{{ csp_nonce() }}">
   $(document).ready(function(){
     var table = $('#medialist').DataTable({
-      ajax: '/api/v1/musicmedia_data/cd',
+      ajax: '/api/v1/musicmedia_data/{{ media_str }}',
       columns: [
         {data: 'title', visible: false},  // Added first so sorted on title
         {data: 'id', visible: false, searchable: false},

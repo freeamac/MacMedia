@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Delete {{ media_str }} From The Music MediaLibrary{% endblock %}
+{% block title %}Delete {{ media_str.upper() }} From The Music MediaLibrary{% endblock %}
 
 {% block page_content %}
 <div class="page-header">
-	<h1>Delete {{ media_str }} From The Music Media Library</h1>
+	<h1>Delete {{ media_str.upper() }} From The Music Media Library</h1>
 </div>
 
 <div class="col-md-4">
