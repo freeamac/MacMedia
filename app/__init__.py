@@ -95,6 +95,14 @@ def create_app(name=None):
     from app.cds import cds as cds_blueprint
     app.register_blueprint(cds_blueprint)
 
+    # Set up the routes to the MINI CDs library
+    from app.mini_cds import mini_cds as mini_cds_blueprint
+    app.register_blueprint(mini_cds_blueprint)
+
+    # Set up the routes to the ELPs library
+    from app.elps import elps as elps_blueprint
+    app.register_blueprint(elps_blueprint)
+
     # Set up the routes to the Cassettes library
     from app.cassettes import cassettes as cassettes_blueprint
     app.register_blueprint(cassettes_blueprint)

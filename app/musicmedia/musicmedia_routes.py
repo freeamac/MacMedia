@@ -90,6 +90,7 @@ def add_media(media_type):
     """ Add a new Music Media item """
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
+    pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
 
     additional_artists = [{'artist_particle': '', 'additional_artist': ''}] * 5
 
@@ -174,7 +175,7 @@ def add_media(media_type):
                                                          mixer=mixer,
                                                          classical_composers=classical_composers,
                                                          artist_particles=artist_particles)
-                    return redirect(url_for('.add_' + musicmedia_str.lower() + '_track', media_type=media_type, id=new_item.index, track_id=0))
+                    return redirect(url_for('.add_' + pythonic_musicmedia_str + '_track', media_type=media_type, id=new_item.index, track_id=0))
         except FormValidateException:
             pass
         except Exception as e:
@@ -187,6 +188,7 @@ def add_track(media_type, id, track_id):
     """ Add a new track to the Music Media item """
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
+    pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
 
     track_songs = [{'song_title': ''}] * 30
     track_songs_additional_artists = [{'song_additional_artist': ''}] * 3
@@ -314,7 +316,7 @@ def add_track(media_type, id, track_id):
 
             if form.add_track.data:
                 track_id += 1
-                return redirect(url_for('.add_' + musicmedia_str.lower() + '_track', id=id, track_id=track_id))
+                return redirect(url_for('.add_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id))
 
             return redirect(url_for('.index'))
 
@@ -329,6 +331,7 @@ def modify(media_type, id):
 
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
+    pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
 
     additional_artists = []
 
@@ -371,7 +374,7 @@ def modify(media_type, id):
             if form.validate:
 
                 if form.modify_tracks.data:
-                    return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track', id=item.index, track_id=0))
+                    return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=item.index, track_id=0))
 
                 if form.save.data or form.save_and_modify_tracks.data:
                     title = form['title'].data.strip()
@@ -507,7 +510,7 @@ def modify(media_type, id):
                         return redirect(url_for('.index'))
 
                     if form.save_and_modify_tracks.data:
-                        return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track', id=item.index, track_id=0))
+                        return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=item.index, track_id=0))
 
         except FormValidateException:
             pass
@@ -522,6 +525,7 @@ def modify_track(media_type, id, track_id):
 
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
+    pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
 
     form = ModifyMusicMediaTrackForm()
     item = musicmedia_library.find_by_index(id)
@@ -542,7 +546,7 @@ def modify_track(media_type, id, track_id):
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.modify_' + musicmedia_str.lower(), id=id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str, id=id))
 
         if form.validate:
             track_name = form['track_name'].data.strip()
@@ -561,10 +565,10 @@ def modify_track(media_type, id, track_id):
                     item.tracks[track_id].side_mixer = track_mixer
 
             if form.modify_next_track.data:
-                return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track', id=id, track_id=track_id + 1))
+                return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id + 1))
 
             if form.modify_songs.data:
-                return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', media_type=media_type, id=id, track_id=track_id, song_id=0))
+                return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', media_type=media_type, id=id, track_id=track_id, song_id=0))
 
             if form.save.data:
                 return redirect(url_for('.index'))
@@ -577,6 +581,7 @@ def modify_track_song(media_type, id, track_id, song_id):
 
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
+    pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
 
     # Need a way to determine when we are inserting a new song at the beginning
     # of the track as -0 == 0. We use a sentinel value with the assumption we will
@@ -653,18 +658,18 @@ def modify_track_song(media_type, id, track_id, song_id):
                 new_display_song_id = -1 * song_id - 1
             else:
                 new_display_song_id = song_id - 1
-            return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
 
         if form.insert_song.data:
             if song_id == 0:
                 new_song_insertion_id = NEW_FIRST_SONG_SENTINEL
             else:
                 new_song_insertion_id = -1 * song_id
-            return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', id=id, track_id=track_id, song_id=new_song_insertion_id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_song_insertion_id))
 
         if form.append_new_song.data:
             new_song_insertion_id = -1 * (song_id + 1)
-            return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', id=id, track_id=track_id, song_id=new_song_insertion_id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_song_insertion_id))
 
         if form.delete_song.data:
             # Delete the current song
@@ -674,7 +679,7 @@ def modify_track_song(media_type, id, track_id, song_id):
             else:
                 new_display_song_id = song_id
             del tracklist.song_list[song_id]  # TODP: Handle removal of LP from song artists
-            return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
 
         if form.next_song.data:
             if song_id == NEW_FIRST_SONG_SENTINEL:
@@ -683,7 +688,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                 new_display_song_id = -1 * song_id
             else:
                 new_display_song_id = song_id + 1
-            return redirect(url_for('.modify_' + musicmedia_str.lower() + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
+            return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
 
         if form.validate:
             try:

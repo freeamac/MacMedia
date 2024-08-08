@@ -17,6 +17,7 @@ def dvds_data():
 @api.route('/musicmedia_data/<media_type>', methods=['GET'])
 def musicmedia_data(media_type):
     """ API returning a summary of all music media of the specified type in Music Media library """
+    pythonic_media_type = media_type.replace('-', '_')
     musicmedia_summary = []
     if media_type == MediaType.LP.value:
         musicmedia_list = LPs().lps
@@ -54,7 +55,7 @@ def musicmedia_data(media_type):
                       'classical_composers': classical_composers,
                       'mixer': mixer,
                       'year': musicmedia.year,
-                      'expand_url_title': '<a href="{}">{}</a>'.format(url_for(media_type + 's.expand_' + media_type, id=musicmedia.index), musicmedia.title)
+                      'expand_url_title': '<a href="{}">{}</a>'.format(url_for(pythonic_media_type + 's.expand_' + pythonic_media_type, id=musicmedia.index), musicmedia.title)
                       }
         musicmedia_summary.append(media_data)
     musicmedia_summary = sorted(musicmedia_summary, key=lambda d: d['title'])
