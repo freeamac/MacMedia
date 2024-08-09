@@ -377,7 +377,7 @@ class MEDIATestCase(unittest.TestCase):
         print('Number of artists found: {}'.format(len(all_artists.artists)))
         print('Number of cds found: {}'.format(len(all_cds.cds)))
 
-        self.assertEqual(7, len(all_cds.cds))
+        self.assertEqual(8, len(all_cds.cds))
 
         jungle_brothers = all_artists.find_artist('Jungle Brothers')
         jungle_brothers_cds = jungle_brothers.cds

@@ -30,6 +30,10 @@ a media tracklist.
 from enum import Enum
 from hashlib import md5
 from html import escape
+import os
+from pathlib import Path
+import shutil
+import time
 from typing import List, Optional, Set
 
 from bs4 import BeautifulSoup
@@ -498,6 +502,14 @@ class Song():
         self._exp_main_artist = value
 
     @property
+    def main_artist_sequel(self) -> str:
+        return self._main_artist_sequel
+
+    @main_artist_sequel.setter
+    def main_artist_sequel(self, value) -> None:
+        self._main_artist_sequel = value
+
+    @property
     def additional_artists(self) -> List[_Artist]:
         return self._additional_artists
 
@@ -579,6 +591,7 @@ class Song():
                  title: str,
                  main_artist: Optional[_Artist] = None,
                  exp_main_artist: Optional[bool] = False,
+                 main_artist_sequel: Optional[str] = None,
                  additional_artists: Optional[List[_Artist]] = None,
                  album: Optional[str] = None,
                  classical_composers: List[Optional[_Artist]] = None,
@@ -600,6 +613,9 @@ class Song():
 
             :param exp_main_artist:     Used to know if the main artist should appear in exports
             :type exp_main_artist:      bool
+
+            :param main_artist_sequel:  If the main artist is exported, this is the sequel
+            :type main_artist_sequel:   str
 
             :param additional_artists:  Optional list of additional artists associated with the song
             :type additional_artists:   list(:class:`Additional_Artist`) | None
@@ -646,6 +662,7 @@ class Song():
 
         self._title = title
         self._main_artist = main_artist
+        self._main_artist_sequel = main_artist_sequel
         self._exp_main_artist = exp_main_artist
         self._additional_artists = None if additional_artists == [] else additional_artists
         self._album = album
@@ -691,8 +708,10 @@ class Song():
         else:
             html_str = '  <li><a rel="song">{title}</a>'.format(title=escape(self.title, quote=False))
         if self.exp_main_artist:
-            html_str += '<br>'
-            html_str += '\n' + spaceit('{artist}'.format(artist=self.main_artist.to_html(song_artist=True)), 6)
+            html_str += '<br>\n'
+            html_str += spaceit('{artist}'.format(artist=self.main_artist.to_html(song_artist=True)), 6)
+            if self.main_artist_sequel is not None:
+                html_str += '{}'.format(escape(self.main_artist_sequel))
         if self.additional_artists is not None:
             if not self.exp_main_artist:
                 html_str += '<br>'
@@ -1099,7 +1118,7 @@ class _MEDIA():
                 html_str += ' and <a rel="classical-composer">{composer}</a></h3>\n'.format(composer=escape(self.classical_composers[1].name, quote=False))
             else:
                 html_str += '</h3>\n'
-        if self.mixer is not None:
+        if self.mixer is not None and self.mixer != '':
             html_str += '<h3>Mixed By <a rel="mixer">{mixer_name}</a></h3>\n'.format(mixer_name=self.mixer)
         html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
         for track in self.tracks:
@@ -1138,6 +1157,14 @@ class _MINI_CD(_MEDIA):
 
 
 class MEDIA():
+    _html_file_retention_count = 5   # Number of backup html data files to store
+    _html_data_file = None
+
+    @classmethod
+    def set_html_file_rentention_count(cls, rentention_count) -> None:
+        """ Override the default html data file backup retention count. """
+        cls._html_file_retention_count = rentention_count
+
     @classmethod
     def from_html_file(cls, filepath: str) -> None:
         """ Load the library from an html file.
@@ -1250,6 +1277,7 @@ class MEDIA():
             other_artists = []
             exp_main_artist = False
             first_prequel = ''
+            main_artist_sequel = None
             song_metadata_block = song_block.find('br')
             if song_metadata_block is not None:
                 if isinstance(song_metadata_block.next_sibling, NavigableString):
@@ -1276,13 +1304,20 @@ class MEDIA():
 
                             if isinstance(artist_block.next_sibling, NavigableString):
                                 sequel = artist_block.next_sibling.text.split('\n')[0]
+                                if first_block and exp_main_artist:
+                                    # Need to save this sequel as the prequel of the next artist
+                                    main_artist_sequel = sequel
+                                    print('Setting next artist prequel to "{}"'.format(main_artist_sequel))
 
                             # Do not add to the additional artists list if dealing with an exported
                             # album main artist
                             if (first_block and not exp_main_artist) or not first_block:
                                 other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
 
-            return main_artist, other_artists, exp_main_artist
+            return main_artist, other_artists, exp_main_artist, main_artist_sequel
+
+        # Set the file path for the html data file in case we write out a new version
+        cls._html_data_file = filepath
 
         with open(filepath, 'r') as fp:
             # Parse the formatted file for LPs
@@ -1340,7 +1375,7 @@ class MEDIA():
 
                         # Determine main song, additional song artists with prequel and sequel information.
                         # and if main artist should be exposed.
-                        song_main_artist, song_additional_artists, exp_main_artist = get_song_additional_artists(song_block, media_artists[0])
+                        song_main_artist, song_additional_artists, exp_main_artist, main_artist_sequel = get_song_additional_artists(song_block, media_artists[0])
                         if song_main_artist is not None:
                             main_artist = song_main_artist
                         if song_additional_artists != []:
@@ -1384,6 +1419,7 @@ class MEDIA():
                         side_Songs.append(Song(title=song_title,
                                                main_artist=main_artist,
                                                exp_main_artist=exp_main_artist,
+                                               main_artist_sequel=main_artist_sequel,
                                                additional_artists=additional_artists,
                                                album=song_album,
                                                classical_composers=song_classical_composers,
@@ -1460,14 +1496,37 @@ class MEDIA():
                         artist.add_media(new_Media)
 
     @classmethod
-    def to_html_file(cls, filepath: str) -> None:
+    def to_html_file(cls, filepath: str = None) -> None:
         """ Write the library to an html file.
 
-            :param filepath:  The file path of the html file to write to
+            :param filepath:  The file path of the html file to write to or use class
+                              preset value
             :type filepath:   str
         """
-        # TODO:  Implement
-        pass
+        data_file = cls._html_data_file if filepath is None else filepath
+        if data_file is None:
+            raise FileNotFoundError('No html data file specified to write into.')
+
+        # Create a backup of the current html data file
+        data_filepath = Path(data_file)
+        timestamp = time.time()
+        backup_data_filepath = Path(data_file + '.{}'.format(int(timestamp)))
+        shutil.copyfile(data_filepath, backup_data_filepath)
+
+        # Write out the new html data file
+        with open(data_filepath, 'w') as html_fd:
+            html_fd.write(cls.to_html())
+
+        # Check if exceeded the count of backups of html data files and remove oldest
+        data_filepath_parent = data_filepath.parent
+        backuo_html_data_files = []
+        for f in data_filepath_parent.iterdir():
+            if f.stem == data_file:
+                backuo_html_data_files.append(f)
+        backuo_html_data_files.sort(reverse=True)
+        if len(backuo_html_data_files) > cls._html_file_retention_count:
+            for f in backuo_html_data_files[cls._html_data_file:]:
+                os.remove(f)
 
     @classmethod
     def to_html(cls):

@@ -50,6 +50,7 @@ class SongForm(FlaskForm):
     song_additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=4)
     song_featured_in = StringField('Feat. In', validators=[Length(0, 40)])
     song_list_main_artist = BooleanField('List Main Artist?')
+    song_main_artist_sequel = StringField('Main Artist Sequel', validators=[Length(0, 40)])
     song_classical_composer_1 = StringField('Classical Comp. 1', validators=[Length(0, 40)])
     song_classical_composer_2 = StringField('Classical Comp. 2', validators=[Length(0, 40)])
     song_classical_work = StringField('Classical Work', validators=[Length(0, 40)])

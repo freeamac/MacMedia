@@ -18,6 +18,9 @@ class BaseConfig():
     STATIC_URL = 'static/'
     DEBUG = True
     TESTING = False
+    MUSIC_MEDIA_DATA_DIR = None
+    MUSIC_MEDIA_HTML_FILE = None
+    MUSIC_MEDIA_HTML_FILE_RETENTION_COUNT = 100
 
 
 LOCAL_DEVELOPMENT = 'DB_USER' in os.environ and 'DB_PASSWORD' in os.environ and 'DATABASE' in os.environ and os.environ['APP_ENV'] != 'Test'

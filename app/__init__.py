@@ -70,8 +70,9 @@ def create_app(name=None):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Load in the music media html file
-    if app.env != 'Test':
-        MEDIA().from_html_file(app.config['MUSIC_MEDIA_HTML_FILE'])
+    if app.config.get('MUSIC_MEDIA_HTML_FILE', None) is not None:
+        MEDIA.from_html_file(app.config['MUSIC_MEDIA_HTML_FILE'])
+        MEDIA.set_html_file_rentention_count(app.config['MUSIC_MEDIA_HTML_FILE_RETENTION_COUNT'])
 
     bootstrap.init_app(app)
     db.init_app(app)

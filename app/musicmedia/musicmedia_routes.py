@@ -4,6 +4,7 @@ from app import app
 from .musicmedia_objects import (
     Additional_Artist,
     Artists,
+    MEDIA,
     MediaException,
     Song,
     TrackList,
@@ -80,6 +81,7 @@ def delete(media_type, id):
             return redirect(url_for('.index'))
 
         musicmedia_library.delete(musicmedia_data)
+        MEDIA.to_html_file()
 
         return redirect(url_for('.index'))
 
@@ -229,6 +231,7 @@ def add_track(media_type, id, track_id):
                 song_mix = field_value_or_none(song_field, 'song_mix')
                 song_featured_in = field_value_or_none(song_field, 'song_featured_in')
                 list_main_artist = song_field['song_list_main_artist'].data
+                song_main_artist_sequel = song_field['song_main_artist_sequel'].data
                 song_country = field_value_or_none(song_field, 'song_country')
 
                 # Cleanly handle year of song which could be invalid
@@ -292,6 +295,7 @@ def add_track(media_type, id, track_id):
                 song = Song(title=song_title_str,
                             main_artist=main_artist,
                             exp_main_artist=list_main_artist,
+                            main_artist_sequel=song_main_artist_sequel,
                             album=item.title,
                             additional_artists=song_additional_artists,
                             classical_composers=song_classical_composers,
@@ -624,6 +628,7 @@ def modify_track_song(media_type, id, track_id, song_id):
             form.song_mix.data = ''
             form.song_featured_in.data = ''
             form.song_list_main_artist.data = False
+            form.song_main_artist_sequel = ''
             form.song_country.data = ''
             form.song_year.data = ''
             form.song_mix.data = ''
@@ -635,6 +640,7 @@ def modify_track_song(media_type, id, track_id, song_id):
             form.song_title.data = song_data.title
             form.song_featured_in.data = song_data.featured_in
             form.song_list_main_artist.data = song_data.exp_main_artist
+            form.song_main_artist_sequel.data = '' if song_data.main_artist_sequel is None else song_data.main_artist_sequel
             form.song_country.data = song_data.country
             form.song_year.data = song_data.year
             form.song_mix.data = song_data.mix
@@ -702,6 +708,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                 song_mix = field_value_or_none(form, 'song_mix')
                 song_featured_in = field_value_or_none(form, 'song_featured_in')
                 list_main_artist = form['song_list_main_artist'].data
+                song_main_artist_sequel = form['song_main_artist_sequel'].data
                 song_country = field_value_or_none(form, 'song_country')
 
                 # Cleanly handle year of song which could be invalid
@@ -763,6 +770,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                     new_song = Song(title=song_title_str,
                                     main_artist=item.artists[0],
                                     exp_main_artist=list_main_artist,
+                                    main_artist_sequel=song_main_artist_sequel,
                                     album=item.title,
                                     additional_artists=additional_artists,
                                     classical_composers=classical_composers,
@@ -799,6 +807,8 @@ def modify_track_song(media_type, id, track_id, song_id):
                         if list_main_artist:
                             # Add in main LP artist
                             song_data.main_artist = item.artists[0]
+                    if song_data.main_artist_sequel != song_main_artist_sequel:
+                        song_data.main_artist_sequel = song_main_artist_sequel
 
                     # Blindly update parts if it has data
                     if song_parts is not None and song_parts != []:
