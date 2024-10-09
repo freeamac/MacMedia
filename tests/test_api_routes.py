@@ -66,8 +66,8 @@ class ApiDVDRoutesTestCase(unittest.TestCase):
         self.assertEqual(dvd_titles_in_response_set, dvd_titles_in_db)
 
 
-class ApiLPsRoutesTestCase(unittest.TestCase):
-    """ Test LPs routes (views). """
+class ApiMusicMediaRoutesTestCase(unittest.TestCase):
+    """ Test Music Media api routes (views). """
 
     testuser = 'testuser'
     testuser_password = 'testuser_password'  # nosec
@@ -130,3 +130,87 @@ class ApiLPsRoutesTestCase(unittest.TestCase):
 
         lp_artists_in_response_set = set([lp['artists'] for lp in lps_in_response])
         self.assertTrue('Michael Buble' in lp_artists_in_response_set)
+
+    def test_cds(self):
+        # Load in all the data
+        all_artists = Artists()
+        all_cds = CDs()
+
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of cds found: {}'.format(len(all_cds.cds)))
+
+        # Grab all LP information from the api call
+        response = self.client.get('/api/v1/musicmedia_data/' + MediaType.CD.value, follow_redirects=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(response.mimetype, 'application/json')
+
+        json_response = response.json
+        cds_in_response = json_response['data']
+        self.assertEqual(len(cds_in_response), 8)
+
+        cd_titles_in_response_set = set([cd['title'] for cd in cds_in_response])
+        cd_titles_in_list = set([cd.title for cd in CDs().cds])
+        self.assertEqual(cd_titles_in_response_set, cd_titles_in_list)
+
+        cd_years_in_response_set = set([cd['year'] for cd in cds_in_response])
+        cd_years_in_list = set([cd.year for cd in CDs().cds])
+        self.assertEqual(cd_years_in_response_set, cd_years_in_list)
+
+        cd_artists_in_response_set = set([cd['artists'] for cd in cds_in_response])
+        self.assertTrue('Elton John' in cd_artists_in_response_set)
+
+    def test_mini_cds(self):
+        # Load in all the data
+        all_artists = Artists()
+        all_mini_cds = MINI_CDs()
+
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of mini cds found: {}'.format(len(all_mini_cds.mini_cds)))
+
+        # Grab all LP information from the api call
+        response = self.client.get('/api/v1/musicmedia_data/' + MediaType.MINI_CD.value, follow_redirects=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(response.mimetype, 'application/json')
+
+        json_response = response.json
+        mini_cds_in_response = json_response['data']
+        self.assertEqual(len(mini_cds_in_response), 1)
+
+        mini_cd_titles_in_response_set = set([mini_cd['title'] for mini_cd in mini_cds_in_response])
+        mini_cd_titles_in_list = set([mini_cd.title for mini_cd in MINI_CDs().mini_cds])
+        self.assertEqual(mini_cd_titles_in_response_set, mini_cd_titles_in_list)
+
+        mini_cd_years_in_response_set = set([mini_cd['year'] for mini_cd in mini_cds_in_response])
+        mini_cd_years_in_list = set([mini_cd.year for mini_cd in MINI_CDs().mini_cds])
+        self.assertEqual(mini_cd_years_in_response_set, mini_cd_years_in_list)
+
+        mini_cd_artists_in_response_set = set([mini_cd['artists'] for mini_cd in mini_cds_in_response])
+        self.assertTrue("Guns N' Roses" in mini_cd_artists_in_response_set)
+
+    def test_elps(self):
+        # Load in all the data
+        all_artists = Artists()
+        all_elps = ELPs()
+
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of elps found: {}'.format(len(all_elps.elps)))
+
+        # Grab all LP information from the api call
+        response = self.client.get('/api/v1/musicmedia_data/' + MediaType.ELP.value, follow_redirects=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(response.mimetype, 'application/json')
+
+        json_response = response.json
+        elps_in_response = json_response['data']
+        self.assertEqual(len(elps_in_response), 1)
+
+        elps_titles_in_response_set = set([elps['title'] for elps in elps_in_response])
+        elps_titles_in_list = set([elps.title for elps in ELPs().elps])
+        self.assertEqual(elps_titles_in_response_set, elps_titles_in_list)
+
+        elps_years_in_response_set = set([elps['year'] for elps in elps_in_response])
+        elps_years_in_list = set([elps.year for elps in ELPs().elps])
+        self.assertEqual(elps_years_in_response_set, elps_years_in_list)
+
+        elps_artists_in_response_set = set([elps['artists'] for elps in elps_in_response])
+        self.assertTrue('Bryan Adams' in elps_artists_in_response_set)
