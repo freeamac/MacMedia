@@ -43,7 +43,7 @@ def add_lp_track(id, track_id):
 @lps.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_lp(id):
-    """ Delete LP from the LP library """
+    """ Delete LP from the LPs library """
     return delete(MediaType.LP, id)
 
 
@@ -57,7 +57,7 @@ def expand_lp(id):
 @lps.route('/modify/<int:id>', methods=['GET', 'POST'])
 @login_required
 def modify_lp(id):
-    """ Modify information on the LP in the LP library """
+    """ Modify information on the LP in the LPs library """
     return modify(MediaType.LP, id)
 
 

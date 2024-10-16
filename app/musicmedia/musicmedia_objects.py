@@ -59,6 +59,11 @@ class CDException(MediaException):
     pass
 
 
+class CassetteException(MediaException):
+    """ Indicates an error using a Cassette object. """
+    pass
+
+
 class MiniCDException(MediaException):
     """ Indicates an error using an mini-CD object. """
     pass
@@ -91,6 +96,7 @@ class TrackListException(Exception):
 
 class MediaType(Enum):
     LP = 'lp'
+    CASSETTE = 'cassette'
     CD = 'cd'
     ELP = 'elp'
     MINI_CD = 'mini-cd'
@@ -106,6 +112,10 @@ class _Artist():
     @property
     def cds(self) -> set:
         return self._cds
+
+    @ property
+    def cassettes(self) -> set:
+        return self._cassettes
 
     @property
     def lps(self) -> set:
@@ -126,6 +136,7 @@ class _Artist():
     def __init__(self, name: str, index: int) -> None:
         self._name = name
         self._lps = set()
+        self._cassettes = set()
         self._cds = set()
         self._elps = set()
         self._mini_cds = set()
@@ -153,6 +164,11 @@ class _Artist():
                 raise LPException('{} already in list of LPs for {}'.format(media.title, self.name))
             else:
                 self._lps.add(media)
+        elif type(media) is _CASSETTE:
+            if media in self._cassettes:
+                raise CassetteException('{} already in list of Cassettes for {}'.format(media.title, self.name))
+            else:
+                self._cassettes.add(media)
         elif type(media) is _ELP:
             if media in self._elps:
                 raise ELPException('{} already in list of ELPs for {}'.format(media.title, self.name))
@@ -188,6 +204,11 @@ class _Artist():
                 raise LPException('{} not in list of LPs for {}'.format(media.title, self.name))
             else:
                 self._lps.remove(media)
+        elif type(media) is _CASSETTE:
+            if media not in self._cassettes:
+                raise CassetteException('{} not in list of Cassettes for {}'.format(media.title, self.name))
+            else:
+                self._cassettes.remove(media)
         elif type(media) is _ELP:
             if media not in self._elps:
                 raise ELPException('{} not in list of ELPs for {}'.format(media.title, self.name))
@@ -226,6 +247,19 @@ class _Artist():
         for lp in self._lps:
             if lp.title == lp_title:
                 return lp
+
+    def find_cassette(self, cassette_title: str) -> Optional['_CASSETTE']:
+        """ Return the named album of the artist or None.
+
+            :param cassette_tittle:   Name of the album to locate
+            :type cassette_tittle:    str
+
+            :returns:                 The cassette or None
+            :rtype:                   :class:`_CASSETTE` | None
+        """
+        for cassette in self._cassettes:
+            if cassette.title == cassette_title:
+                return cassette
 
     def find_elp(self, elp_title: str) -> Optional['_ELP']:
         """ Return the named ELP of the artist or None.
@@ -923,7 +957,8 @@ class _MEDIA():
 
         Note: Should only be instantiated by calling media type object contructor:
 
-              - :func:`LPs().create`
+              - :func:`CASSETTE().create`
+              - :func:`CDs().create`
               - :func:`LPs().create`
               - :func:`ELPs().create`
               - :func:`MINI_CDs().create`
@@ -1141,6 +1176,10 @@ class _MEDIA():
 
 
 class _CD(_MEDIA):
+    pass
+
+
+class _CASSETTE(_MEDIA):
     pass
 
 
@@ -1446,7 +1485,7 @@ class MEDIA():
                 # updates to each individual media singleton. Perhaps
                 # we could use inheritance from a "MEDIAs" superclass?
 
-                # Handle LP music media
+                # Handle CD music media
                 if media_type == MediaType.CD:
                     new_Media = CDs.create(media_type=media_type,
                                            title=media_title,
@@ -1456,7 +1495,7 @@ class MEDIA():
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
 
-                # Handle CD music media
+                # Handle LP music media
                 elif media_type == MediaType.LP:
                     new_Media = LPs.create(media_type=media_type,
                                            title=media_title,
@@ -1465,7 +1504,15 @@ class MEDIA():
                                            mixer=media_mixer,
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
-
+                # Handle CASSETTE music media
+                elif media_type == MediaType.CASSETTE:
+                    new_Media = CASSETTEs.create(media_type=media_type,
+                                                 title=media_title,
+                                                 artists=media_artists,
+                                                 year=int(media_date),
+                                                 mixer=media_mixer,
+                                                 classical_composers=media_classical_composers,
+                                                 artist_particles=media_artist_particles)
                 # Handle ELP music media
                 elif media_type == MediaType.ELP:
                     new_Media = ELPs.create(media_type=media_type,
@@ -1771,6 +1818,225 @@ class LPs():
         for lp in self.lps:
             if lp is not None:  # Skip holes in the list due to deletions
                 string += str(lp)
+        return string
+
+
+class CASSETTEs():
+    """ A singleton list of all music Cassettes. """
+    _instance = None
+    _cassettes = []
+    _max_index = 0
+
+    @property
+    def cassettes(self) -> List[_CASSETTE]:
+        return self._cassettes
+
+    @property
+    def length(self) -> int:
+        """ Handle the fact that there may be holes in the list"""
+        return len([cassette for cassette in self._cassettes if cassette is not None])
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(CASSETTEs, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    def _clean_lps(cls):
+        """ Private method to remove all albums from the collection. Useful in testing. """
+        cls._cassettes = []
+        cls._max_index = 0
+
+    @classmethod
+    def create(cls,
+               media_type: MediaType,
+               title: str,
+               artists: List[_Artist],
+               year: int,
+               mixer: Optional[_Artist] = None,
+               classical_composers: Optional[_Artist] = None,
+               artist_particles: List[str] = None,
+               skip_adding_to_cassette_list: bool = False) -> _CASSETTE:
+        """ Return the named cassette if it exists or create a new cassette.
+
+            By default a new cassette is added to the list of all cassettes.
+
+            :param media_type:                     The media type of the music cassette
+            :type media_type:                      :class:`MediaType`
+
+            :param title:                          The title of the new cassette
+            :type name:                            str
+
+            :param artists:                        The list of cassette artists
+            :type artists:                         list(:class:`_Artist`)
+
+            :param year:                           The year the cassette was published
+            :type year:                            int
+
+            :param mixer:                          Optional cassette mixer
+            :type mixer:                           :class:`_Artist` | None
+
+            :param classical_composers:            Optional cassette classical composers
+            :type classical_composers:             list(:class:`_Artist`) | None
+
+            :param artist_particles:               Particle text linking artists
+            :type artist_particles:                list(str) | None
+
+            :param skip_addiing_to_cassette_list:  If true, do not add new cassette to cassette list
+            :type skip_adding_to_cassette_list:    bool
+
+            :returns:                              The located or newly created cassette
+            :rtype:                                :class:`_CASSETTE`
+        """
+        # We need to perform this check before searching for an existing cassette as we need a valid
+        # artist name to search
+        if not isinstance(artists, list):
+            raise ArtistException('{} is not a list of artists'.format(artists))
+        for artist in artists:
+            if not isinstance(artist, _Artist):
+                raise ArtistException('{} is not a an artist'.format(artist))
+
+        results = cls.find_by_title(title)
+        if len(results) > 0:
+            # Need to check hash id
+            new_cassette_hash = media_to_hash(media_type, title, artists[0].name)
+            for result in results:
+                if result._hash == new_cassette_hash:
+                    return result
+        # Create the new album
+        new_cassette = _CASSETTE(media_type, title, artists, year, cls._max_index, mixer, classical_composers, artist_particles)
+        cls._max_index += 1
+        for artist in artists:
+            artist.add_media(new_cassette)
+        if mixer is not None:
+            mixer.add_media(new_cassette)
+        if classical_composers is not None:
+            for classical_composer in classical_composers:
+                classical_composer.add_media(new_cassette)
+        if not skip_adding_to_cassette_list:
+            cls.add(new_cassette)
+        return new_cassette
+
+    @classmethod
+    def add(cls, cassette: _CASSETTE) -> None:
+        """ Add an cassette to the list of all cassette.
+
+            :param cassette:            The cassette to add
+            :type cassette:             :class:`_CASSETTE`
+
+            :raises CassetteException:  If not passed a :class:`CASSETTE` or the lp already exists in the list
+        """
+        if type(cassette) is not _CASSETTE:
+            raise CassetteException('{} is not an CASSETTE object'.format(cassette))
+        if cassette in cls._cassettes:
+            raise CassetteException('LP {} already exists'.format(cassette))
+        cls._cassettes.append(cassette)
+
+    @classmethod
+    def delete(cls, cassette: _CASSETTE) -> None:
+        """ Remove the casstte from the list of all cassettes.
+
+            In actuality we pug the location in the list of
+            all cassettes with None to preserve the increasing
+            index scheme used in the list.
+
+            Also remove the cassette from the list of all cassettes
+            owned by the cassette artist and cassette mixer (if they exist)
+
+            :param cassette:  The cassette to add
+            :type cassette:   :class:`_CASSETTE`
+        """
+        if cassette in cls._cassettes:
+            for artist in cassette.artists:
+                artist.delete_media(cassette)
+            if cassette.mixer is not None:
+                cassette.mixer.delete_media(cassette)
+            make_hole_index = cassette.index
+            cls._cassettes[make_hole_index] = None
+
+    @classmethod
+    def exists(cls, cassette: _CASSETTE) -> bool:
+        """ Returns true of the cassette exists in the list of cassettes.
+
+            :param cassette:  The cassette to add
+            :type cassette:   :class:`_CASSETTE`
+
+            :returns:         True if the cassette exists in the list of all cassettes
+            :rtype:           bool
+        """
+        return cassette in cls._cassettes
+
+    @classmethod
+    def find_by_index(cls, index: int) -> Optional[_CASSETTE]:
+        """ Return the cassette by its index or None if not found.
+
+            :param index:   The index in the list of cassettes of the cassette to locate
+            :type index:    int
+
+            :returns:       The cassette or None
+            :rtype:         class:`_CASSETTE` or None
+        """
+        cassette = None
+        try:
+            cassette = cls._cassettes[index]
+        except IndexError:
+            pass
+        return cassette
+
+    @classmethod
+    def find_by_title(cls, title: str) -> List[_CASSETTE]:
+        """ Returns the cassettes in the list of all cassettes that matches the passed cassette title. Otherwise, empty list.
+
+            :param title:  The cassette title to search for
+            :type title:   str
+
+            :returns:      The cassette if found. None, otherwise
+            :rtype:        list(:class:`_CASSETTE` )
+         """
+        result = []
+        for cassette in cls._cassettes:
+            if cassette is not None:  # Skip holes in the list due to deletions
+                if cassette.title == title:
+                    result.append(cassette)
+        return result
+
+    @classmethod
+    def find_by_year(cls, year: int) -> List[_CASSETTE]:
+        """ Return a list of cassettes produced in the passed year.
+
+            :param year:  Find cassette produced in this year
+            :type year:   int
+
+            :returns:     A list of cassettes produced in that year
+            :rtype:       list(:class:`_CASSETTE`) | None
+        """
+        cassettes_found = []
+        for cassette in cls._cassettes:
+            if cassette is not None:  # Skip holes in the list due to deletions
+                if cassette.year == year:
+                    cassettes_found.append(cassette)
+        if cassettes_found == []:
+            return None
+        return cassettes_found
+
+    @classmethod
+    def to_html(cls):
+        """ Return an html representation of all cassettes
+
+            :returns:  An html representation of all cassettes
+            :rtype:    str
+        """
+        html_str = ''
+        for cassette in cls._cassettes:
+            if cassette is not None:  # Skip holes in the list due to deletions
+                html_str += cassette.to_html()
+        return html_str
+
+    def __str__(self) -> str:
+        string = ''
+        for cassette in self.cassettes:
+            if cassette is not None:  # Skip holes in the list due to deletions
+                string += str(cassette)
         return string
 
 

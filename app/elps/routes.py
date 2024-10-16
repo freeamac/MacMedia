@@ -43,7 +43,7 @@ def add_elp_track(id, track_id):
 @elps.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_elp(id):
-    """ Delete ELP from the ELP library """
+    """ Delete ELP from the ELPs library """
     return delete(MediaType.ELP, id)
 
 
@@ -57,7 +57,7 @@ def expand_elp(id):
 @elps.route('/modify/<int:id>', methods=['GET', 'POST'])
 @login_required
 def modify_elp(id):
-    """ Modify information on the ELP in the ELP library """
+    """ Modify information on the ELP in the ELPs library """
     return modify(MediaType.ELP, id)
 
 

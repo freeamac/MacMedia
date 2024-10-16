@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-cassettes = Blueprint('cassettes', __name__)
+cassettes = Blueprint('cassettes', __name__, url_prefix='/cassettes')
 
 # This must be imported after the Blueprint definition as the
 # definition is imported into the app creation call and then

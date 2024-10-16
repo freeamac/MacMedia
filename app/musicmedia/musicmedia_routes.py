@@ -571,7 +571,12 @@ def modify_track(media_type, id, track_id):
                 return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id + 1))
 
             if form.modify_songs.data:
-                return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', media_type=media_type, id=id, track_id=track_id, song_id=0))
+                # Check we have songs on the track otherwise, indicate a new song to be added
+                if len(item.tracks[track_id].song_list) < 1:
+                    song_id = -1
+                else:
+                    song_id = 0  # First song
+                return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', media_type=media_type, id=id, track_id=track_id, song_id=song_id))
 
             if form.save.data:
                 return redirect(url_for('.index'))

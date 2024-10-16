@@ -2,7 +2,7 @@ from flask import url_for
 
 from . import api
 from app import db
-from app.musicmedia.musicmedia_objects import CDs, ELPs, LPs, MINI_CDs, MediaException, MediaType
+from app.musicmedia.musicmedia_objects import CASSETTEs, CDs, ELPs, LPs, MINI_CDs, MediaException, MediaType
 from app.queries import get_all_dvds
 
 
@@ -23,6 +23,8 @@ def musicmedia_data(media_type):
         musicmedia_list = LPs().lps
     elif media_type == MediaType.CD.value:
         musicmedia_list = CDs().cds
+    elif media_type == MediaType.CASSETTE.value:
+        musicmedia_list = CASSETTEs().cassettes
     elif media_type == MediaType.ELP.value:
         musicmedia_list = ELPs().elps
     elif media_type == MediaType.MINI_CD.value:

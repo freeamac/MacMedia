@@ -43,7 +43,7 @@ def add_cd_track(id, track_id):
 @cds.route('/delete/<int:id>', methods=['GET', 'POST'])
 @login_required
 def delete_cd(id):
-    """ Delete CD from the CD library """
+    """ Delete CD from the CDs library """
     return delete(MediaType.CD, id)
 
 
@@ -57,7 +57,7 @@ def expand_cd(id):
 @cds.route('/modify/<int:id>', methods=['GET', 'POST'])
 @login_required
 def modify_cd(id):
-    """ Modify information on the CD in the CD library """
+    """ Modify information on the CD in the CDs library """
     return modify(MediaType.CD, id)
 
 

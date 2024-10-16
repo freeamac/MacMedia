@@ -2,6 +2,7 @@ from app import app
 from .musicmedia_objects import (
     Additional_Artist,
     Artists,
+    CASSETTEs,
     CDs,
     ELPs,
     LPs,
@@ -202,6 +203,8 @@ def get_macmedia_library(media_type):
         musicmedia_library = LPs
     elif media_type == MediaType.CD:
         musicmedia_library = CDs
+    elif media_type == MediaType.CASSETTE:
+        musicmedia_library = CASSETTEs
     elif media_type == MediaType.ELP:
         musicmedia_library = ELPs
     elif media_type == MediaType.MINI_CD:
