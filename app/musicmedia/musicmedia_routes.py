@@ -191,10 +191,13 @@ def add_track(media_type, id, track_id):
     musicmedia_library = get_macmedia_library(media_type)
     musicmedia_str = media_type.value
     pythonic_musicmedia_str = musicmedia_str.replace('-', '_')
+    item = musicmedia_library.find_by_index(id)
 
     track_songs = [{'song_title': ''}] * 30
     track_songs_additional_artists = [{'song_additional_artist': ''}] * 3
     form = NewMusicMediaTrackForm()
+    form.title = item.title
+    form.track_number = track_id + 1
 
     if request.method == "GET":
         form.track_num = track_id
@@ -533,6 +536,7 @@ def modify_track(media_type, id, track_id):
     form = ModifyMusicMediaTrackForm()
     item = musicmedia_library.find_by_index(id)
     form.title = item.title
+    form.track_number = track_id + 1
 
     if request.method == 'GET':
         if len(item.tracks) < track_id + 1:

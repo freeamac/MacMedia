@@ -524,7 +524,8 @@ class MusicMediaRoutesTestCase(unittest.TestCase):
 
         # Check we are on new track modification page
         self.assertEqual(response.status_code, HTTPStatus.OK)
-        self.assertIn('Modify "<b>{}</b>" Track Information'.format(self.lp_modify_data_go_to_track['title']).encode(), response.data)
+        self.assertIn('Modify Track #{} on "<b>{}</b>" Information'.format(int(track_id) + 1, self.lp_modify_data_go_to_track['title']).encode(),
+                      response.data)
 
         # Update track info and move onto next/new track
         lp_id, track_id = self._track_n_ids(response.request)
