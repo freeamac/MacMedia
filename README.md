@@ -54,6 +54,8 @@ The default value of the connection string will be "127.0.0.1:5432", the localho
     flask --app app/app.py run --debug
 ```
 
+Note this may not work in FireFox. FireFox seems to prevent some cookie session information from being passed leading to CSRF token issues.
+The app does work in Edge.
 
 
 ## Development Deployment Environment
@@ -134,7 +136,7 @@ The schema looks like:
 <h3><a rel="artists">{artist}</a></h3>
 <h3><a rel="date">{year}</a></h3>
 <h3><a rel="classical-composer">{classical-composer}</a></h3>
-<h3><a rel="mixer">{classical-composer}</a></h3>
+<h3><a rel="mixer">{mixer}</a></h3>
              .
              .
              .
