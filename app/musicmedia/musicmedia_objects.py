@@ -1307,7 +1307,7 @@ class MEDIA():
                                 if first_block and exp_main_artist:
                                     # Need to save this sequel as the prequel of the next artist
                                     main_artist_sequel = sequel
-                                    print('Setting next artist prequel to "{}"'.format(main_artist_sequel))
+                                    # print('Setting next artist prequel to "{}"'.format(main_artist_sequel))
 
                             # Do not add to the additional artists list if dealing with an exported
                             # album main artist
@@ -1565,6 +1565,11 @@ class LPs():
     def lps(self) -> List[_LP]:
         return self._lps
 
+    @property
+    def length(self) -> int:
+        """ Handle the fact that there may be holes in the list"""
+        return len([lp for lp in self._lps if lp is not None])
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(LPs, cls).__new__(cls)
@@ -1778,6 +1783,11 @@ class CDs():
     @property
     def cds(self) -> List[_CD]:
         return self._cds
+
+    @property
+    def length(self) -> int:
+        """ Handle the fact that there may be holes in the list"""
+        return len([cd for cd in self._cds if cd is not None])
 
     def __new__(cls):
         if cls._instance is None:
@@ -1994,6 +2004,11 @@ class ELPs():
     def elps(self) -> List[_ELP]:
         return self._elps
 
+    @property
+    def length(self) -> int:
+        """ Handle the fact that there may be holes in the list"""
+        return len([elps for elps in self._elps if elps is not None])
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(ELPs, cls).__new__(cls)
@@ -2208,6 +2223,11 @@ class MINI_CDs():
     @property
     def mini_cds(self) -> List[_MINI_CD]:
         return self._mini_cds
+
+    @property
+    def length(self) -> int:
+        """ Handle the fact that there may be holes in the list"""
+        return len([mini_cd for mini_cd in self._mini_cds if mini_cd is not None])
 
     def __new__(cls):
         if cls._instance is None:

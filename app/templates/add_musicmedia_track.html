@@ -127,16 +127,22 @@
           </div>
 
           <!-- Collect classical song composers -->
-          {% for classical_composer in song.form.song_classical_composers %}
-            <div class="row">
-              <div class="col-md-2">
-                <h4>{{ classical_composer.form.classical_composer.label }}</h4>
-              </div>
-              <div class="col-md-2">
-                {{ classical_composer.form.classical_composer }}
-              </div>
+          <div class="row">
+            <div class="col-md-3">
+              <h4>{{ song.form.song_classical_composer_1.label }}</h4>
             </div>
-          {% endfor %}
+            <div class="col-md-2">
+              {{ song.form.song_classical_composer_1 }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3">
+              <h4>{{ song.form.song_classical_composer_2.label }}</h4>
+            </div>
+            <div class="col-md-2">
+              {{ song.form.song_classical_composer_2 }}
+            </div>
+          </div>
 
           <!-- Collect extraneous song information -->
           <hr width="45%"\>

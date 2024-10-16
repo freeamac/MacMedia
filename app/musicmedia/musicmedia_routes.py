@@ -145,11 +145,11 @@ def add_media(media_type):
                         else:
                             artist_particles = []
                             for artist_info in additional_artists:
-                                particle = artist_info['additional_artist_particle'].data.strip()
-                                particle = massage_particle(particle)
                                 additional_artist_str = artist_info['additional_artist'].data.strip()
                                 if additional_artist_str is None or additional_artist_str == '':
                                     continue
+                                particle = artist_info['additional_artist_particle'].data.strip()
+                                particle = massage_particle(particle)
                                 artist_particles.append(particle)
                                 additional_artist = Artists.create_Artist(additional_artist_str)
                                 artists.append(additional_artist)
@@ -194,7 +194,6 @@ def add_track(media_type, id, track_id):
 
     track_songs = [{'song_title': ''}] * 30
     track_songs_additional_artists = [{'song_additional_artist': ''}] * 3
-    track_song_classical_composers = [{'song_classical_composer': ''}] * 2
     form = NewMusicMediaTrackForm()
 
     if request.method == "GET":
@@ -209,8 +208,8 @@ def add_track(media_type, id, track_id):
         if form.validate:
             item = musicmedia_library.find_by_index(id)
             all_song_artists = set()
-            track_name = form['track_name'].data.strip()
-            track_mixer_str = form['track_mixer'].data.strip()
+            track_name = field_value_or_none(form, 'track_name')
+            track_mixer_str = field_value_or_none(form, 'track_mixer')
             track_song_fields = form['track_songs']
 
             if track_name == '':
@@ -223,7 +222,7 @@ def add_track(media_type, id, track_id):
 
             songs = []
             for song_num, song_field in enumerate(track_song_fields):
-                song_title_str = song_field['song_title'].data.strip()
+                song_title_str = field_value_or_none(song_field, 'song_title')
                 if song_title_str is None or song_title_str == '':
                     continue
 
@@ -243,8 +242,7 @@ def add_track(media_type, id, track_id):
                         flash('Error: Year in Song #{} is not an integer.'.format(song_num + 1))
                         return render_template('add_musicmedia_track.html', media_str=musicmedia_str, form=form,
                                                track_songs=track_songs,
-                                               track_songs_additional_artists=track_songs_additional_artists,
-                                               track_song_classical_composers=track_song_classical_composers)
+                                               track_songs_additional_artists=track_songs_additional_artists)
 
                 # Handle additional song artists
                 song_additional_artists = []
@@ -263,17 +261,19 @@ def add_track(media_type, id, track_id):
                     song_additional_artists = None
 
                 # Handle classical musical aspects of a song
-                song_classical_composers = []
+
                 song_classical_work = field_value_or_none(song_field, 'song_classical_work')
-                classical_composers = song_field['song_classical_composers']
-                for classical_composer in classical_composers:
-                    classical_composer_str = field_value_or_none(classical_composer, 'classical_composer')
-                    if classical_composer_str is None:
-                        continue
-                    song_classical_composer = Artists.create_Artist(classical_composer_str)
+                classical_composer_1_str = field_value_or_none(song_field, 'song_classical_composer_1')
+                classical_composer_2_str = field_value_or_none(song_field, 'song_classical_composer_2')
+                song_classical_composers = []
+                if classical_composer_1_str is not None:
+                    song_classical_composer = Artists.create_Artist(classical_composer_1_str)
                     song_classical_composers.append(song_classical_composer)
                     all_song_artists.add(song_classical_composer)
-                song_classical_composers = None if song_classical_composers == [] else song_classical_composers
+                if classical_composer_2_str is not None:
+                    song_classical_composer = Artists.create_Artist(classical_composer_2_str)
+                    song_classical_composers.append(song_classical_composer)
+                    all_song_artists.add(song_classical_composer)
 
                 # Handle song parts
                 song_parts_text = song_field['song_parts'].data
@@ -326,8 +326,7 @@ def add_track(media_type, id, track_id):
 
     return render_template('add_musicmedia_track.html', media_str=musicmedia_str, form=form,
                            track_songs=track_songs,
-                           track_songs_additional_artists=track_songs_additional_artists,
-                           track_song_classical_composers=track_song_classical_composers)
+                           track_songs_additional_artists=track_songs_additional_artists)
 
 
 def modify(media_type, id):
@@ -553,8 +552,8 @@ def modify_track(media_type, id, track_id):
             return redirect(url_for('.modify_' + pythonic_musicmedia_str, id=id))
 
         if form.validate:
-            track_name = form['track_name'].data.strip()
-            track_mixer = form['track_mixer'].data.strip()
+            track_name = field_value_or_none(form, 'track_name')
+            track_mixer = field_value_or_none(form, 'track_mixer')
 
             if len(item.tracks) < track_id + 1:
                 # Adding a new track
@@ -616,8 +615,8 @@ def modify_track_song(media_type, id, track_id, song_id):
 
         classical_composers_name_tuple = build_classical_composer_names_tuple(song_data.classical_composers)
 
+    template_song_id = song_id + 1
     if request.method == 'GET':
-        template_song_id = song_id + 1
 
         # Needs to be done first to "process" and avoid blanking out the info later
         form.process(song_additional_artists=song_additional_artists)

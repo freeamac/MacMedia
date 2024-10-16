@@ -66,6 +66,9 @@ def create_app(name=None):
     else:
         logger.info('SQLALCHEMY_DATABASE_URI not set!!!')
 
+    if config.LOCAL_DEVELOPMENT:
+        logger.info('Local development initiated. Trusted sites: {}'.format(app.config['CSRF_TRUSTED_ORIGINS']))
+
     # Turn off SQL modificationt tracking
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 

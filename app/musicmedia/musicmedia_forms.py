@@ -32,7 +32,7 @@ class MusicMediaMetaForm(FlaskForm):
 
 class NewMusicMediaMetaForm(MusicMediaMetaForm):
     """ Form for creating a new Music Media item """
-    submit = SubmitField('Add Tracks')
+    finish = SubmitField('Add Tracks')
     cancel = SubmitField('Cancel')
 
 

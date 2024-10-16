@@ -46,6 +46,8 @@ def field_value_or_none(form, field):
         : returns:     The field value or None if empty
         :rtype:        str | None
     """
+    if form[field].data is None:
+        return None
     value = form[field].data.strip()
     if value is not None and value != '':
         return value
