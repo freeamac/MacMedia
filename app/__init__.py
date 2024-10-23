@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import logging
 import os
 
@@ -19,8 +20,10 @@ DEFAULT_SECRET_KEY = 'you-will-never-guess'  # nosec
 MAX_CSP_VIOLATIONS_REPORT_LENGTH = 1000
 CSP_VIOLATIONS_REPORT_HEADER = 'CSP Violations Report'
 
-# Set up logging
+# Load local environment
+load_dotenv()
 
+# Set up logging
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(asctime)s]: {} %(levelname)s %(message)s'.format(os.getpid()),
                     datefmt='%Y-%m-%d %H:%M:%S',
@@ -28,6 +31,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 logger = logging.getLogger()
 
+# Initialize services
 bootstrap = Bootstrap()
 csrf = CSRFProtect()
 db = SQLAlchemy()
@@ -75,6 +79,7 @@ def create_app(name=None):
     # Load in the music media html file
     if app.config.get('MUSIC_MEDIA_HTML_FILE', None) is not None:
         MEDIA.from_html_file(app.config['MUSIC_MEDIA_HTML_FILE'])
+    if app.config.get('MUSIC_MEDIA_HTML_FILE_RETENTION_COUNT') is not None:
         MEDIA.set_html_file_rentention_count(app.config['MUSIC_MEDIA_HTML_FILE_RETENTION_COUNT'])
 
     bootstrap.init_app(app)
