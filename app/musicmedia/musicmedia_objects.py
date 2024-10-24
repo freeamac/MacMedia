@@ -1198,6 +1198,7 @@ class _MINI_CD(_MEDIA):
 class MEDIA():
     _html_file_retention_count = 5   # Number of backup html data files to store
     _html_data_file = None
+    changes_to_write = False
 
     @classmethod
     def set_html_file_rentention_count(cls, rentention_count) -> None:
@@ -1562,7 +1563,8 @@ class MEDIA():
 
         # Write out the new html data file
         with open(data_filepath, 'w') as html_fd:
-            html_fd.write(cls.to_html())
+            for media_type in [CASSETTEs, CDs, ELPs, LPs, MINI_CDs]:
+                html_fd.write(media_type.to_html())
 
         # Check if exceeded the count of backups of html data files and remove oldest
         data_filepath_parent = data_filepath.parent

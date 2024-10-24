@@ -6,6 +6,7 @@ from .musicmedia_objects import (
     CDs,
     ELPs,
     LPs,
+    MEDIA,
     MediaException,
     MediaType,
     MINI_CDs,
@@ -212,3 +213,11 @@ def get_macmedia_library(media_type):
     else:
         raise MediaException('Unknown Music Media Type: {}'.format(media_type))
     return musicmedia_library
+
+
+def write_out_changes():
+    """ If there have been Music Media Changes, write them out and reset changes flag """
+    if MEDIA.changes_to_write:
+        if app.app.env != 'Test':
+            MEDIA.to_html_file(app.app.config['MUSIC_MEDIA_HTML_FILE'])
+        MEDIA.changes_to_write = False

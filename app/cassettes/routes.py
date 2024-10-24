@@ -13,12 +13,16 @@ from app.musicmedia.musicmedia_routes import (
     modify_track,
     modify_track_song
 )
+from app.musicmedia.route_utilities import write_out_changes
 
 
 @cassettes.route('/')
 @login_required
 def index():
     """ Main landing page for the Cassettes library """
+
+    # Write out any pending changes to file
+    write_out_changes()
 
     # The magic here is the template calls the api
     # route to get all the dvds which are rendered

@@ -81,7 +81,9 @@ def delete(media_type, id):
             return redirect(url_for('.index'))
 
         musicmedia_library.delete(musicmedia_data)
-        MEDIA.to_html_file()
+
+        # Set flag to write out changes when main library page is displayed
+        MEDIA.changes_to_write = True
 
         return redirect(url_for('.index'))
 
@@ -177,6 +179,10 @@ def add_media(media_type):
                                                          mixer=mixer,
                                                          classical_composers=classical_composers,
                                                          artist_particles=artist_particles)
+
+                    # Set flag to write out changes when main library page is displayed
+                    MEDIA.changes_to_write = True
+
                     return redirect(url_for('.add_' + pythonic_musicmedia_str + '_track', media_type=media_type, id=new_item.index, track_id=0))
         except FormValidateException:
             pass
@@ -320,6 +326,9 @@ def add_track(media_type, id, track_id):
                         artist.add_media(item)
                     except MediaException as e:
                         app.app.logger.warning('{} Exception {} ignored. Assumed to be associated with multiple songs'.format(musicmedia_str, e))
+
+            # Set flag to write out changes when main library page is displayed
+            MEDIA.changes_to_write = True
 
             if form.add_track.data:
                 track_id += 1
@@ -512,6 +521,9 @@ def modify(media_type, id):
                         flash('No changes made that need to be saved.')
                         raise FormValidateException
 
+                    # Set flag to write out changes when main library page is displayed
+                    MEDIA.changes_to_write = True
+
                     if form.save.data:
                         return redirect(url_for('.index'))
 
@@ -570,6 +582,9 @@ def modify_track(media_type, id, track_id):
                     item.tracks[track_id].name = track_name
                 if track_mixer != item.tracks[track_id].side_mixer:
                     item.tracks[track_id].side_mixer = track_mixer
+
+            # Set flag to write out changes when main library page is displayed
+            MEDIA.changes_to_write = True
 
             if form.modify_next_track.data:
                 return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id + 1))
@@ -693,6 +708,10 @@ def modify_track_song(media_type, id, track_id, song_id):
             else:
                 new_display_song_id = song_id
             del tracklist.song_list[song_id]  # TODP: Handle removal of LP from song artists
+
+            # Set flag to write out changes when main library page is displayed
+            MEDIA.changes_to_write = True
+
             return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_display_song_id))
 
         if form.next_song.data:
@@ -854,6 +873,8 @@ def modify_track_song(media_type, id, track_id, song_id):
                                                                                      additional_artists_prequel_list,
                                                                                      additional_artists_sequel_list,
                                                                                      item)
+                # Set flag to write out changes when main library page is displayed
+                MEDIA.changes_to_write = True
 
                 return redirect(url_for('.index'))
 
