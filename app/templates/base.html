@@ -33,9 +33,11 @@ $(function () {
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropDown">
                             <li><a class="dropdown-item" href="{{ url_for('dvds.index') }}">MacLeod's DVD Movie Library</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('cds.index') }}">MacLeod's Music CD Library</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('cassettes.index') }}">MacLeod's Music Cassette Library</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('cds.index') }}">MacLeod's Music CD Library</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('elps.index') }}">MacLeod's Music ELP Library</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('lps.index') }}">MacLeod's Music LP Library</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('mini_cds.index') }}">MacLeod's Music Mini CD Library</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('change_password') }}">Change Password for {{ current_user.username }}</a></li>
                             <li><hr class="dropdown-divider"></li>
