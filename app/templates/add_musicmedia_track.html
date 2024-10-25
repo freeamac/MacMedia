@@ -85,7 +85,7 @@
           <!-- Collect additional song artists -->
           <hr width="45%"\>
           {% for additional_artist in song.form.song_additional_artists %}
-            <div class="row removeclass_artist{{ loop.index0 }}" id="artist_row_{{ loop.index0 }}">
+            <div class="row removeclass_artist_{{ loop.index0 }}_0" id="artist_row_{{ loop.index0 }}_0">
               <div class="col-md-2">
                 <h4><b></b>Additional Artist<b></b></h4>
               </div>
@@ -107,9 +107,9 @@
               <div class="col-md-2">
                 {{ additional_artist.form.additional_artist_sequel }}
               </div>           
-              <div class="col-sm-1 plus_artist_button_{{ loop.index0 }}">
+              <div class="col-sm-1 plus_artist_button_{{ loop.index0 }}_0">
                 <div class="input-group-btn">
-                  <button class="btn btn-success" type="button"  onclick="additional_artist_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+                  <button class="btn btn-success" type="button"  onclick="additional_artist_fields('0','0')"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
                 </div>
               </div>
             </div>
@@ -205,19 +205,19 @@
 {{ pagedown.include_pagedown() }}
 <script nonce="{{ csp_nonce() }}">
   var song_num = 0;
-  var artist_num = 0;
 
-  function additional_artist_fields() {
+  function additional_artist_fields(artist_num, current_song_num) {
  
     var track_num = {{ form.track_num }} - 1;
     artist_num++;
     previous_button_id = artist_num - 1;
-    $('.plus_artist_button_'+previous_button_id).remove();
-    if (artist_num > 1) {$('.minus_button_'+previous_button_id).remove()};
-    var objTo = document.getElementById('artist_row_'+previous_button_id);
+
+    $('.plus_artist_button_'+previous_button_id+'_'+current_song_num).remove();
+    if (artist_num > 1) {$('.minus_button_'+previous_button_id+'_'+current_song_num).remove()};
+    var objTo = document.getElementById('artist_row_'+previous_button_id+'_'+current_song_num);
     var divAdditionalArtist = document.createElement("div");
-    divAdditionalArtist.setAttribute("class", "row removeclass_artist"+artist_num);
-    divAdditionalArtist.setAttribute("id", "artist_row_"+artist_num)
+    divAdditionalArtist.setAttribute("class", "row removeclass_artist_"+artist_num+'_'+current_song_num);
+    divAdditionalArtist.setAttribute("id", "artist_row_"+artist_num+'_'+current_song_num)
     divAdditionalArtist.innerHTML = '\
             <div class="col-md-2">\
               <h4><b></b>Additional Artist<b></b></h4>\
@@ -240,22 +240,56 @@
             <div class="col-md-2">\
                 <input id="track_songs-'+track_num+'-song_additional_artists-'+artist_num+'-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+track_num+'-song_additional_artists-'+artist_num+'-additional_artist_sequel" type="text" value="">\
             </div>\
-            <div class="col-md-1 plus_artist_button_'+artist_num+'">\
+            <div class="col-md-1 plus_artist_button_'+artist_num+'_'+current_song_num+'">\
               <div class="input-group-btn">\
-                <button class="btn btn-success" type="button"  onclick="additional_artist_fields();"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields('+artist_num+','+current_song_num+');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
               </div>\
+            </div>\
+            <div class="col-md-2 minus_button_'+artist_num+'_'+current_song_num+'">\
+              <div class="input-group-btn">\
+                <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+ artist_num +','+current_song_num+');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+             </div>\
             </div>\
           </div>\
       ';
-    objTo.after(divAdditionalArtist)
-
+    objTo.after(divAdditionalArtist);
   }
   
-  function additional_song_fields() {
+  function remove_additional_artist_fields(rid, current_song_num) {
+    // Remove current row (rid should point at current row)
+	  $('.removeclass_artist_'+rid+'_'+song_num).remove();
+
+    // Add plus button in previous row
+    previous_rid = rid - 1;
+    var objTo = document.getElementById('artist_row_'+previous_rid+'_'+current_song_num);
+    var divPlusButton = document.createElement("div");
+    divPlusButton.setAttribute("class", "col-md-1 plus_artist_button_"+previous_rid+"_"+current_song_num);
+    divPlusButton.innerHTML = '\
+            <div class="input-group-btn">\
+              <button class="btn btn-success" type="button"  onclick="additional_artist_fields('+previous_rid+','+current_song_num+');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+            </div>\
+    ';
+    objTo.appendChild(divPlusButton);
+
+    // Unless we are at the first row, add the minus button
+    if (previous_rid > 0) {
+      var divMinusButton = document.createElement("div");
+      divMinusButton.setAttribute("class", "col-md-2 minus_button_"+previous_rid+"_"+current_song_num);
+      divMinusButton.innerHTML = '\
+            <div class="input-group-btn">\
+              <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+ previous_rid +','+current_song_num+');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+            </div>\
+      ';
+      objTo.appendChild(divMinusButton);
+    }
+  }
+
+  function additional_song_fields(artist_num) {
  
     song_num++;
     track_song_id = song_num + 1;
     previous_button_id = song_num - 1;
+    new_artist_num = artist_num + 1;
     $('.plus_song_button_'+previous_button_id).remove();
     var objTo = document.getElementById('additional_song_fields')
     var divSongFields = document.createElement("div");
@@ -301,7 +335,7 @@
           </div>\
           <!-- Collect additional song artists -->\
           <hr width="45%"\>\
-          <div class="row">\
+          <div class="row removeclass_artist_0_'+song_num+'" id="artist_row_0_'+song_num+'">\
             <div class="col-md-2">\
               <h4><b></b>Additional Artist<b></b></h4>\
             </div>\
@@ -323,77 +357,12 @@
             <div class="col-md-2">\
               <input id="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-0-additional_artist_sequel" type="text" value="">\
             </div>\
-          </div>\
-          <div class="row">\
-            <div class="col-md-2">\
-              <h4><b></b>Additional Artist<b></b></h4>\
-            </div>\
-            <div class="col-md-1">\
-              <h5><label for="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel">Prequel</label></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_prequel" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Artist Name</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Sequel</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-1-additional_artist_sequel" type="text" value="">\
+            <div class="col-sm-1 plus_artist_button_0_'+song_num+'">\
+              <div class="input-group-btn">\
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields(0, '+song_num+');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+              </div>\
             </div>\
           </div>\
-          <div class="row">\
-            <div class="col-md-2">\
-              <h4><b></b>Additional Artist<b></b></h4>\
-            </div>\
-            <div class="col-md-1">\
-              <h5><label for="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel">Prequel</label></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_prequel" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Artist Name</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Sequel</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-2-additional_artist_sequel" type="text" value="">\
-            </div>\
-          </div>\
-          <div class="row">\
-            <div class="col-md-2">\
-              <h4><b></b>Additional Artist<b></b></h4>\
-            </div>\
-            <div class="col-md-1">\
-              <h5><label for="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel">Prequel</label></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_prequel" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Artist Name</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist" maxlength="40" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist" type="text" value="">\
-            </div>\
-            <div class="col-md-1">\
-              <h5><b>Sequel</b></h5>\
-            </div>\
-            <div class="col-md-2">\
-              <input id="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_sequel" maxlength="20" minlength="0" name="track_songs-'+song_num+'-song_additional_artists-3-additional_artist_sequel" type="text" value="">\
-            </div>\
-          </div>\
-          <div id="additional_artist_fields"></div>\
           <!-- Collect classical song meta information-->\
           <hr width="45%"\>\
           <div class="row">\
@@ -460,9 +429,7 @@
     objTo.appendChild(divSongFields)
   }
 
-  function remove_artist_fields(rid) {
-	  $('.removeclass_artist'+rid).remove();
-  }
+
 
   function remove_song_fields(rid) {
 	  $('.removeclass_song'+rid).remove();
