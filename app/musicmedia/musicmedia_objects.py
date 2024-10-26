@@ -1016,7 +1016,7 @@ class _MEDIA():
         return text
 
     @property
-    def year(self) -> int:
+    def year(self) -> Optional[int]:
         return self._year
 
     @year.setter
@@ -1048,7 +1048,7 @@ class _MEDIA():
                  title: str,
                  artists: List[_Artist],
                  year: int,
-                 index: int,
+                 index: Optional[int] = None,
                  mixer: Optional[_Artist] = None,
                  classical_composers: Optional[_Artist] = None,
                  artist_particles: Optional[List[str]] = None) -> None:
@@ -1066,7 +1066,9 @@ class _MEDIA():
             self._artist_particles = []
         else:
             self._artist_particles = artist_particles
-        if not isinstance(year, int):
+        if not isinstance(self, _CASSETTE) and not isinstance(year, int):  # All media but cassettes must have int year
+            raise TypeError('Year must be an int value')
+        elif isinstance(self, _CASSETTE) and year is not None and not isinstance(year, int):  # Cassettes can have None or int year
             raise TypeError('Year must be an int value')
         self._year = year
         if mixer is not None and type(mixer) is not _Artist:
@@ -1155,7 +1157,8 @@ class _MEDIA():
                 html_str += '</h3>\n'
         if self.mixer is not None and self.mixer != '':
             html_str += '<h3>Mixed By <a rel="mixer">{mixer_name}</a></h3>\n'.format(mixer_name=self.mixer)
-        html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
+        if self.year is not None:  # Only can be None for a cassette
+            html_str += '<h3><a rel="date">{year}</a></h3>\n'.format(year=self.year)
         for track in self.tracks:
             html_str += track.to_html()
         html_str += '</a>\n'
@@ -1264,7 +1267,7 @@ class MEDIA():
                                 media_classical_composer = Artists.create_Artist(media_classical_composer_name)
                                 media_classical_composers.append(media_classical_composer)
                         elif rel_value == 'date':
-                            media_date = anchor_tag.text.strip()
+                            media_date = int(anchor_tag.text.strip())
                 elif isinstance(anchor_tag, NavigableString):
                     # Mixer entry starts as "Mixed By"
                     media_mixer_elements = h3_element.find_all('a', rel='mixer')
@@ -1491,7 +1494,7 @@ class MEDIA():
                     new_Media = CDs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
-                                           year=int(media_date),
+                                           year=media_date,
                                            mixer=media_mixer,
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
@@ -1501,7 +1504,7 @@ class MEDIA():
                     new_Media = LPs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
-                                           year=int(media_date),
+                                           year=media_date,
                                            mixer=media_mixer,
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
@@ -1510,7 +1513,7 @@ class MEDIA():
                     new_Media = CASSETTEs.create(media_type=media_type,
                                                  title=media_title,
                                                  artists=media_artists,
-                                                 year=int(media_date),
+                                                 year=media_date,
                                                  mixer=media_mixer,
                                                  classical_composers=media_classical_composers,
                                                  artist_particles=media_artist_particles)
@@ -1519,7 +1522,7 @@ class MEDIA():
                     new_Media = ELPs.create(media_type=media_type,
                                             title=media_title,
                                             artists=media_artists,
-                                            year=int(media_date),
+                                            year=media_date,
                                             mixer=media_mixer,
                                             classical_composers=media_classical_composers,
                                             artist_particles=media_artist_particles)
@@ -1529,7 +1532,7 @@ class MEDIA():
                     new_Media = MINI_CDs.create(media_type=media_type,
                                                 title=media_title,
                                                 artists=media_artists,
-                                                year=int(media_date),
+                                                year=media_date,
                                                 mixer=media_mixer,
                                                 classical_composers=media_classical_composers,
                                                 artist_particles=media_artist_particles)
@@ -1854,7 +1857,7 @@ class CASSETTEs():
                media_type: MediaType,
                title: str,
                artists: List[_Artist],
-               year: int,
+               year: Optional[int] = None,
                mixer: Optional[_Artist] = None,
                classical_composers: Optional[_Artist] = None,
                artist_particles: List[str] = None,
@@ -1873,7 +1876,7 @@ class CASSETTEs():
             :type artists:                         list(:class:`_Artist`)
 
             :param year:                           The year the cassette was published
-            :type year:                            int
+            :type year:                            int or None
 
             :param mixer:                          Optional cassette mixer
             :type mixer:                           :class:`_Artist` | None

@@ -6,6 +6,7 @@ from .musicmedia_objects import (
     Artists,
     MEDIA,
     MediaException,
+    MediaType,
     Song,
     TrackList,
     media_to_hash
@@ -71,7 +72,10 @@ def delete(media_type, id):
             form.classical_composer_1.data = musicmedia_data.classical_composers[0].name
             if len(musicmedia_data.classical_composers) == 2:
                 form.classical_composer_2.data = musicmedia_data.classical_composers[1].name
-        form.year.data = str(musicmedia_data.year)
+        if musicmedia_data.year is None:
+            form.year.data = ''
+        else:
+            form.year.data = str(musicmedia_data.year)
 
     if request.method == 'POST':
         # Take action based on the button pressed
@@ -120,6 +124,9 @@ def add_media(media_type):
                 classical_composer_1_str = form['classical_composer_1'].data.strip()
                 classical_composer_2_str = form['classical_composer_2'].data.strip()
                 year = form['year'].data
+                if year is None and media_type != MediaType.CASSETTE:
+                    flash('Error: A release year is required for a new {}.'.format(musicmedia_str))
+                    raise FormValidateException
                 if title is None or title == '':
                     flash('Error: A title is required for a new {}.'.format(musicmedia_str))
                     raise FormValidateException()
@@ -404,6 +411,9 @@ def modify(media_type, id):
                     if classical_composer_2_str is not None and classical_composer_2_str != '':
                         new_classical_composer_names.append(classical_composer_2_str)
                     year = form['year'].data
+                    if year is None and media_type != MediaType.CASSETTE:
+                        flash('Error: A release year is required for a new {}.'.format(musicmedia_str))
+                        raise FormValidateException
                     if title is None or title == '':
                         flash('Error: A title is required for a {}.'.format(musicmedia_str))
                         raise FormValidateException

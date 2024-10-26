@@ -27,7 +27,7 @@ class MusicMediaMetaForm(FlaskForm):
     mixer = StringField('Mixer', validators=[Length(0, 40)])
     classical_composer_1 = StringField('Classical Composer 1', validators=[Length(0, 40)])
     classical_composer_2 = StringField('Classical Composer 2', validators=[Length(0, 40)])
-    year = IntegerField('Year Of Release', validators=[DataRequiredNoFlags()], default=date.today().year)
+    year = IntegerField('Year Of Release', default=date.today().year)
 
 
 class NewMusicMediaMetaForm(MusicMediaMetaForm):
