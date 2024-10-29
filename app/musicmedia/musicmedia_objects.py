@@ -1199,7 +1199,7 @@ class _MINI_CD(_MEDIA):
 
 
 class MEDIA():
-    _html_file_retention_count = 20   # Number of backup html data files to store
+    _html_file_retention_count = 5   # Number of backup html data files to store
     _html_data_file = None
     changes_to_write = False
 
@@ -1570,13 +1570,14 @@ class MEDIA():
 
         # Check if exceeded the count of backups of html data files and remove oldest
         data_filepath_parent = data_filepath.parent
-        backuo_html_data_files = []
+        backup_html_data_files = []
         for f in data_filepath_parent.iterdir():
-            if f.stem == data_file:
-                backuo_html_data_files.append(f)
-        backuo_html_data_files.sort(reverse=True)
-        if len(backuo_html_data_files) > cls._html_file_retention_count:
-            for f in backuo_html_data_files[cls._html_data_file:]:
+            if f.stem == data_filepath.parts[-1]:
+                backup_html_data_files.append(f)
+        backup_html_data_files.sort(reverse=True)
+
+        if len(backup_html_data_files) > cls._html_file_retention_count:
+            for f in backup_html_data_files[cls._html_file_retention_count:]:
                 os.remove(f)
 
     @classmethod
