@@ -13,25 +13,25 @@ from .musicmedia_objects import (
 )
 
 
-def massage_particle(particle):
-    """ Massage an Artist particle to the correct format.
+def massage_particle_or_sequel(particle_or_sequel):
+    """ Massage an Artist particle or sequels to the correct format.
 
-        For word particles, we want to surround them with spaces. In the case
+        For word particles and sequels, we want to surround them with spaces. In the case
         of a comma, we only want a space at the end.
 
-        :param particle:  The Artist particle to format
+        :param particle:  The Artist particle or sequel to format
         :type particle:   str
 
-        :returns:         The correctly formatted Artist particle
+        :returns:         The correctly formatted Artist particle or sequel
         :rtype:           srt
     """
-    massaged_particle = ''
-    if particle is not None and particle != '':
-        if particle == ',':
-            massaged_particle = ', '
+    massaged_particle_or_sequel = ''
+    if particle_or_sequel is not None and particle_or_sequel != '':
+        if particle_or_sequel == ',':
+            massaged_particle_or_sequel = ', '
         else:
-            massaged_particle = ' ' + particle + ' '
-    return massaged_particle
+            massaged_particle_or_sequel = ' ' + particle_or_sequel + ' '
+    return massaged_particle_or_sequel
 
 
 def field_value_or_none(form, field):

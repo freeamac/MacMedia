@@ -27,7 +27,7 @@ from .route_utilities import (
     field_value_or_none,
     get_macmedia_library,
     name_value_or_blank,
-    massage_particle,
+    massage_particle_or_sequel,
 )
 
 
@@ -158,7 +158,7 @@ def add_media(media_type):
                                 if additional_artist_str is None or additional_artist_str == '':
                                     continue
                                 particle = artist_info['additional_artist_particle'].data.strip()
-                                particle = massage_particle(particle)
+                                particle = massage_particle_or_sequel(particle)
                                 artist_particles.append(particle)
                                 additional_artist = Artists.create_Artist(additional_artist_str)
                                 artists.append(additional_artist)
@@ -246,7 +246,7 @@ def add_track(media_type, id, track_id):
                 song_mix = field_value_or_none(song_field, 'song_mix')
                 song_featured_in = field_value_or_none(song_field, 'song_featured_in')
                 list_main_artist = song_field['song_list_main_artist'].data
-                song_main_artist_sequel = song_field['song_main_artist_sequel'].data
+                song_main_artist_sequel = massage_particle_or_sequel(field_value_or_none(song_field, 'song_main_artist_sequel'))
                 song_country = field_value_or_none(song_field, 'song_country')
 
                 # Cleanly handle year of song which could be invalid
@@ -268,7 +268,7 @@ def add_track(media_type, id, track_id):
                     if additional_artist_str is None:
                         continue
                     additional_artist_prequel = field_value_or_none(additional_artist, 'additional_artist_prequel')
-                    additional_artist_sequel = field_value_or_none(additional_artist, 'additional_artist_sequel')
+                    additional_artist_sequel = massage_particle_or_sequel(field_value_or_none(additional_artist, 'additional_artist_sequel'))
                     artist = Artists.create_Artist(additional_artist_str)
                     song_additional_artist = Additional_Artist(artist=artist, sequel=additional_artist_sequel, prequel=additional_artist_prequel)
                     song_additional_artists.append(song_additional_artist)
@@ -502,7 +502,7 @@ def modify(media_type, id):
                             artist_particle_list.append('')
                         else:
                             particle = artist_info['additional_artist_particle'].data.strip()
-                            artist_particle_list.append(massage_particle(particle))
+                            artist_particle_list.append(massage_particle_or_sequel(particle))
                         if artist_info['additional_artist'].data is None:
                             # Handle non-existing data
                             additional_artists_name_list.append('')
@@ -745,7 +745,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                 song_mix = field_value_or_none(form, 'song_mix')
                 song_featured_in = field_value_or_none(form, 'song_featured_in')
                 list_main_artist = form['song_list_main_artist'].data
-                song_main_artist_sequel = form['song_main_artist_sequel'].data
+                song_main_artist_sequel = massage_particle_or_sequel(field_value_or_none(form, 'song_main_artist_sequel'))
                 song_country = field_value_or_none(form, 'song_country')
 
                 # Cleanly handle year of song which could be invalid
@@ -770,7 +770,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                     additional_artist_sequel = field_value_or_none(additional_artist, 'additional_artist_sequel')
                     additional_artists_prequel_list.append(additional_artist_prequel)
                     additional_artists_name_list.append(additional_artist_str)
-                    additional_artists_sequel_list.append(additional_artist_sequel)
+                    additional_artists_sequel_list.append(massage_particle_or_sequel(additional_artist_sequel))
 
                 # Handle classical musical aspects of a song
                 classical_composer_1_str = field_value_or_none(form, 'song_classical_composer_1')
