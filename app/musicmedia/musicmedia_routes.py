@@ -636,6 +636,9 @@ def modify_track_song(media_type, id, track_id, song_id):
         # Adding a new song.
         template_new_song = True
         template_last_song = True if len(tracklist.song_list) == -1 * song_id else False   # TODO Fix
+        if len(tracklist.song_list) == 0:
+            template_last_song = True
+            song_id = NEW_FIRST_SONG_SENTINEL
 
     else:
         # Existing song
@@ -886,7 +889,17 @@ def modify_track_song(media_type, id, track_id, song_id):
                 # Set flag to write out changes when main library page is displayed
                 MEDIA.changes_to_write = True
 
-                return redirect(url_for('.index'))
+                if form.save_and_finish.data:
+                    return redirect(url_for('.index'))
+
+                if form.save.data:
+                    if song_id == NEW_FIRST_SONG_SENTINEL:
+                        new_song_id = 0  # Add a new first song
+                    elif song_id < 0:
+                        new_song_id = -1 * song_id  # Inserted a new song
+                    else:
+                        new_song_id = song_id  # Modified current song
+                    return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', id=id, track_id=track_id, song_id=new_song_id))
 
             except FormValidateException:
                pass

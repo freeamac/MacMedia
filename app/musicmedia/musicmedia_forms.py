@@ -67,7 +67,8 @@ class ModifySongForm(SongForm):
     append_new_song = SubmitField('Append New Song')
     delete_song = SubmitField('Delete Song')
     next_song = SubmitField('Go To Next Song')
-    save = SubmitField('Save And Finish')
+    save_and_finish = SubmitField('Save And Finish')
+    save = SubmitField('Save Song')
     cancel = SubmitField('Cancel')
 
 
