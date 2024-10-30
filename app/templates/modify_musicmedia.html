@@ -17,7 +17,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-3">
           {{ form.title }}
         </div>
       </div>
@@ -27,14 +27,14 @@
         </div>
       </div>
       <div class="row bottom10">
-        <div class="col-md-2">
+        <div class="col-md-3">
           {{ form.main_artist}}
         </div>
       </div>
       <div id="additional_artists">
         {% for additional_artist in form.additional_artists %}
           <div class="row removeclass{{ loop.index }}" id="artist_row_{{ loop.index }}">
-            <div class="col-md-2">
+            <div class="col-md-1">
               <h4>Particle:</h4>
             </div>
             <div class="col-md-2">
@@ -46,7 +46,7 @@
             <div class="col-md-2">
               {{ additional_artist.additional_artist }}
             </div>
-            <div class="col-md-2 minus_button_{{ loop.index }}">
+            <div class="col-md-1 minus_button_{{ loop.index }}">
               <div class="input-group-btn">
                 <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields({{ loop.index }});"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
               </div>
@@ -69,7 +69,7 @@
         {% endfor %}
 
       <div class="row top10">
-        <div class="col-md-3">
+        <div class="col-md-2">
           <h4>Mixer:</h4>
         </div>
         <div class="col-md-2">
@@ -77,7 +77,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-2">
           <h4>Classical Composer 1:</h4>
         </div>
         <div class="col-md-2">
@@ -85,7 +85,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-2">
           <h4>Classical Composer 2:</h4>
         </div>
         <div class="col-md-2">
@@ -96,8 +96,6 @@
         <div class="col-md-2">
           <h4>Year Released:</h4>
         </div>
-      </div>
-      <div class="row">
         <div class="col-md-2">
           {{ form.year }}
         </div>
@@ -136,7 +134,7 @@
 	  additionalArtistRow.setAttribute("class", "row removeclass"+next_index);
     additionalArtistRow.setAttribute("id", "artist_row_"+next_index)
     additionalArtistRow.innerHTML = '\
-        <div class="col-md-2">\
+        <div class="col-md-1">\
         <h4>Particle:</h4>\
       </div>\
       <div class="col-md-2">\
@@ -148,7 +146,7 @@
       <div class="col-md-2">\
         <input id="additional_artists-'+next_index+'-additional_artist" maxlength="40" minlength="0" name="additional_artists-'+next_index+'-additional_artist" type="text" value="">\
       </div>\
-      <div class="col-md-2 minus_button_'+next_index+'">\
+      <div class="col-md-1 minus_button_'+next_index+'">\
         <div class="input-group-btn">\
           <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+next_index+');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
         </div>\
