@@ -113,7 +113,7 @@ class MusicMediaRoutesTestCase(unittest.TestCase):
                       'save': True}
 
     modify_song_data = {'song_title': 'Uno Song',
-                        'save': True}
+                        'save_and_finish': True}
 
     delete_song_data = {'delete_song': True}
 
