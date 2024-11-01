@@ -1539,11 +1539,14 @@ class MEDIA():
                 for tracklist in media_tracklist:
                     new_Media.add_track(tracklist)
 
-                # Add LP to all song artists found once we dedupe them
+                # Add music media to all song artists found once we dedupe them
                 for artist in set(media_song_artists):
-                    # Need to skip any that are also album artists since they have
+                    # Need to skip any that also have the music media credit as artists since they have
                     # already been added
-                    if artist not in media_artists:
+                    music_media_artist_credits = media_artists
+                    if media_classical_composers is not None:
+                        music_media_artist_credits.extend(media_classical_composers)
+                    if artist not in music_media_artist_credits:
                         artist.add_media(new_Media)
 
     @classmethod
