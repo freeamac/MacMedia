@@ -165,8 +165,8 @@ class MusicMediaRoutesTestCase(unittest.TestCase):
         self.assertIn(b'Particle:', response.data)
         self.assertIn(b'Additional Artist:', response.data)
         self.assertIn(b'Mixer:', response.data)
-        self.assertIn(b'Classical Composer 1:', response.data)
-        self.assertIn(b'Classical Composer 2:', response.data)
+        self.assertIn(b'Classical Comp. 1:', response.data)
+        self.assertIn(b'Classical Comp. 2:', response.data)
         self.assertIn(b'Add Tracks', response.data)
         self.assertIn(b'Cancel', response.data)
 
