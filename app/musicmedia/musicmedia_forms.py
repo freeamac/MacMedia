@@ -25,8 +25,8 @@ class MusicMediaMetaForm(FlaskForm):
     main_artist = StringField('Main Artist', validators=[Length(0, 40)])
     additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=5)
     mixer = StringField('Mixer', validators=[Length(0, 40)])
-    classical_composer_1 = StringField('Classical Composer 1', validators=[Length(0, 40)])
-    classical_composer_2 = StringField('Classical Composer 2', validators=[Length(0, 40)])
+    classical_composer_1 = StringField('Classical Comp. 1', validators=[Length(0, 40)])
+    classical_composer_2 = StringField('Classical Comp. 2', validators=[Length(0, 40)])
     year = IntegerField('Year Of Release', default=date.today().year)
 
 
@@ -99,8 +99,8 @@ class DeleteMusicMediaForm(FlaskForm):
     """ Form for deleting a Music Media item """
     title = StringField('Title', render_kw={'readonly': True})
     artists = StringField('Artist(s)', render_kw={'readonly': True})
-    classical_composer_1 = StringField('Classical Composer 1', render_kw={'readonly': True})
-    classical_composer_2 = StringField('Classical Composer 2', render_kw={'readonly': True})
+    classical_composer_1 = StringField('Classical Comp. 1', render_kw={'readonly': True})
+    classical_composer_2 = StringField('Classical Comp. 2', render_kw={'readonly': True})
     mixer = StringField('Mixer', render_kw={'readonly': True})
     year = StringField('Year Of Release', render_kw={'readonly': True})
 

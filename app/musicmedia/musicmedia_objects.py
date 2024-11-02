@@ -1543,7 +1543,7 @@ class MEDIA():
                 for artist in set(media_song_artists):
                     # Need to skip any that also have the music media credit as artists since they have
                     # already been added
-                    music_media_artist_credits = media_artists
+                    music_media_artist_credits = media_artists.copy()
                     if media_classical_composers is not None:
                         music_media_artist_credits.extend(media_classical_composers)
                     if artist not in music_media_artist_credits:
