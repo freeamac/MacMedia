@@ -216,6 +216,7 @@ def add_track(media_type, id, track_id):
         form.track_num = track_id
         form.track_name.data = ''
         form.track_mixer.data = ''
+        form.track_artist.data = ''
 
     if request.method == 'POST':
         if form.cancel.data:
@@ -225,11 +226,22 @@ def add_track(media_type, id, track_id):
             item = musicmedia_library.find_by_index(id)
             all_song_artists = set()
             track_name = field_value_or_none(form, 'track_name')
+            track_artist_str = field_value_or_none(form, 'track_artist')
             track_mixer_str = field_value_or_none(form, 'track_mixer')
+            track_year = form.track_release_year.data
+            if track_year == '':
+                track_year = None
             track_song_fields = form['track_songs']
 
             if track_name == '':
                 track_name = None
+
+            if track_artist_str is None or track_artist_str == '':
+                track_artist = None
+            else:
+                track_artist = Artists.create_Artist(track_artist_str)
+                all_song_artists.add(track_artist)
+
             if track_mixer_str is None or track_mixer_str == '':
                 track_mixer = None
             else:
@@ -323,7 +335,11 @@ def add_track(media_type, id, track_id):
                             parts=song_parts)
                 songs.append(song)
 
-            tracklist = TrackList(side_name=track_name, side_mixer_artist=track_mixer, songs=songs)
+            tracklist = TrackList(side_name=track_name,
+                                  track_artist=track_artist,
+                                  side_mixer_artist=track_mixer,
+                                  track_year=track_year,
+                                  songs=songs)
             item.add_track(tracklist)
 
             # Add the LP to all Artists referenced on this track
@@ -564,12 +580,25 @@ def modify_track(media_type, id, track_id):
         if len(item.tracks) < track_id + 1:
             # Adding a new track
             form.track_name.data = ''
+            form.track_artist = ''
             form.track_mixer.data = ''
+            form.track_release_eyar = ''
             form.track_num = 0
             form.new_track = True
         else:
             form.track_name.data = item.tracks[track_id].name
-            form.track_mixer.data = item.tracks[track_id].side_mixer
+            if item.tracks[track_id].track_artist is not None:
+                form.track_artist.data = item.tracks[track_id].track_artist.name
+            else:
+                form.track_artist.data = ''
+            if item.tracks[track_id].side_mixer is not None:
+                form.track_mixer.data = item.tracks[track_id].side_mixer.name
+            else:
+                form.track_mixer.data = ''
+            if item.tracks[track_id].track_year is not None:
+                form.track_release_year.data = item.tracks[track_id].track_year
+            else:
+                form.track_release_year.data = ''
             form.track_num = track_id
             form.new_track = False
 
@@ -579,22 +608,60 @@ def modify_track(media_type, id, track_id):
 
         if form.validate:
             track_name = field_value_or_none(form, 'track_name')
-            track_mixer = field_value_or_none(form, 'track_mixer')
+            track_artist_str = field_value_or_none(form, 'track_artist')
+            track_mixer_str = field_value_or_none(form, 'track_mixer')
+            track_release_year = form.track_release_year.data
 
             if len(item.tracks) < track_id + 1:
                 # Adding a new track
-                if track_mixer == '':
+                if track_artist_str == '' or track_artist_str is None:
+                    track_artist = None
+                else:
+                    track_artist == Artists.create_Artist(track_artist_str)
+
+                if track_mixer_str == '' or track_mixer_str is None:
                     track_mixer = None
-                new_tracklist = TrackList(track_name, track_mixer)
+                else:
+                    track_mixer = Artists.create_Artist(track_mixer_str)
+
+                new_tracklist = TrackList(side_name=track_name,
+                                          track_artist=track_artist,
+                                          side_mixer_artist=track_mixer,
+                                          track_year=track_release_year)
                 item.tracks.append(new_tracklist)
+
+                # Set flag to write out changes when main library page is displayed
+                MEDIA.changes_to_write = True
             else:
                 if track_name != item.tracks[track_id].name:
                     item.tracks[track_id].name = track_name
-                if track_mixer != item.tracks[track_id].side_mixer:
-                    item.tracks[track_id].side_mixer = track_mixer
+                    MEDIA.changes_to_write = True
 
-            # Set flag to write out changes when main library page is displayed
-            MEDIA.changes_to_write = True
+                if item.tracks[track_id].track_artist is None:
+                    if track_artist_str is not None:
+                        item.tracks[track_id].track_artist = Artists.create_Artist(track_artist_str)
+                        MEDIA.changes_to_write = True
+                elif track_artist_str is None or track_artist_str != item.tracks[track_id].track_artist.name:
+                    if track_artist_str is not None:
+                        item.tracks[track_id].track_artist = Artists.create_Artist(track_artist_str)
+                    else:
+                        item.tracks[track_id].track_artist = None
+                    MEDIA.changes_to_write = True
+
+                if item.tracks[track_id].side_mixer is None:
+                    if track_mixer_str is not None:
+                        item.tracks[track_id].side_mixer = Artists.create_Artist(track_mixer_str)
+                        MEDIA.changes_to_write = True
+                elif track_mixer_str is None or track_mixer_str != item.tracks[track_id].side_mixer.name:
+                    if track_mixer_str is not None:
+                        item.tracks[track_id].side_mixer = Artists.create_Artist(track_mixer_str)
+                    else:
+                        item.tracks[track_id].side_mixer = None
+                    MEDIA.changes_to_write = True
+
+                if track_release_year != item.tracks[track_id].track_year:
+                    item.tracks[track_id].track_year = track_release_year
+                    MEDIA.changes_to_write = True
 
             if form.modify_next_track.data:
                 return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id + 1))

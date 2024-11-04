@@ -14,23 +14,41 @@
     <form method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="row">
-            {% if form.new_track %}
+          {% if form.new_track %}
             <div class="col-md-3">
-		    <h2>Adding New Track To {{ media_str.upper() }}:</h2>
+		          <h2>Adding New Track To {{ media_str.upper() }}:</h2>
             </div>
-            {% endif %}
+          {% endif %}
           <div class="col-md-2">
             <h4>{{ form.track_name.label }}</h4>
           </div>
           <div class="col-md-2">
             {{ form.track_name }}
           </div>
+          {% if media_str == "cassette" %}
+            <div class="col-md-2">
+              <h4>{{ form.track_artist.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ form.track_artist }}
+            </div>
+          </div>
+          <div class="row bottom10">
+          {% endif %}
           <div class="col-md-2">
             <h4>{{ form.track_mixer.label }}</h4>
           </div>
           <div class="col-md-2">
             {{ form.track_mixer }}
           </div>
+          {% if media_str == "cassette" %}
+            <div class="col-md-2">
+              <h4>{{ form.track_release_year.label }}:</h4>
+            </div>
+            <div class="col-md-2">
+              {{ form.track_release_year }}
+            </div>
+          {% endif %}
         </div>
 
         <div class="row top20">

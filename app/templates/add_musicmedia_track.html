@@ -23,6 +23,18 @@
             {{ form.track_name }}
           </div>
         </div>
+        {% if media_str == "cassette" %}
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.track_artist.label }}:</h4>
+          </div>
+        </div>
+        <div class="row bottom10">
+          <div class="col-md-2">
+            {{ form.track_artist }}
+          </div>
+        </div>
+        {% endif %}
         <div class="row">
           <div class="col-md-2">
             <h4>{{ form.track_mixer.label }}:</h4>
@@ -33,6 +45,18 @@
             {{ form.track_mixer }}
           </div>
         </div>
+        {% if media_str == "cassette" %}
+        <div class="row">
+          <div class="col-md-2">
+            <h4>{{ form.track_release_year.label }}:</h4>
+          </div>
+        </div>
+        <div class="row bottom10">
+          <div class="col-md-2">
+            {{ form.track_release_year }}
+          </div>
+        </div>
+        {% endif %}
 
         <!-- Loop through to pick each song information -->
         {% for song in form.track_songs %}

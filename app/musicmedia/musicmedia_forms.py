@@ -76,6 +76,8 @@ class MusicMediaTrackForm(FlaskForm):
     """ Form for a track on a Music Media item """
     track_name = StringField('Track Name', validators=[Length(0, 40)])
     track_mixer = StringField('Track Mixer', validators=[Length(0, 40)])
+    track_artist = StringField('Track Artist', validators=[Length(0, 40)])      # Only valid for cassettes
+    track_release_year = IntegerField('Year Of Release')                        # Only valid for cassettes
     track_songs = FieldList(FormField(SongForm), min_entries=1, max_entries=30)
 
 

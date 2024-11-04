@@ -7,6 +7,7 @@ from app.musicmedia.musicmedia_objects import (
     Additional_Artist,
     ArtistException,
     Artists,
+    CASSETTEs,
     CDs,
     ELPs,
     LPs,
@@ -192,7 +193,7 @@ class MEDIATestCase(unittest.TestCase):
         expected_string += 'Club Cutz Volume 3\n'
         expected_string += 'Various Artists\n'
         expected_string += 'Mixed by DJ Funk\n'
-        expected_string += '1992'
+        expected_string += '1992\n'
         expected_string += 'Side 1\n'
         expected_string += ' 1. Jump To The Beat\nDannii Minogue\n(12" Mix)\n'
         expected_string += ' 2. Jump!\nThe Movement\n(Everybody Mix)\n'
@@ -290,6 +291,7 @@ class MEDIATestCase(unittest.TestCase):
         album_perm_1 = album_string_1 + album_string_2
         album_perm_2 = album_string_2 + album_string_1
         all_lps_string = str(all_lps)
+        print(f'{all_lps_string=}')
         self.assertTrue((album_perm_1 == all_lps_string) or (album_perm_2 == all_lps_string))
 
         # Test that we correctly create a new album when the title matches an
@@ -463,6 +465,8 @@ class MEDIATestCase(unittest.TestCase):
         # in the file read in
         all_artists = Artists()
         all_artists._clean_artists()
+        all_cassettes = CASSETTEs()
+        all_cassettes._clean_cassettes()
         all_cds = CDs()
         all_cds._clean_cds()
         all_lps = LPs()
@@ -474,6 +478,7 @@ class MEDIATestCase(unittest.TestCase):
         media = MEDIA()
         media.from_html_file(self.MUSIC_HTML_FILE)
         print('Number of Artists found: {}'.format(len(all_artists.artists)))
+        print('Number of Cassettes found: {}'.format(len(all_cassettes.cassettes)))
         print('Number of CDs found: {}'.format(len(all_cds.cds)))
         print('Number of LPs found: {}'.format(len(all_lps.lps)))
         print('Number of ELPs found: {}'.format(len(all_elps.elps)))

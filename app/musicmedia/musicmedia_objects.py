@@ -808,7 +808,7 @@ class Song():
 
 
 class TrackList():
-    """ A list of songs (tracklist) on one side of an album"""
+    """ A list of songs (tracklist) on one side of a music media item"""
 
     @property
     def name(self) -> Optional[str]:
@@ -819,25 +819,51 @@ class TrackList():
         self._name = side_name
 
     @property
-    def side_mixer(self) -> Optional[str]:
+    def track_artist(self) -> Optional[_Artist]:
+        return self._track_artist
+
+    @track_artist.setter
+    def side_track(self, new_track_artist) -> None:
+        self._track_artist = new_track_artist
+
+    @property
+    def side_mixer(self) -> Optional[_Artist]:
         return self._side_mixer
 
     @side_mixer.setter
-    def side_mixer(self, side_mixer_name) -> None:
-        self._side_mixer = side_mixer_name
+    def side_mixer(self, new_side_mixer) -> None:
+        self._side_mixer = new_side_mixer
+
+    @property
+    def track_year(self) -> Optional[int]:
+        return self._track_year
+
+    @track_year.setter
+    def track_year(self, new_track_year) -> None:
+        self._track_year = new_track_year
 
     @property
     def song_list(self) -> List[Song]:
         return self._song_list
 
-    def __init__(self, side_name: Optional[str] = None, side_mixer_artist: Optional[_Artist] = None, songs: Optional[List[Song]] = None) -> None:
-        """ Create a tracklist for an album.
+    def __init__(self, side_name: Optional[str] = None,
+                 track_artist: Optional[_Artist] = None,
+                 side_mixer_artist: Optional[_Artist] = None,
+                 track_year: Optional[int] = None,
+                 songs: Optional[List[Song]] = None) -> None:
+        """ Create a tracklist for a music media item.
 
             :param side_name:          The name of the tracklist (eg. "Side A")
             :type side_name:           str | None
 
+            :param track_artist:       The optional artist of songs on the tracklist
+            :type track_artist:        :class:`_Artist`
+
             :param side_mixer_Artist:  And optional mixer of the songs on this tracklist
             :type side_mixer_Artist:   :class:`_Artist`
+
+            :param track_year:         Optional release year of the songs on the tracklist
+            :type track_year:          int | None
 
             :parm songs:               A list of songs on the track
             :type songs:               list(:class:`Song`)
@@ -845,9 +871,13 @@ class TrackList():
             :raises ArtistException:  If side_mixer is not a :class:`Artist`
         """
         self._name = side_name
+        if track_artist is not None and type(track_artist) is not _Artist:
+            raise ArtistException('Track Artist {} is not an Artist object'.format(track_artist))
+        self._track_artist = track_artist
         if side_mixer_artist is not None and type(side_mixer_artist) is not _Artist:
-            raise ArtistException('{} is not an Artist object'.format(side_mixer_artist))
+            raise ArtistException('Track Mixer {} is not an Artist object'.format(side_mixer_artist))
         self._side_mixer = side_mixer_artist
+        self._track_year = track_year
         self._song_list = songs
 
     def add_song(self, song: Song) -> None:
@@ -909,8 +939,12 @@ class TrackList():
         if self.name is not None:
             html_str += '<a rel="side">\n'
             html_str += '<h4><blockquote>{side_title}</blockquote></h4>\n'.format(side_title=escape(self.name, quote=False))
+        if self.track_artist is not None:
+            html_str += '<h4>Track Artist: <a rel="track-artist">{artist_name}</a></h4>\n'.format(artist_name=self.track_artist.name)
         if self.side_mixer is not None:
-            html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer)
+            html_str += '<h4>Mixed By <a rel="side-mixer">{mixer_name}</a></h4>\n'.format(mixer_name=self.side_mixer.name)
+        if self.track_year is not None:
+            html_str += '<h4>Released: <a rel="track-year">{track_year}</a></h4>\n'.format(track_year=self.track_year)
         html_str += '<ol>\n'
         if self.song_list is not None:
             for song in self.song_list:
@@ -921,15 +955,18 @@ class TrackList():
         return html_str
 
     def __str__(self) -> str:
-        if self._name is not None:
-            string = '{}'.format(self._name)
+        if self.name is not None:
+            string = '{}\n'.format(self.name)
         else:
             string = ''
-        if self._side_mixer is not None:
-            string += 'mixed by {}'.format(self._side_mixer)
-        string += '\n'
-        if self._song_list is not None:
-            for counter, song in enumerate(self._song_list):
+        if self.track_artist is not None:
+            string += 'track artist: {}\n'.format(self.track_artist)
+        if self.side_mixer is not None:
+            string += 'mixed by {}\n'.format(self.side_mixer)
+        if self.track_year is not None:
+            string += 'released: {}'.format(self.track_year)
+        if self.song_list is not None:
+            for counter, song in enumerate(self.song_list):
                 string += '{:2d}. {}'.format(counter + 1, song)
         return string
 
@@ -1171,7 +1208,8 @@ class _MEDIA():
         string += '{}\n'.format(','.join([artist.name for artist in self.artists]))
         if self.mixer is not None:
             string += 'Mixed by {}\n'.format(self.mixer)
-        string += '{}'.format(self.year)
+        if self.year is not None:
+            string += '{}\n'.format(self.year)
         for track in self.tracks:
             string += str(track)
         string += '\n'
@@ -1241,7 +1279,7 @@ class MEDIA():
             media_artist_particles = []
             media_classical_composers = []
             media_mixers = []
-            media_date = None
+            media_year = None
             all_h3_elements = media_element.find_all('h3')
             for h3_element in all_h3_elements:
                 # The first content is going to be the anchor tag
@@ -1267,7 +1305,7 @@ class MEDIA():
                                 media_classical_composer = Artists.create_Artist(media_classical_composer_name)
                                 media_classical_composers.append(media_classical_composer)
                         elif rel_value == 'date':
-                            media_date = int(anchor_tag.text.strip())
+                            media_year = int(anchor_tag.text.strip())
                 elif isinstance(anchor_tag, NavigableString):
                     # Mixer entry starts as "Mixed By"
                     media_mixer_elements = h3_element.find_all('a', rel='mixer')
@@ -1285,7 +1323,7 @@ class MEDIA():
                 print('Title: {}'.format(media_title))
                 assert (len(media_mixers) == 1)  # nosec
 
-            return media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_date
+            return media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_year
 
         def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> (_Artist, List[Additional_Artist]):
             """ Get the optional main artist and additional artists from the song artist block.
@@ -1375,26 +1413,42 @@ class MEDIA():
                 # the information we want to get
                 media_element = p_element.contents[1]  # Skipping new line after <p> tag
                 media_type = MediaType(media_element['rel'][0])
-                media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_date = get_media_metadata(media_element)
+                media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_year = get_media_metadata(media_element)
                 media_song_artists = []
 
                 # Process each side of the lp
                 media_tracklist = []
                 all_side_elements = media_element.find_all('a', rel='side')
+                has_side_metadata = True
                 if len(all_side_elements) == 0:
                     # No labelled side like CD
+                    has_side_metadata = False
                     all_side_elements = [media_element.find('ol')]
 
                 for side_element in all_side_elements:
                     side_title = None
+                    track_artist = None
                     side_mixer = None
-                    any_additional_side_metadata = side_element.find('h4') is not None
-                    if any_additional_side_metadata:
-                        side_title = side_element.find('h4').text.strip()
-                        side_mixer_name = rel_element_text(side_element, 'side-mixer')
-                        if side_mixer_name is not None:
-                            side_mixer = Artists.create_Artist(side_mixer_name)
-                            media_song_artists.append(side_mixer)
+                    track_year = None
+                    if has_side_metadata:
+                        side_metadata = side_element.find_all('h4')
+                        for side_metadata_element in side_metadata:
+                            if side_metadata_element.find('a', rel='side-mixer'):
+                                side_mixer_name = rel_element_text(side_metadata_element, 'side-mixer')
+                                if side_mixer_name is not None:
+                                    side_mixer = Artists.create_Artist(side_mixer_name)
+                                    media_song_artists.append(side_mixer)
+                            elif side_metadata_element.find('a', rel='track-artist'):
+                                track_artist_name = rel_element_text(side_metadata_element, 'track-artist')
+                                if track_artist_name is not None:
+                                    track_artist = Artists.create_Artist(track_artist_name)
+                                    media_song_artists.append(track_artist)
+                            elif side_metadata_element.find('a', rel='track-year'):
+                                track_year = rel_element_text(side_metadata_element, 'track-year')
+                                if track_year is not None:
+                                    track_year = int(track_year)
+                            else:
+                                side_title = side_metadata_element.text.strip()
 
                     # Process each song on the side
                     side_Songs = []
@@ -1472,7 +1526,11 @@ class MEDIA():
                                                mix=song_mix,
                                                featured_in=song_featured_in,
                                                parts=song_parts))
-                    side_tracklist = TrackList(side_name=side_title, side_mixer_artist=side_mixer, songs=side_Songs)
+                    side_tracklist = TrackList(side_name=side_title,
+                                               track_artist=track_artist,
+                                               side_mixer_artist=side_mixer,
+                                               track_year=track_year,
+                                               songs=side_Songs)
                     media_tracklist.append(side_tracklist)
 
                 # Create the LP and add it to all the artists found
@@ -1494,7 +1552,7 @@ class MEDIA():
                     new_Media = CDs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
-                                           year=media_date,
+                                           year=media_year,
                                            mixer=media_mixer,
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
@@ -1504,7 +1562,7 @@ class MEDIA():
                     new_Media = LPs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
-                                           year=media_date,
+                                           year=media_year,
                                            mixer=media_mixer,
                                            classical_composers=media_classical_composers,
                                            artist_particles=media_artist_particles)
@@ -1513,7 +1571,7 @@ class MEDIA():
                     new_Media = CASSETTEs.create(media_type=media_type,
                                                  title=media_title,
                                                  artists=media_artists,
-                                                 year=media_date,
+                                                 year=media_year,
                                                  mixer=media_mixer,
                                                  classical_composers=media_classical_composers,
                                                  artist_particles=media_artist_particles)
@@ -1522,7 +1580,7 @@ class MEDIA():
                     new_Media = ELPs.create(media_type=media_type,
                                             title=media_title,
                                             artists=media_artists,
-                                            year=media_date,
+                                            year=media_year,
                                             mixer=media_mixer,
                                             classical_composers=media_classical_composers,
                                             artist_particles=media_artist_particles)
@@ -1532,7 +1590,7 @@ class MEDIA():
                     new_Media = MINI_CDs.create(media_type=media_type,
                                                 title=media_title,
                                                 artists=media_artists,
-                                                year=media_date,
+                                                year=media_year,
                                                 mixer=media_mixer,
                                                 classical_composers=media_classical_composers,
                                                 artist_particles=media_artist_particles)
@@ -1851,8 +1909,8 @@ class CASSETTEs():
         return cls._instance
 
     @classmethod
-    def _clean_lps(cls):
-        """ Private method to remove all albums from the collection. Useful in testing. """
+    def _clean_cassettes(cls):
+        """ Private method to remove all cassettes from the collection. Useful in testing. """
         cls._cassettes = []
         cls._max_index = 0
 

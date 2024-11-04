@@ -149,7 +149,7 @@ The schema looks like:
 In the case of a single tracklist, which generally occurs on a CD, there will just be an order list
 of song entries as the tracklist contains no metadata. For multiple tracklists, each is contained
 in a \<a rel="side"> tag. In this situation, a name for the track is manditory and there may
-optionally be a mixer associated with that track. Each are contained in \<h4>\</h4> tags.
+optionally be an artist, mixer and/or release year associated with that track. Each are contained in \<h4>\</h4> tags.
 
 The schema for a single tracklist looks like:
 
@@ -166,7 +166,9 @@ For multiple tracklists, each tracklist looks like:
 ```
 <a rel="side">
 <h4><blockquote>{tack_name}</blockquote></h4>
+<h4>Track Artist: <a rel="track-artist">{track_artist}</a></h4>
 <h4>Mixed By <a rel="side-mixer>{side_mixer}</a></h4>
+<h4>Released: <a rel="track-year">{track_year}</a></h4>
 <ol>
   .
   .
