@@ -63,8 +63,8 @@ def login():
 
         if error is None:
             login_user(user, remember=remember_me)
-            next = request.args.get('next')
-            if not is_safe_url(next):
+            next_arg = request.args.get('next')
+            if not is_safe_url(next_arg):
                 return abort(HTTPStatus.BAD_REQUEST)
 
             return redirect(url_for('main'))

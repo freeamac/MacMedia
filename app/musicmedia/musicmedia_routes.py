@@ -30,6 +30,8 @@ from .route_utilities import (
     massage_particle_or_sequel,
 )
 
+INDEX_PAGE_URL = '.index'
+
 
 class FormValidateException(Exception):
     pass
@@ -43,7 +45,7 @@ def expand(media_type, id):
     musicmedia_data = musicmedia_library.find_by_index(id)
     if musicmedia_data is None:
         flash('ERROR: {} with identifier "{}" not found'.format(musicmedia_str, id))
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
     html_str = musicmedia_data.to_html()
     return render_template('expand_musicmedia.html', media_str=musicmedia_str, html_str=html_str)
 
@@ -56,7 +58,7 @@ def delete(media_type, id):
     musicmedia_data = musicmedia_library.find_by_index(id)
     if musicmedia_data is None:
         flash('ERROR: {} with identifier "{}" not found'.format(musicmedia_str, id))
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
 
     # Set up form
     form = DeleteMusicMediaForm()
@@ -82,14 +84,14 @@ def delete(media_type, id):
 
         if form.cancel.data:
             # User cancels form submission
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         musicmedia_library.delete(musicmedia_data)
 
         # Set flag to write out changes when main library page is displayed
         MEDIA.changes_to_write = True
 
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('delete_musicmedia.html', media_str=musicmedia_str, form=form)
 
@@ -113,7 +115,7 @@ def add_media(media_type):
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         try:
             if form.validate:
@@ -220,7 +222,7 @@ def add_track(media_type, id, track_id):
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         if form.validate:
             item = musicmedia_library.find_by_index(id)
@@ -357,7 +359,7 @@ def add_track(media_type, id, track_id):
                 track_id += 1
                 return redirect(url_for('.add_' + pythonic_musicmedia_str + '_track', id=id, track_id=track_id))
 
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('add_musicmedia_track.html', media_str=musicmedia_str, form=form,
                            track_songs=track_songs,
@@ -406,7 +408,7 @@ def modify(media_type, id):
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         try:
             if form.validate:
@@ -551,7 +553,7 @@ def modify(media_type, id):
                     MEDIA.changes_to_write = True
 
                     if form.save.data:
-                        return redirect(url_for('.index'))
+                        return redirect(url_for(INDEX_PAGE_URL))
 
                     if form.save_and_modify_tracks.data:
                         return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track', id=item.index, track_id=0))
@@ -617,7 +619,7 @@ def modify_track(media_type, id, track_id):
                 if track_artist_str == '' or track_artist_str is None:
                     track_artist = None
                 else:
-                    track_artist == Artists.create_Artist(track_artist_str)
+                    track_artist = Artists.create_Artist(track_artist_str)
 
                 if track_mixer_str == '' or track_mixer_str is None:
                     track_mixer = None
@@ -675,7 +677,7 @@ def modify_track(media_type, id, track_id):
                 return redirect(url_for('.modify_' + pythonic_musicmedia_str + '_track_song', media_type=media_type, id=id, track_id=track_id, song_id=song_id))
 
             if form.save.data:
-                return redirect(url_for('.index'))
+                return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('modify_musicmedia_track.html', media_str=musicmedia_str, form=form)
 
@@ -760,7 +762,7 @@ def modify_track_song(media_type, id, track_id, song_id):
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         if form.previous_song.data:
             if song_id < 0:
@@ -957,7 +959,7 @@ def modify_track_song(media_type, id, track_id, song_id):
                 MEDIA.changes_to_write = True
 
                 if form.save_and_finish.data:
-                    return redirect(url_for('.index'))
+                    return redirect(url_for(INDEX_PAGE_URL))
 
                 if form.save.data:
                     if song_id == NEW_FIRST_SONG_SENTINEL:

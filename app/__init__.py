@@ -19,6 +19,11 @@ import config
 DEFAULT_SECRET_KEY = 'you-will-never-guess'  # nosec
 MAX_CSP_VIOLATIONS_REPORT_LENGTH = 1000
 CSP_VIOLATIONS_REPORT_HEADER = 'CSP Violations Report'
+VALID_SAFE_SITES = ['\'self\'',
+                    'cdnjs.cloudflare.com',
+                    'cdn.jsdelivr.net',
+                    'cdn.datatables.net',
+                    'code.jquery.com']
 
 # Load local environment
 load_dotenv()
@@ -122,31 +127,11 @@ def create_app(name=None):
     #      required external resources to the list of safe sites
     #   2. Inline scripts will require a "nonce" tag (see templates
     #      for examples)
-    csp = {'default-src': ['\'self\'',
-                           'cdnjs.cloudflare.com',
-                           'cdn.jsdelivr.net',
-                           'cdn.datatables.net',
-                           'code.jquery.com'],
-           'script-src': ['\'self\'',
-                          'cdnjs.cloudflare.com',
-                          'cdn.jsdelivr.net',
-                          'cdn.datatables.net',
-                          'code.jquery.com'],
-           'script-src-elem': ['\'self\'',
-                               'cdnjs.cloudflare.com',
-                               'cdn.jsdelivr.net',
-                               'cdn.datatables.net',
-                               'code.jquery.com'],
-           'script-src-attr': ['\'self\'',
-                               'cdnjs.cloudflare.com',
-                               'cdn.jsdelivr.net',
-                               'cdn.datatables.net',
-                               'code.jquery.com'],
-           'style-src-attr': ['\'self\'',
-                              'cdnjs.cloudflare.com',
-                              'cdn.jsdelivr.net',
-                              'cdn.datatables.net',
-                              'code.jquery.com'],
+    csp = {'default-src': VALID_SAFE_SITES,
+           'script-src': VALID_SAFE_SITES,
+           'script-src-elem': VALID_SAFE_SITES,
+           'script-src-attr': VALID_SAFE_SITES,
+           'style-src-attr': VALID_SAFE_SITES,
            }
     logger.info(f'Setting security content policy to {csp}')
     Talisman(app,

@@ -1260,7 +1260,7 @@ class MEDIA():
                 rel_text = rel_node.text.strip()
             return rel_text
 
-        def get_media_metadata(media_element: Tag) -> (str, List[_Artist], List[str], List[_Artist], List[_Artist], str):
+        def get_media_metadata(media_element: Tag) -> tuple[str, List[_Artist], List[str], List[_Artist], List[_Artist], str]:
             """ Parse the album tag for the album specific metadata.
 
                 The music media metadata is the title, list of artists, list of composers,
@@ -1325,7 +1325,7 @@ class MEDIA():
 
             return media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_year
 
-        def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> (_Artist, List[Additional_Artist]):
+        def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> tuple[_Artist, List[Additional_Artist]]:
             """ Get the optional main artist and additional artists from the song artist block.
 
                 We expect the song artists to reside in the <li></li> block which contains
