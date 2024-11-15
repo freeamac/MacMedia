@@ -144,8 +144,6 @@ def append_new_artists(artists_list, new_artist_names, item_data):
         except MediaException as e:
             # Could be an artist of a song on the album
             app.app.logger.warning('Media Exception {} ignored. Assuming additional artist to be associated with other songs on the Music Media item'.format(e))
-        except Exception as e:
-            raise e
     return artists_list
 
 
@@ -193,8 +191,6 @@ def append_new_additional_artists(additional_artists_list,
         except MediaException as e:
             # Could be an artist of a song on the album
             app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs or the Music Media item'.format(e))
-        except Exception as e:
-            raise e
     return additional_artists_list
 
 

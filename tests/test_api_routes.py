@@ -129,7 +129,7 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
         self.assertEqual(lp_years_in_response_set, lp_years_in_list)
 
         lp_artists_in_response_set = set([lp['artists'] for lp in lps_in_response])
-        self.assertTrue('Michael Buble' in lp_artists_in_response_set)
+        self.assertIn('Michael Buble', lp_artists_in_response_set)
 
     def test_cds(self):
         # Load in all the data
@@ -157,7 +157,7 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
         self.assertEqual(cd_years_in_response_set, cd_years_in_list)
 
         cd_artists_in_response_set = set([cd['artists'] for cd in cds_in_response])
-        self.assertTrue('Elton John' in cd_artists_in_response_set)
+        self.assertIn('Elton John', cd_artists_in_response_set)
 
     def test_mini_cds(self):
         # Load in all the data
@@ -185,7 +185,7 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
         self.assertEqual(mini_cd_years_in_response_set, mini_cd_years_in_list)
 
         mini_cd_artists_in_response_set = set([mini_cd['artists'] for mini_cd in mini_cds_in_response])
-        self.assertTrue("Guns N' Roses" in mini_cd_artists_in_response_set)
+        self.assertIn("Guns N' Roses", mini_cd_artists_in_response_set)
 
     def test_elps(self):
         # Load in all the data
@@ -213,4 +213,4 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
         self.assertEqual(elps_years_in_response_set, elps_years_in_list)
 
         elps_artists_in_response_set = set([elps['artists'] for elps in elps_in_response])
-        self.assertTrue('Bryan Adams' in elps_artists_in_response_set)
+        self.assertIn('Bryan Adams', elps_artists_in_response_set)

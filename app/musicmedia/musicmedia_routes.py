@@ -195,8 +195,6 @@ def add_media(media_type):
                     return redirect(url_for('.add_' + pythonic_musicmedia_str + '_track', media_type=media_type, id=new_item.index, track_id=0))
         except FormValidateException:
             pass
-        except Exception as e:
-            raise e
 
     return render_template('add_new_musicmedia_item.html', media_str=musicmedia_str, form=form, additional_artists=additional_artists)
 
@@ -471,8 +469,6 @@ def modify(media_type, id):
                             except MediaException as e:
                                 # Could be an artist on a song of the Music Media item
                                 app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs on the Music Media item'.format(e))
-                            except Exception as e:
-                                raise e
 
                     # Check mixer change
                     if (item.mixer is not None and mixer_str != item.mixer.name) or (item.mixer is None and mixer_str != ''):
@@ -489,8 +485,6 @@ def modify(media_type, id):
                             except MediaException as e:
                                 # Could be an artist on a song of the Music Media item
                                 app.app.logger.warning('Media Exception {} ignored. Assuming artist associated with other songs on the Music Media item'.format(e))
-                            except Exception as e:
-                                raise e
 
                     # Check if classical composers change. If so, rebuild completely
                     if (set(classical_composer_names_tuple) != set(new_classical_composer_names)):
@@ -560,8 +554,6 @@ def modify(media_type, id):
 
         except FormValidateException:
             pass
-        except Exception as e:
-            raise e
 
     return render_template('modify_musicmedia.html', media_str=musicmedia_str, form=form, additional_artists=additional_artists)
 
@@ -972,8 +964,6 @@ def modify_track_song(media_type, id, track_id, song_id):
 
             except FormValidateException:
                pass
-            except Exception as e:
-                raise e
 
     return render_template('modify_musicmedia_track_song.html',
                            media_str=musicmedia_str,
