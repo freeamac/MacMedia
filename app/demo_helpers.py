@@ -91,9 +91,9 @@ DVDs_data = [{'title': 'The World Is Not Enough',
               'series': 'Riddick'}]
 
 
-def load_demo_data(db, test=False):
-    """ Load the demo poker application data into the database """
-    load_dvds_data_from_dict(db, DVDs_data, test=test)
+def load_demo_data(db):
+    """ Load the demo application data into the database """
+    load_dvds_data_from_dict(db, DVDs_data)
 
 
 def dump_demo_data(demo_data_outfile):
