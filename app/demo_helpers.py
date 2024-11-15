@@ -1,8 +1,10 @@
 import json
+import os
+
 from .models import DVD, Location_Type_Enum, Media_Type_Enum
 
 
-def load_dvds_data_from_json(db, json_data_file, data_dir=None, test=False):
+def load_dvds_data_from_json(db, json_data_file, data_dir=None):
     """ Load in an application and all it's information into the database from the specified json file
 
     Of course wer are expecting a very specific format for this to work correctly! See below for an example.
@@ -16,37 +18,35 @@ def load_dvds_data_from_json(db, json_data_file, data_dir=None, test=False):
     :param data_dir:        The data directory containing the binaries referenced in the data. For
                             example icons and application packages
     :type data_dir:         str
-
-    :param test:            If we are loading data for unit testing
-    :type test:             bool
     """
-    with open(json_data_file, 'r') as (json_file):
+    if data_dir is not None:
+        data_file = os.path.join(data_dir, json_data_file)
+    else:
+        data_file = json_data_file
+    with open(data_file, 'r') as (json_file):
         dvds_json = json.load(json_file)
-    load_dvds_data_from_dict(db, dvds_json, test=test)
+    load_dvds_data_from_dict(db, dvds_json)
 
 
-def load_dvds_data_from_dict(db, data_dict, test=False):
+def load_dvds_data_from_dict(db, data_dict):
     """ Load in a DVD and all it's information from the specified dictionary.
-    Of course wer are expecting a very specific format for this to work correctly! See below for an example.
+    Of course we are expecting a very specific format for this to work correctly! See below for an example.
 
     :param db:            The database instance
     :type db:             :class:`SQLAlchemy`
 
     :param data_dict:     The file in json format to read and apply to the database
     :type data_dict:      str
-
-    :param test:          If we are loading data for unit testing
-    :type test:           bool
     """
     for dvd in data_dict:
-        Dvd = DVD(title=(dvd.get('title')), series=(dvd.get('series', None)),
-                  year=(dvd.get('year')),
-                  set=(dvd.get('set', None)),
-                  media_type=(dvd.get('media_type', Media_Type_Enum.dvd)),
-                  music_type=(dvd.get('music_type', False)),
-                  artist=(dvd.get('artist', None)),
-                  location=(dvd.get('location', Location_Type_Enum.home)))
-        db.session.add(Dvd)
+        new_dvd = DVD(title=(dvd.get('title')), series=(dvd.get('series', None)),
+                      year=(dvd.get('year')),
+                      set=(dvd.get('set', None)),
+                      media_type=(dvd.get('media_type', Media_Type_Enum.dvd)),
+                      music_type=(dvd.get('music_type', False)),
+                      artist=(dvd.get('artist', None)),
+                      location=(dvd.get('location', Location_Type_Enum.home)))
+        db.session.add(new_dvd)
         db.session.commit()
 
 
