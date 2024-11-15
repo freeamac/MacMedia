@@ -368,7 +368,7 @@ class Artists():
             :returns:                             The located or newly created artist
             :rtype:                               :class:`_Artist`
         """
-        if name is None or '':
+        if name is None or name == '':
             raise ArtistException('An artist must have a name')
         result = cls.find_artist(name)
         if result is not None:
@@ -750,7 +750,6 @@ class Song():
             if not self.exp_main_artist:
                 html_str += '<br>'
             for additional_artist in self.additional_artists:
-                # html_str += '\n      {}'.format(additional_artist.to_html())
                 html_str += '\n' + spaceit('{artist}'.format(artist=additional_artist.to_html()), 6)
         if self.mix is not None:
             html_str += '<br>\n      (<a rel="song-mix">{mix}</a>)'.format(mix=escape(self.mix, quote=False))
