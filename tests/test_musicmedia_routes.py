@@ -11,10 +11,6 @@ from app.models import User
 from app.musicmedia.musicmedia_objects import Artists, LPs, MEDIA
 
 
-def fake_write():
-    pass
-
-
 class MusicMediaRoutesTestCase(unittest.TestCase):
     """ Test the Musicmedia routes (views).
 

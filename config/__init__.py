@@ -6,6 +6,8 @@ from pathlib import Path
 # BASE_DIR = Path(__file__).resolve().parent.parent
 # STATICFILES_DIR = (str(BASE_DIR.joinpath('static')),)
 
+POSTGRES_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'
+
 # Set the application environment based on the specified env
 APP_ENV = os.environ.get('APP_ENV', 'Dev')
 
@@ -32,11 +34,10 @@ class DevConfig(BaseConfig):
     CSRF_TRUSTED_ORIGINS = ['https://127.0.0.1', 'http://127.0.0.1'] if LOCAL_DEVELOPMENT else []
     if LOCAL_DEVELOPMENT:
         # Set up to connection to local postgreSQL database
-        DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(dbuser=os.environ['DB_USER'],
-                                                                                          dbpass=os.environ['DB_PASSWORD'],
-                                                                                          dbhost="{}:{}".format(os.environ.get('DB_HOST', '127.0.0.1'),
-                                                                                                                os.environ.get('DB_PORT', '5432')),
-                                                                                          dbname=os.environ['DATABASE'])
+        DATABASE_URI = POSTGRES_URI.format(dbuser=os.environ['DB_USER'],
+                                           dbpass=os.environ['DB_PASSWORD'],
+                                           dbhost="{}:{}".format(os.environ.get('DB_HOST', '127.0.0.1'), os.environ.get('DB_PORT', '5432')),
+                                           dbname=os.environ['DATABASE'])
     else:
         DATABASE_URI = ''
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
@@ -55,16 +56,16 @@ class AzureConfig(BaseConfig):
         conn_str = os.environ['AZURE_POSTGRESQL_CONNECTIONSTRING']
         conn_str_params = {pair.split('=')[0]: pair.split('=')[1] for pair in conn_str.split(' ')}
 
-        DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(dbuser=conn_str_params['user'],
-                                                                                          dbpass=conn_str_params['password'],
-                                                                                          dbhost=conn_str_params['host'],
-                                                                                          dbname=conn_str_params['dbname'])
+        DATABASE_URI = POSTGRES_URI.format(dbuser=conn_str_params['user'],
+                                           dbpass=conn_str_params['password'],
+                                           dbhost=conn_str_params['host'],
+                                           dbname=conn_str_params['dbname'])
 
     else:
-        DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(dbuser=os.getenv('DBUSER'),
-                                                                                          dbpass=os.getenv('DBPASS'),
-                                                                                          dbhost=os.getenv('DBHOST'),
-                                                                                          dbname=os.getenv('DBNAME'))
+        DATABASE_URI = POSTGRES_URI.format(dbuser=os.getenv('DBUSER'),
+                                           dbpass=os.getenv('DBPASS'),
+                                           dbhost=os.getenv('DBHOST'),
+                                           dbname=os.getenv('DBNAME'))
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
 
 

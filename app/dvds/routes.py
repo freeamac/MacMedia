@@ -11,6 +11,9 @@ from app.queries import get_dvd_by_id
 from app.updates import db_update_dvd
 
 
+INDEX_PAGE_URL = '.index'
+
+
 @dvds.route('/')
 @login_required
 def index():
@@ -31,7 +34,7 @@ def add_dvd():
 
     if request.method == 'POST':
         if form.cancel.data:
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         if form.validate():
             data = {}
@@ -55,7 +58,7 @@ def add_dvd():
                     flash('Added "{}" to the DVD library'.format(new_dvd.title))
             except (ModelNotFound, UniqueNameError) as err:
                 flash('ERROR: ' + str(err))
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('add_new_dvd.html', form=form)
 
@@ -68,7 +71,7 @@ def delete_dvd(id):
     dvd_data = get_dvd_by_id(db, id)
     if dvd_data is None:
         flash('ERROR: DVD with identifier "{}" not found'.format(id))
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
 
     # Set up form
     form = DeleteDVDForm()
@@ -88,11 +91,11 @@ def delete_dvd(id):
 
         if form.cancel.data:
             # User cancels form submission
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         db_delete_dvd(db, dvd_data['id'])
 
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('delete_dvd.html', form=form)
 
@@ -105,7 +108,7 @@ def modify_dvd(id):
     dvd_data = get_dvd_by_id(db, id)
     if dvd_data is None:
         flash('ERROR: DVD with identifier "{}" not found'.format(id))
-        return redirect(url_for('.index'))
+        return redirect(url_for(INDEX_PAGE_URL))
 
     # Set up form
     form = ModifyDVDForm()
@@ -125,7 +128,7 @@ def modify_dvd(id):
 
         if form.cancel.data:
             # User cancels form submission
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
         if form.validate():
             dvd_data['id'] = int(id)
@@ -150,7 +153,7 @@ def modify_dvd(id):
             except (ModelNotFound, UniqueNameError) as err:
                 flash('ERROR: ' + str(err))
 
-            return redirect(url_for('.index'))
+            return redirect(url_for(INDEX_PAGE_URL))
 
     return render_template('modify_dvd.html', form=form)
 
