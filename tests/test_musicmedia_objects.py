@@ -4,7 +4,7 @@ import unittest
 import pytest
 
 from app.musicmedia.musicmedia_objects import (
-    Additional_Artist,
+    AdditionalArtist,
     ArtistException,
     Artists,
     CASSETTEs,
@@ -85,16 +85,16 @@ class MEDIATestCase(unittest.TestCase):
 
     def test_additional_artist(self):
         artist = Artists().create_Artist('Disco D')
-        additional_artist = Additional_Artist(artist, prequel=' and ')
+        additional_artist = AdditionalArtist(artist, prequel=' and ')
         self.assertEqual(' and Disco D', str(additional_artist))
-        additional_artist = Additional_Artist(artist, sequel=' (mixer)')
+        additional_artist = AdditionalArtist(artist, sequel=' (mixer)')
         self.assertEqual('Disco D (mixer)', str(additional_artist))
-        additional_artist = Additional_Artist(artist, prequel=' vs ', sequel=' (mixer)')
+        additional_artist = AdditionalArtist(artist, prequel=' vs ', sequel=' (mixer)')
         self.assertEqual(' vs Disco D (mixer)', str(additional_artist))
 
         # Test can only add valid artists
         with pytest.raises(ArtistException):
-            additional_artist = Additional_Artist('Hello')
+            additional_artist = AdditionalArtist('Hello')
 
     def test_song(self):
         song = Song('Wait A Minute')
@@ -104,8 +104,8 @@ class MEDIATestCase(unittest.TestCase):
         self.assertEqual('Wait A Minute\nDJ Nasty\n', str(song))
         song = Song('Wait A Minute', main_artist=artist, mix='Red Box remix')
         self.assertEqual('Wait A Minute\nDJ Nasty\n(Red Box remix)\n', str(song))
-        additional_artist_1 = Additional_Artist(Artists().create_Artist('DJ Nasty'))
-        additional_artist_2 = Additional_Artist(Artists().create_Artist('Disco D'), prequel=' vs ', sequel=' (mixer)')
+        additional_artist_1 = AdditionalArtist(Artists().create_Artist('DJ Nasty'))
+        additional_artist_2 = AdditionalArtist(Artists().create_Artist('Disco D'), prequel=' vs ', sequel=' (mixer)')
         song = Song('Wait A Minute', additional_artists=[additional_artist_1, additional_artist_2], mix='Red Box remix')
         self.assertEqual('Wait A Minute\nDJ Nasty vs Disco D (mixer)\n(Red Box remix)\n', str(song))
 

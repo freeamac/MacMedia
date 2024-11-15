@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from app.models import DEFAULT_LOCATION_TYPE, Location_Type_Enum
+from app.models import DEFAULT_LOCATION_TYPE, LocationTypeEnum
 
 
 # revision identifiers, used by Alembic.
@@ -20,7 +20,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    location = postgresql.ENUM(Location_Type_Enum, name='location')
+    location = postgresql.ENUM(LocationTypeEnum, name='location')
     location.create(op.get_bind(), checkfirst=True)
     op.add_column('DVD', sa.Column('location', location, nullable=False, default=DEFAULT_LOCATION_TYPE, server_default=DEFAULT_LOCATION_TYPE.value))
 

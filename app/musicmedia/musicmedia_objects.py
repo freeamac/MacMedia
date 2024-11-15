@@ -448,7 +448,7 @@ class Artists():
         return string
 
 
-class Additional_Artist():
+class AdditionalArtist():
     """ Formatting structure used for additional artists associated with a :class:`Song`. """
 
     @property
@@ -550,7 +550,7 @@ class Song():
     @additional_artists.setter
     def additional_artists(self, new_artists) -> None:
         for artist in new_artists:
-            if type(artist) is not Additional_Artist:
+            if type(artist) is not AdditionalArtist:
                 raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
         self._additional_artists = None if new_artists == [] else new_artists
 
@@ -687,7 +687,7 @@ class Song():
             raise ArtistException('{} is not an Artist object'.format(main_artist))
         if additional_artists is not None:
             for artist in additional_artists:
-                if not isinstance(artist, Additional_Artist):
+                if not isinstance(artist, AdditionalArtist):
                     raise AdditionalArtistException('{} is not an Additional_Artist'.format(artist))
         if classical_composers is not None:
             for classical_composer in classical_composers:
@@ -1324,7 +1324,7 @@ class MEDIA():
 
             return media_title, media_artists, media_artist_particles, media_classical_composers, media_mixers, media_year
 
-        def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> tuple[_Artist, List[Additional_Artist]]:
+        def get_song_additional_artists(song_block: Tag, media_artist: _Artist) -> tuple[_Artist, List[AdditionalArtist]]:
             """ Get the optional main artist and additional artists from the song artist block.
 
                 We expect the song artists to reside in the <li></li> block which contains
@@ -1392,7 +1392,7 @@ class MEDIA():
                             # Do not add to the additional artists list if dealing with an exported
                             # album main artist
                             if (first_block and not exp_main_artist) or not first_block:
-                                other_artists.append(Additional_Artist(song_artist, prequel=prequel, sequel=sequel))
+                                other_artists.append(AdditionalArtist(song_artist, prequel=prequel, sequel=sequel))
 
             return main_artist, other_artists, exp_main_artist, main_artist_sequel
 

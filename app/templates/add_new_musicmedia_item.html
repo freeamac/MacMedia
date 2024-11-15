@@ -116,7 +116,7 @@
   function additional_artist_fields() {
  
     artist_num++;
-    previous_button_id = artist_num - 1;
+    var previous_button_id = artist_num - 1;
     $('.plus_button_'+previous_button_id).remove();
     if (artist_num > 1) {$('.minus_button_'+previous_button_id).remove()};
     var objTo = document.getElementById('artist_row_'+previous_button_id);

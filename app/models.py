@@ -6,36 +6,36 @@ from flask_login import UserMixin
 from app import db as DB
 
 
-class Location_Type_Enum(enum.Enum):
+class LocationTypeEnum(enum.Enum):
     home = "home"
     away = "away"
 
     @staticmethod
     def from_string(s):
         if s.lower() == 'home':
-            return Location_Type_Enum.home
+            return LocationTypeEnum.home
         elif s.lower() == 'away':
-            return Location_Type_Enum.away
+            return LocationTypeEnum.away
         else:
             raise TypeError('{} is not a valid Location Type'.format(s))
 
 
-class Media_Type_Enum(enum.Enum):
+class MediaTypeEnum(enum.Enum):
     dvd = 1
     blueray = 2
 
     @staticmethod
     def from_string(s):
         if s.lower() == 'dvd':
-            return Media_Type_Enum(1)
+            return MediaTypeEnum(1)
         elif s.lower() == 'blueray':
-            return Media_Type_Enum(2)
+            return MediaTypeEnum(2)
         else:
             raise TypeError('{} is not a valid Media Type'.format(s))
 
 
-DEFAULT_DVD_MEDIA_TYPE = Media_Type_Enum.dvd
-DEFAULT_LOCATION_TYPE = Location_Type_Enum.home
+DEFAULT_DVD_MEDIA_TYPE = MediaTypeEnum.dvd
+DEFAULT_LOCATION_TYPE = LocationTypeEnum.home
 
 
 class DVD(DB.Model):
@@ -46,10 +46,10 @@ class DVD(DB.Model):
     series = DB.Column(DB.String(60), default=None, nullable=True)
     year = DB.Column(DB.Integer, nullable=False)
     set = DB.Column(DB.String(60), default=None, nullable=True)
-    media_type = DB.Column(DB.Enum(Media_Type_Enum), default=DEFAULT_DVD_MEDIA_TYPE, nullable=False)
+    media_type = DB.Column(DB.Enum(MediaTypeEnum), default=DEFAULT_DVD_MEDIA_TYPE, nullable=False)
     music_type = DB.Column(DB.Boolean, default=False, nullable=False)
     artist = DB.Column(DB.String(60), default=None, nullable=True)
-    location = DB.Column(DB.Enum(Location_Type_Enum), default=DEFAULT_LOCATION_TYPE, nullable=False)
+    location = DB.Column(DB.Enum(LocationTypeEnum), default=DEFAULT_LOCATION_TYPE, nullable=False)
 
     def to_dict(self) -> dict:
         result = {}

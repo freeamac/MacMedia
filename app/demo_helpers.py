@@ -1,7 +1,7 @@
 import json
 import os
 
-from .models import DVD, Location_Type_Enum, Media_Type_Enum
+from .models import DVD, LocationTypeEnum, MediaTypeEnum
 
 
 def load_dvds_data_from_json(db, json_data_file, data_dir=None):
@@ -42,10 +42,10 @@ def load_dvds_data_from_dict(db, data_dict):
         new_dvd = DVD(title=(dvd.get('title')), series=(dvd.get('series', None)),
                       year=(dvd.get('year')),
                       set=(dvd.get('set', None)),
-                      media_type=(dvd.get('media_type', Media_Type_Enum.dvd)),
+                      media_type=(dvd.get('media_type', MediaTypeEnum.dvd)),
                       music_type=(dvd.get('music_type', False)),
                       artist=(dvd.get('artist', None)),
-                      location=(dvd.get('location', Location_Type_Enum.home)))
+                      location=(dvd.get('location', LocationTypeEnum.home)))
         db.session.add(new_dvd)
         db.session.commit()
 
@@ -54,31 +54,31 @@ DVDs_data = [{'title': 'The World Is Not Enough',
               'series': 'James Bond',
               'year': 1999,
               'set': 'James Bond Ultimate Edition',
-              'media_type': Media_Type_Enum.dvd,
+              'media_type': MediaTypeEnum.dvd,
               'music_type': False,
               'artist': None,
-              'location': Location_Type_Enum.home},
+              'location': LocationTypeEnum.home},
              {'title': 'Dr No',
               'series': 'James Bond',
               'year': 1962,
               'set': 'Sean Connery Collection - Volume 1',
               'music_type': False,
               'artist': None,
-              'location': Location_Type_Enum.away},
+              'location': LocationTypeEnum.away},
              {'title': 'From Russia With Love',
               'series': 'James Bond',
               'year': 1963,
               'set': 'Sean Connery Collection - Volume 1',
               'music_type': False,
               'artist': None,
-              'location': Location_Type_Enum.home},
+              'location': LocationTypeEnum.home},
              {'title': 'Goldfinger',
               'series': 'James Bond',
               'year': 1964,
               'set': 'Sean Connery Collection - Volume 1',
               'music_type': False,
               'artist': None,
-              'location': Location_Type_Enum.home},
+              'location': LocationTypeEnum.home},
              {'title': 'Quantum Of Solace',
               'series': 'James Bond',
               'year': 2008,

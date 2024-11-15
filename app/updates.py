@@ -4,7 +4,7 @@
 from werkzeug.security import generate_password_hash
 
 from app.exceptions import InvalidAdministrator, ModelNotFound, UniqueNameError, UpdateError, ResourceNotFound  # noqa
-from app.models import Location_Type_Enum, Media_Type_Enum, User
+from app.models import LocationTypeEnum, MediaTypeEnum, User
 from app.queries import dvd_exists, get_dvd_by_id
 
 
@@ -53,7 +53,7 @@ def db_update_dvd(db, dvd_data):
     current_dvd.year = query_args['year']
     current_dvd.set = query_args['set']
 
-    current_dvd.media_type = Media_Type_Enum.from_string(dvd_data['media_type'])
+    current_dvd.media_type = MediaTypeEnum.from_string(dvd_data['media_type'])
     if dvd_data['music_type'] == 'No':
         current_dvd.music_type = False
     elif dvd_data['music_type'] == 'Yes':
@@ -64,7 +64,7 @@ def db_update_dvd(db, dvd_data):
         current_dvd.artist = None
     else:
         current_dvd.artist = dvd_data['artist']
-    current_dvd.location = Location_Type_Enum.from_string(dvd_data['location'])
+    current_dvd.location = LocationTypeEnum.from_string(dvd_data['location'])
     db.session.commit()
     return current_dvd
 

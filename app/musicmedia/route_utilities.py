@@ -1,6 +1,6 @@
 from app import app
 from .musicmedia_objects import (
-    Additional_Artist,
+    AdditionalArtist,
     Artists,
     CASSETTEs,
     CDs,
@@ -182,9 +182,9 @@ def append_new_additional_artists(additional_artists_list,
         additional_artists_list = []
     for index, artist_name in enumerate(new_additional_artist_names):
         new_artist = Artists.create_Artist(artist_name)
-        new_additional_artist = Additional_Artist(artist=new_artist,
-                                                  prequel=new_additional_artist_prequels[index],
-                                                  sequel=new_additional_artist_sequels[index])
+        new_additional_artist = AdditionalArtist(artist=new_artist,
+                                                 prequel=new_additional_artist_prequels[index],
+                                                 sequel=new_additional_artist_sequels[index])
         additional_artists_list.append(new_additional_artist)
         try:
             new_artist.add_media(item_data)
