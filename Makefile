@@ -70,7 +70,7 @@ coverage: ## Check code coverage quickly with the default Python
 .PHONY: ci-coverage
 coverage-ci: ## Check code coverage in CI quickly with the default Python
 	@echo "+ $@"
-	@export PYTHONPATH="."; export APP_ENV=Test; pytest --cov=app tests/
+	@export PYTHONPATH="."; export APP_ENV=Test; pytest --cov-report term --cov-report xml:coverage.xml --cov=app tests/
 
 .PHONY: docs
 docs: ## Generate Sphinx HTML documentation, including API docs
