@@ -1701,7 +1701,7 @@ class LPs():
                artists: List[_Artist],
                year: int,
                mixer: Optional[_Artist] = None,
-               classical_composers: Optional[_Artist] = None,
+               classical_composers: Optional[List[_Artist]] = None,
                artist_particles: List[str] = None,
                skip_adding_to_lp_list: bool = False) -> _LP:
         """ Return the named album if it exists or create a new album.
@@ -1848,7 +1848,7 @@ class LPs():
         return result
 
     @classmethod
-    def find_by_year(cls, year: int) -> List[_LP]:
+    def find_by_year(cls, year: int) -> Optional[List[_LP]]:
         """ Return a list of albums produced in the passed year.
 
             :param year:  Find albums produced in this year
@@ -1920,7 +1920,7 @@ class CASSETTEs():
                artists: List[_Artist],
                year: Optional[int] = None,
                mixer: Optional[_Artist] = None,
-               classical_composers: Optional[_Artist] = None,
+               classical_composers: Optional[List[_Artist]] = None,
                artist_particles: List[str] = None,
                skip_adding_to_cassette_list: bool = False) -> _CASSETTE:
         """ Return the named cassette if it exists or create a new cassette.
@@ -2067,7 +2067,7 @@ class CASSETTEs():
         return result
 
     @classmethod
-    def find_by_year(cls, year: int) -> List[_CASSETTE]:
+    def find_by_year(cls, year: int) -> Optional[List[_CASSETTE]]:
         """ Return a list of cassettes produced in the passed year.
 
             :param year:  Find cassette produced in this year
@@ -2139,7 +2139,7 @@ class CDs():
                artists: List[_Artist],
                year: int,
                mixer: Optional[_Artist] = None,
-               classical_composers: Optional[_Artist] = None,
+               classical_composers: Optional[List[_Artist]] = None,
                artist_particles: List[str] = None,
                skip_adding_to_cd_list: bool = False) -> _CD:
         """ Return the named cd if it exists or create a new cd.
@@ -2287,7 +2287,7 @@ class CDs():
         return result
 
     @classmethod
-    def find_by_year(cls, year: int) -> List[_LP]:
+    def find_by_year(cls, year: int) -> Optional[List[_LP]]:
         """ Return a list of cds produced in the passed year.
 
             :param year:  Find cds produced in this year
@@ -2359,7 +2359,7 @@ class ELPs():
                artists: List[_Artist],
                year: int,
                mixer: Optional[_Artist] = None,
-               classical_composers: Optional[_Artist] = None,
+               classical_composers: Optional[List[_Artist]] = None,
                artist_particles: List[str] = None,
                skip_adding_to_elp_list: bool = False) -> _ELP:
         """ Return the named elp if it exists or create a new elp.
@@ -2507,7 +2507,7 @@ class ELPs():
         return result
 
     @classmethod
-    def find_by_year(cls, year: int) -> List[_ELP]:
+    def find_by_year(cls, year: int) -> Optional[List[_ELP]]:
         """ Return a list of elps produced in the passed year.
 
             :param year:  Find elps produced in this year
@@ -2579,7 +2579,7 @@ class MINI_CDs():
                artists: List[_Artist],
                year: int,
                mixer: Optional[_Artist] = None,
-               classical_composers: Optional[_Artist] = None,
+               classical_composers: Optional[List[_Artist]] = None,
                artist_particles: List[str] = None,
                skip_adding_to_mini_cd_list: bool = False) -> _MINI_CD:
         """ Return the named mini CD if it exists or create a new mini_cd.
@@ -2727,7 +2727,7 @@ class MINI_CDs():
         return result
 
     @classmethod
-    def find__by_year(cls, year: int) -> List[_MINI_CD]:
+    def find__by_year(cls, year: int) -> Optional[List[_MINI_CD]]:
         """ Return a list of mini CDs produced in the passed year.
 
             :param year:  Find mini CDs produced in this year
