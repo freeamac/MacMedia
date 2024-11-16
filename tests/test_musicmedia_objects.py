@@ -29,7 +29,6 @@ class MEDIATestCase(unittest.TestCase):
     """
 
     DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
-    # MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'music.html')
     MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'test_music.html')
     SORTED_MUSIC_HTML_FILE = os.path.join(DATA_DIR, 'sorted_test_music.html')  # Inorder by music type
 
@@ -94,7 +93,7 @@ class MEDIATestCase(unittest.TestCase):
 
         # Test can only add valid artists
         with pytest.raises(ArtistException):
-            additional_artist = AdditionalArtist('Hello')
+            _ = AdditionalArtist('Hello')
 
     def test_song(self):
         song = Song('Wait A Minute')

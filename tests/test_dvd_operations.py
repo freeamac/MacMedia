@@ -101,7 +101,7 @@ class DvdOperationsTestCase(unittest.TestCase):
 
         # Test we cannot add an existing DVD
         with pytest.raises(UniqueNameError):
-            new_dvd = db_create_dvd(self.db, self.valid_existing_dvd)
+            _ = db_create_dvd(self.db, self.valid_existing_dvd)
 
     def test_update_dvd(self):
         """ Test updating a DVD """

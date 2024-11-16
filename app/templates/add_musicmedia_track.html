@@ -60,7 +60,7 @@
 
         <!-- Loop through to pick each song information -->
         {% for song in form.track_songs %}
-          <hr width="75%"\>
+          <hr style="width:75%;text-align:left;margin-left:0"\>
           <div class="row bottom10">
             <div class="col-md-2">
               <h3><u><b>Song #{{ loop.index }}:</b></u></h3>
@@ -107,7 +107,7 @@
           </div>
 
           <!-- Collect additional song artists -->
-          <hr width="45%"\>
+          <hr style="width:45%;text-align:left;margin-left:0"\>
           {% for additional_artist in song.form.song_additional_artists %}
             <div class="row removeclass_artist_{{ loop.index0 }}_0" id="artist_row_{{ loop.index0 }}_0">
               <div class="col-md-2">
@@ -140,7 +140,7 @@
           {% endfor %}
 
           <!-- Collect classical song meta information-->
-          <hr width="45%"\>
+          <hr style="width:45%;text-align:left;margin-left:0"\>
           <div class="row">
             <div class="col-md-2">
               <h4>{{ song.form.song_classical_work.label }}:</h4>
@@ -169,7 +169,7 @@
           </div>
 
           <!-- Collect extraneous song information -->
-          <hr width="45%"\>
+          <hr style="width:45%;text-align:left;margin-left:0"\>
           <div class="row">
             <div class="col-md-1">
               <h4>{{ song.form.song_country.label }}:</h4>
@@ -186,7 +186,7 @@
           </div>
 
           <!-- Collect song parts -->
-          <hr width="45%"\>
+          <hr style="width:45%;text-align:left;margin-left:0"\>
           <div class="row">
             <div class="col-md-2">
               <h4>{{ song.form.song_parts.label }}:</h4>
@@ -318,7 +318,7 @@
     var objTo = document.getElementById('additional_song_fields')
     var divSongFields = document.createElement("div");
 	  divSongFields.setAttribute("class", "form-group removeclass_song"+song_num);
-    divSongFields.innerHTML = '<hr width="75%"\>\
+    divSongFields.innerHTML = '<hr style="width:75%;text-align:left;margin-left:0"\>\
           <div class="row bottom10">\
             <div class="col-md-2">\
               <h3><u><b>Song #'+track_song_id+':</b></u></h3>\
@@ -358,7 +358,7 @@
             </div>\
           </div>\
           <!-- Collect additional song artists -->\
-          <hr width="45%"\>\
+          <hr style="width:45%;text-align:left;margin-left:0"\>\
           <div class="row removeclass_artist_0_'+song_num+'" id="artist_row_0_'+song_num+'">\
             <div class="col-md-2">\
               <h4><b></b>Additional Artist<b></b></h4>\
@@ -388,7 +388,7 @@
             </div>\
           </div>\
           <!-- Collect classical song meta information-->\
-          <hr width="45%"\>\
+          <hr style="width:45%;text-align:left;margin-left:0"\>\
           <div class="row">\
             <div class="col-md-2">\
               <h4><b>Classical Work:</b></h4>\
@@ -414,7 +414,7 @@
             </div>\
           </div>\
           <!-- Collect extraneous song information -->\
-          <hr width="45%"\>\
+          <hr style="width:45%;text-align:left;margin-left:0"\>\
           <div class="row">\
             <div class="col-md-1">\
               <h4><b>Country:</b></h4>\
@@ -430,7 +430,7 @@
             </div>\
           </div>\
           <!-- Collect song parts -->\
-          <hr width="45%"\>\
+          <hr style="width:45%;text-align:left;margin-left:0"\>\
           <div class="row">\
             <div class="col-md-2">\
               <h4><b>Song Parts:</b></h4>\
