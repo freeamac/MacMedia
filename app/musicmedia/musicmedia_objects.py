@@ -1450,7 +1450,7 @@ class MEDIA():
                                 side_title = side_metadata_element.text.strip()
 
                     # Process each song on the side
-                    side_Songs = []
+                    side_songs = []
                     all_side_songs = side_element.find_all('li')
                     found_song_parts = False
                     song_parts_parent = None
@@ -1512,7 +1512,7 @@ class MEDIA():
                             song_parts_parent = None
                             found_song_parts = False
 
-                        side_Songs.append(Song(title=song_title,
+                        side_songs.append(Song(title=song_title,
                                                main_artist=main_artist,
                                                exp_main_artist=exp_main_artist,
                                                main_artist_sequel=main_artist_sequel,
@@ -1529,7 +1529,7 @@ class MEDIA():
                                                track_artist=track_artist,
                                                side_mixer_artist=side_mixer,
                                                track_year=track_year,
-                                               songs=side_Songs)
+                                               songs=side_songs)
                     media_tracklist.append(side_tracklist)
 
                 # Create the LP and add it to all the artists found
@@ -1548,7 +1548,7 @@ class MEDIA():
 
                 # Handle CD music media
                 if media_type == MediaType.CD:
-                    new_Media = CDs.create(media_type=media_type,
+                    new_media = CDs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
                                            year=media_year,
@@ -1558,7 +1558,7 @@ class MEDIA():
 
                 # Handle LP music media
                 elif media_type == MediaType.LP:
-                    new_Media = LPs.create(media_type=media_type,
+                    new_media = LPs.create(media_type=media_type,
                                            title=media_title,
                                            artists=media_artists,
                                            year=media_year,
@@ -1567,7 +1567,7 @@ class MEDIA():
                                            artist_particles=media_artist_particles)
                 # Handle CASSETTE music media
                 elif media_type == MediaType.CASSETTE:
-                    new_Media = CASSETTEs.create(media_type=media_type,
+                    new_media = CASSETTEs.create(media_type=media_type,
                                                  title=media_title,
                                                  artists=media_artists,
                                                  year=media_year,
@@ -1576,7 +1576,7 @@ class MEDIA():
                                                  artist_particles=media_artist_particles)
                 # Handle ELP music media
                 elif media_type == MediaType.ELP:
-                    new_Media = ELPs.create(media_type=media_type,
+                    new_media = ELPs.create(media_type=media_type,
                                             title=media_title,
                                             artists=media_artists,
                                             year=media_year,
@@ -1586,7 +1586,7 @@ class MEDIA():
 
                 # Handle mini CD music media
                 elif media_type == MediaType.MINI_CD:
-                    new_Media = MINI_CDs.create(media_type=media_type,
+                    new_media = MINI_CDs.create(media_type=media_type,
                                                 title=media_title,
                                                 artists=media_artists,
                                                 year=media_year,
@@ -1594,7 +1594,7 @@ class MEDIA():
                                                 classical_composers=media_classical_composers,
                                                 artist_particles=media_artist_particles)
                 for tracklist in media_tracklist:
-                    new_Media.add_track(tracklist)
+                    new_media.add_track(tracklist)
 
                 # Add music media to all song artists found once we dedupe them
                 for artist in set(media_song_artists):
@@ -1604,7 +1604,7 @@ class MEDIA():
                     if media_classical_composers is not None:
                         music_media_artist_credits.extend(media_classical_composers)
                     if artist not in music_media_artist_credits:
-                        artist.add_media(new_Media)
+                        artist.add_media(new_media)
 
     @classmethod
     def to_html_file(cls, filepath: str = None) -> None:
