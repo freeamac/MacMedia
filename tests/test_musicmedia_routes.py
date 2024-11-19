@@ -258,6 +258,26 @@ class MusicMediaRoutesTestCase(unittest.TestCase):
         all_artists = Artists()
         self.assertEqual(0, len(all_artists.artists))
 
+    def test_expand(self):
+        """ Check we can expand and display the data of a newly added albun """
+
+        # Post a new LP
+        response = self.client.post('/lps/add', follow_redirects=True, data=self.full_data_lp)
+
+        # Should have added lp and redirected to "Add Tracks" page
+        self._check_add_track_form(response)
+
+        # Get the expanded album data
+        all_lps = LPs()
+        the_lp = all_lps.find_by_title(self.full_data_lp['title'])[0]
+        lp_id = the_lp.index
+        expanded_lp_html = the_lp.to_html()
+        response = self.client.get('lps/expand/{}'.format(lp_id))
+
+        # Check response code and contents are correct
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertIn(expanded_lp_html.encode(), response.data)
+
     def test_add_track(self):
         """ Check that we can add track information to a new LP """
 

@@ -6,7 +6,7 @@ from flask_login import FlaskLoginClient
 
 from app.app import app, db
 from app.demo_helpers import DVDs_data, load_demo_data
-from app.musicmedia.musicmedia_objects import Artists, CDs, ELPs, LPs, MEDIA, MediaType, MINI_CDs
+from app.musicmedia.musicmedia_objects import Artists, CASSETTEs, CDs, ELPs, LPs, MEDIA, MediaType, MINI_CDs
 from app.models import User
 
 
@@ -91,6 +91,7 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
         ELPs()._clean_elps()
         LPs()._clean_lps()
         MINI_CDs()._clean_mini_cds()
+        CASSETTEs()._clean_cassettes()
 
         # Now read in all the music media test samples
         MEDIA.from_html_file(self.MUSIC_HTML_FILE)
@@ -214,3 +215,31 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
 
         elps_artists_in_response_set = set([elps['artists'] for elps in elps_in_response])
         self.assertIn('Bryan Adams', elps_artists_in_response_set)
+
+    def test_cassettes(self):
+        # Load in all the data
+        all_artists = Artists()
+        all_cassettes = CASSETTEs()
+
+        print('Number of artists found: {}'.format(len(all_artists.artists)))
+        print('Number of cassettes found: {}'.format(len(all_cassettes.cassettes)))
+
+        # Grab all LP information from the api call
+        response = self.client.get('/api/v1/musicmedia_data/' + MediaType.CASSETTE.value, follow_redirects=True)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertTrue(response.mimetype, 'application/json')
+
+        json_response = response.json
+        cassettes_in_response = json_response['data']
+        self.assertEqual(len(cassettes_in_response), 1)
+
+        cassettes_titles_in_response_set = set([cassettes['title'] for cassettes in cassettes_in_response])
+        cassettes_titles_in_list = set([cassettes.title for cassettes in CASSETTEs().cassettes])
+        self.assertEqual(cassettes_titles_in_response_set, cassettes_titles_in_list)
+
+        cassettes_years_in_response_set = set([cassettes['year'] for cassettes in cassettes_in_response])
+        cassettes_years_in_list = set([cassettes.year for cassettes in CASSETTEs().cassettes])
+        self.assertEqual(cassettes_years_in_response_set, cassettes_years_in_list)
+
+        cassettes_artists_in_response_set = set([cassettes['artists'] for cassettes in cassettes_in_response])
+        self.assertIn('Various Artists', cassettes_artists_in_response_set)
