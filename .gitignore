@@ -100,3 +100,6 @@ MacMovies_test.db
 
 # Sonarqube files
 .scannerwork/
+
+# Local Postgres Docker container persistant data
+docker_data/db
