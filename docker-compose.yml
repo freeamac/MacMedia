@@ -1,0 +1,65 @@
+name: MacMedia
+
+services:
+  macmedia:
+    build: .
+    container_name: MacMedia_web
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=${APP_EMNV:-Dev}
+      - FLASK_ENV=${FLASK_ENV:-development}
+      - DB_HOST=db
+      - DB_PORT=5432
+    ports:
+      - "5000:5000"
+    secrets:
+      - postgres_db
+      - postgres_password
+      - postgres_user
+
+    develop:
+      watch:
+        - path: app/**
+          action: sync
+          target: app
+        - path: config/
+          action: sync
+          target: config
+
+    # Use this entry point to pull in secrets passed to the app
+    entrypoint: [ '/bin/sh', '-c', 'export DATABASE=$$(cat /run/secrets/postgres_db) ; export DB_PASSWORD=$$(cat /run/secrets/postgres_password) ; export DB_USER=$$(cat /run/secrets/postgres_user) ; gunicorn -b 0.0.0.0:5000 application:app' ]
+    
+    # Original command before the entry point addition above
+    # command: gunicorn -b 0.0.0.0:5000 application:app
+
+
+  db:
+    build: 
+      dockerfile: Dockerfile-db
+    container_name: MacMedia_db
+    environment:
+      POSTGRES_DB_FILE: /run/secrets/postgres_db
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+    secrets:
+      - postgres_db
+      - postgres_password
+      - postgres_user
+    volumes:
+      - ${DB_DATA:-./docker_data/db}:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+
+secrets:
+  postgres_db:
+    file: postgres_db.txt
+  postgres_password:
+    file: postgres_password.txt
+  postgres_user:
+    file: postgres_user.txt
+
+

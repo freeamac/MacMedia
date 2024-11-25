@@ -16,23 +16,47 @@ BROWSER := python -c "$$BROWSER_PYSCRIPT"
 
 .DEFAULT_GOAL := help
 
+SHELL := /bin/bash
+
 .PHONY: build
 build: ## Build a docker container containing the MacMedia flask app
 	@echo "+ $@"
 	@docker build --pull --rm -f "Dockerfile" -t macmedia:latest "."
 
-.PHONY: run-dev
-run-dev:  ## Run MacMedia in a local docker container in development mode
+.PHONY: build-db
+build-db: ## Build a docker postgres container 
 	@echo "+ $@"
-	@docker run -d -p 5000:5000 --env FLASK_ENV=development macmedia
+	@docker build --pull --rm -f "Dockerfile-db" -t macmedia-db:latest "."
+
+.PHONY: run-docker-dev
+run-docker-dev:  ## Run MacMedia in a local docker container in development mode
+	@echo "+ $@"
+	@docker run -d -p 5000:5000 --env FLASK_ENV=development macmedia:latest
+
+.PHONY: run-docker-db
+run-docker-db: ## Run MacMedia database in a local docker container 
+	@echo "+ $@"
+	@docker run -d -p 5342:5342 macmedia-db:latest
+
+.PHONY: run-dev
+run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker container
+	@echo "+ $@"
+	@source .env
+	echo ${POSTGRES_DB} > postgres_db.txt
+	echo ${POSTGRES_PASSWORD} > postgres_password.txt
+	echo ${POSTGRES_USER} > postgres_user.txt
+	@docker compose up -d
+	rm postgres_db.txt postgres_password.txt postgres_user.txt
 
 .PHONY: deploy-staging
 deploy-staging:  ## Deploy the MacMedia docker container into the staging environment and run it in staging mode
 	@echo "+ $@"
+	@echo "Unimplemented"
 
 .PHONY: deploy-prod
 deploy-prod:  ## Deploy the MacMedia docker container into the production environment and run it in production mode
 	@echo "+ $@"
+	@echo "Unimplemented"
 
 .PHONY: clean-build
 clean-build: ## Remove build artifacts
