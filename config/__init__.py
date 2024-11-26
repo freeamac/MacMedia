@@ -11,6 +11,27 @@ POSTGRES_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'
 APP_ENV = os.environ.get('APP_ENV', 'Dev')
 
 
+# Here we check for Docker secrets variables
+def update_with_docker_secret(env_variable: str) -> None:
+    """ Check we have a secret file variable and update corresponding non-file variable """
+    if env_variable.endswith('_FILE'):
+        if env_variable in os.environ:
+            path = Path(os.environ[env_variable])
+            if path.is_file():
+                with open(path) as fd:
+                    # Only read first line
+                    contents = fd.readline()
+                    value = contents.strip()
+                    if value != '':
+                        new_env_variable = env_variable[:-5]  # Removing "_FILE"
+                        os.environ[new_env_variable] = value
+
+
+update_with_docker_secret('DATABASE_FILE')
+update_with_docker_secret('DB_PASSWORD_FILE')
+update_with_docker_secret('DB_USER_FILE')
+
+
 class BaseConfig():
     # Build paths inside the project like this: BASE_DIR / <subdir>
     BASE_DIR = Path(__file__).resolve().parent.parent
