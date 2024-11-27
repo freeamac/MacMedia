@@ -30,10 +30,6 @@ services:
           action: sync
           target: /MacMedia/config
 
-    # Use this entry point to pull in secrets passed to the app
-    #entrypoint: [ '/bin/sh', '-c', 'export DATABASE=$$(cat /run/secrets/postgres_db) ; export DB_PASSWORD=$$(cat /run/secrets/postgres_password) ; export DB_USER=$$(cat /run/secrets/postgres_user) ; gunicorn -b 0.0.0.0:5000 application:app' ]
-    
-    # Original command before the entry point addition above
     command: gunicorn -b 0.0.0.0:5000 application:app
 
 

@@ -28,15 +28,15 @@ build-db: ## Build a docker postgres container
 	@echo "+ $@"
 	@docker build --pull --rm -f "Dockerfile-db" -t macmedia-db:latest "."
 
-.PHONY: run-docker-dev
-run-docker-dev:  ## Run MacMedia in a local docker container in development mode
+.PHONY: run-docker-app
+run-docker-app:  ## Run MacMedia in a local docker container in development mode
 	@echo "+ $@"
 	@docker run -d -p 5000:5000 --env FLASK_ENV=development macmedia:latest
 
 .PHONY: run-docker-db
 run-docker-db: ## Run MacMedia database in a local docker container 
 	@echo "+ $@"
-	@docker run -d -p 5342:5342 macmedia-db:latest
+	@docker run -d -p 5342:5342 -e POSTGRES_DB -e POSTGRES_PASSWORD -e POSTGRES_USER -v docker_data/db:/var/lib/postgresql/data macmedia-db:latest
 
 .PHONY: run-dev
 run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker container
