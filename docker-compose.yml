@@ -12,7 +12,7 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
       - DATABASE_FILE=/run/secrets/postgres_db
-      - DB_PASSWORD=/run/secrets/postgres_password
+      - DB_PASSWORD_FILE=/run/secrets/postgres_password
       - DB_USER_FILE=/run/secrets/postgres_user
     ports:
       - "5000:5000"

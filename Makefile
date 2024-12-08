@@ -36,7 +36,7 @@ run-docker-app:  ## Run MacMedia in a local docker container in development mode
 .PHONY: run-docker-db
 run-docker-db: ## Run MacMedia database in a local docker container 
 	@echo "+ $@"
-	@docker run -d -p 5342:5342 -e POSTGRES_DB -e POSTGRES_PASSWORD -e POSTGRES_USER -v docker_data/db:/var/lib/postgresql/data macmedia-db:latest
+	@docker run -d -p 5342:5342 -e POSTGRES_DB="${DATABASE}" -e POSTGRES_PASSWORD="${DB_PASSWORD}" -e POSTGRES_USER="${DB_USER}" -v `pwd`/docker_data/db:/var/lib/postgresql/data macmedia-db:latest
 
 .PHONY: run-dev
 run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker container
@@ -46,6 +46,8 @@ run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker contain
 	echo ${POSTGRES_PASSWORD} > postgres_password.txt
 	echo ${POSTGRES_USER} > postgres_user.txt
 	@docker compose up -d
+	echo "Pausing to ensure container up and functional..."
+	sleep 30
 	rm postgres_db.txt postgres_password.txt postgres_user.txt
 
 .PHONY: deploy-staging

@@ -150,15 +150,25 @@ it will need login user data and DVD data. The simplest method is to:
     % docker ps
 
     # Copy in local dumpfile
-    % copy data/local_dev_macmedia_dump <container-id>:/tmp
+    % docker cp data/local_dev_macmedia_dump <container-id>:/tmp
 ```
 3. Attach to the running container and load in the dumpfile
 ```
     % docker exec -it <container-id> /bin/bash
 
     # su - postgres
-    <postgres>%  pg_restore -v --create --no-owner --host=localhost --port=5432 --username=postgres --dbname=macmedia_database /tmp/local_dev_macmedia_dump
+    <postgres>%  pg_restore -v --create --no-owner --host=localhost --port=5432 --username=amac --dbname=macmedia_database /tmp/local_dev_macmedia_dump
 ```
+
+## Issues You May Encounter
+
+1. If you receive an error trying to run the composite container: "Error response from daemon: path /<path>/postgres_db.txt is mounted on / but it is not a shared mount."
+   you need to share your root mount with:
+```
+    sudo mount --make-shared /
+```
+2. If you receive and error trying to run the composite container: "Additional property develop is not allowed" you are using an older version of docker compose and you
+need to update you Docker desktop version.
 
 ## Setting The Application Environment
 
