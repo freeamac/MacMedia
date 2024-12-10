@@ -46,7 +46,8 @@ services:
       - postgres_password
       - postgres_user
     volumes:
-      - ${DB_DATA:-./docker_data/db}:/var/lib/postgresql/data
+      - ./docker_data/db:/var/lib/postgresql/data
+      # - ${DB_DATA:-./docker_data/db}:/var/lib/postgresql/data
 
   adminer:
     image: adminer
