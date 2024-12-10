@@ -47,8 +47,6 @@ run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker contain
 	echo ${POSTGRES_USER} > postgres_user.txt
 	@docker compose up -d
 	echo "Pausing to ensure container up and functional..."
-	sleep 30
-	#rm postgres_db.txt postgres_password.txt postgres_user.txt
 
 .PHONY: deploy-staging
 deploy-staging:  ## Deploy the MacMedia docker container into the staging environment and run it in staging mode

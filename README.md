@@ -170,6 +170,9 @@ it will need login user data and DVD data. The simplest method is to:
 2. If you receive and error trying to run the composite container: "Additional property develop is not allowed" you are using an older version of docker compose and you
 need to update you Docker desktop version.
 
+3. If you receive an error considering binding to a mount point, it may be that your secrets file has been regenerated or removed. Unfortunately this seems to be an issue that can only be resolved by rebuilding the app and database containers. Also you need to keep the local secrets file in existence or subsequence restarts will generate the same error.
+
+
 ## Setting The Application Environment
 
 The running environment and configuration is determined by the setting of the environment variable
