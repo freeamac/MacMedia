@@ -17,14 +17,22 @@ COPY application.py /MacMedia
 # Copy in the music media library data file
 COPY data/dev_music.html /MacMedia/data/dev_music.html
 
-ENV FLASK_ENV=development
-ENV APP_ENV=${APP_ENV:-Dev}
+ARG FLASK_ENV=development
+ARG APP_ENV
+ARG DB_USER
+ARG DB_PASSWORD
+ARG DB_HOST
+ARG DATABASE
+ARG DB_PORT
+
+ENV FLASK_ENV=${FLASK_ENV}
+ENV APP_ENV=${APP_ENV}
 ENV DB_USER=${DB_USER}
-ENV DB_PASSWORD=${DB_PASSWORD}
-ENV DB_HOST=${DB_HOST:-0.0.0.0}
+ENV DB_PASSWORD=${DB_HOST}
+ENV DB_HOST=${DB_HOST}
 ENV DATABASE=${DATABASE}
-ENV DB_PORT=${DB_PORT:-5432}
+ENV DB_PORT=${DB_PORT}
 
 WORKDIR /MacMedia
 EXPOSE 5000
-CMD [ "gunicorn", "-b", "0.0.0.0:5000", "application:app"]
+CMD [ "gunicorn", "-b", "0.0.0.0:5000", "application:app" ]

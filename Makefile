@@ -21,7 +21,7 @@ SHELL := /bin/bash
 .PHONY: build
 build: ## Build a docker container containing the MacMedia flask app
 	@echo "+ $@"
-	@docker build --pull --rm -f "Dockerfile" -t macmedia:latest "."
+	@docker build --pull --rm --build-arg APP_ENV=${APP_ENV:-Dev} --build-arg DB_USER=${DB_USER} --build-arg  DB_PASSWORD=${DB_PASSWORD} --build-arg DB_HOST=${DB_HOST:-0.0.0.0} --build-arg DATABASE=${DATABASE} --build-arg DB_PORT=${DB_PORT:-5432} -f "Dockerfile" -t macmedia:latest "."
 
 .PHONY: build-db
 build-db: ## Build a docker postgres container 
@@ -46,7 +46,6 @@ run-dev:  ## Run the MacMedia full stack (webapp and db) in local docker contain
 	echo ${POSTGRES_PASSWORD} > postgres_password.txt
 	echo ${POSTGRES_USER} > postgres_user.txt
 	@docker compose up -d
-	echo "Pausing to ensure container up and functional..."
 
 .PHONY: deploy-staging
 deploy-staging:  ## Deploy the MacMedia docker container into the staging environment and run it in staging mode
