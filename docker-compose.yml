@@ -4,6 +4,7 @@ services:
   macmedia:
     build: .
     container_name: MacMedia_web
+    image: macmedia:latest
     depends_on:
       - db
     environment:
@@ -37,6 +38,7 @@ services:
     build: 
       dockerfile: Dockerfile-db
     container_name: MacMedia_db
+    image: macmedia-db:latest
     environment:
       POSTGRES_DB_FILE: /run/secrets/postgres_db
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
