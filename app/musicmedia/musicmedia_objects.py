@@ -113,7 +113,7 @@ class _Artist():
     def cds(self) -> set:
         return self._cds
 
-    @ property
+    @property
     def cassettes(self) -> set:
         return self._cassettes
 
