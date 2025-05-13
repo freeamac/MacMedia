@@ -172,6 +172,10 @@ need to update you Docker desktop version.
 
 3. If you receive an error considering binding to a mount point, it may be that your secrets file has been regenerated or removed. Unfortunately this seems to be an issue that can only be resolved by rebuilding the app and database containers. Also you need to keep the local secrets file in existence or subsequence restarts will generate the same error.
 
+4. Starting up the Docker Desktop on windows, you encounter an error like "more than one sd* disk in /sys/block with wwid ending by ...", you can shutdown WSL and try again. In a CMD prompt window:
+```
+    wsl --shuwdown
+```
 
 ## Setting The Application Environment
 
