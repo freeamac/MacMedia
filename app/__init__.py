@@ -3,7 +3,7 @@ import logging
 import os
 
 from flask import Flask
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap5
 from flask_login import LoginManager
 from flask_moment import Moment
 from flask_pagedown import PageDown
@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger()
 
 # Initialize services
-bootstrap = Bootstrap()
+bootstrap = Bootstrap5()
 csrf = CSRFProtect()
 db = SQLAlchemy()
 login_manager = LoginManager()
