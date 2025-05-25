@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap5/form.html" as wtf %}
 
 {% block title %}Add New DVD To DVD Library{% endblock %}
 
@@ -9,7 +9,7 @@
 </div>
 
 <div class="col-md-4">
-    {{ wtf.quick_form(form, novalidate=True) }}
+    {{ wtf.render_form(form, novalidate=True) }}
 </div>
 
 {% endblock %}

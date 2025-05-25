@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap5/form.html" as wtf %}
 
 {% block title %}Modify DVD Information{% endblock %}
 
@@ -9,7 +9,7 @@
 </div>
 
 <div class="col-md-4">
-    {{ wtf.quick_form(form) }}
+    {{ wtf.render_form(form) }}
 </div>
 
 {% endblock %}
