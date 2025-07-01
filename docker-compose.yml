@@ -8,7 +8,7 @@ services:
     depends_on:
       - db
     environment:
-      - APP_ENV=${APP_EMNV:-Dev}
+      - APP_ENV=${APP_ENV:-Dev}
       - FLASK_ENV=${FLASK_ENV:-development}
       - DB_HOST=db
       - DB_PORT=5432
