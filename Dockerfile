@@ -10,7 +10,6 @@ WORKDIR /MacMedia/app
 RUN pip3 install -r requirements.txt
 
 COPY app /MacMedia/app
-COPY config /MacMedia
 COPY config /MacMedia/config
 COPY application.py /MacMedia
 
