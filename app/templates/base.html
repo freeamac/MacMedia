@@ -1,31 +1,27 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        {% block head %}
-        <!-- Required meta tags -->
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        {% block styles %}
-            <!-- Bootstrap CSS -->
-            {{ bootstrap.load_css() }}
-        {% endblock %}
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        {% block title %}
-            <title>MacMedia</title>
-        {% endblock %}
+{% block styles %}
+    <!-- Bootstrap CSS -->
+    {{ bootstrap.load_css() }}
+{% endblock %}
 
-        {% endblock %}
-    </head>
-    <body>
+<title>{% block title %}MacMedia{% endblock %}</title>
+{% block body %}
 
         <link rel="shortcut icon" href="{{ url_for('static', filename='headphones.jpg') }}" type="image/jpeg">
         <link rel="icon" href="{{ url_for('static', filename='headphones.jpg') }}" type="image/jpeg">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.css">
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
         {% block navbar %}
-           <div class="navbar navbar-expand-lg">
+
+        <div class="navbar navbar-expand-lg">
                <div class="container-fluid">
                    <div class="nav-header me-auto">
                        <a href="{{ url_for('index') }}" class="navbar-brand me-auto">MacLeod's Media Library Home</a>
@@ -94,5 +90,5 @@
         {% endblock %}
 
 
-    </body>
+    {% endblock %}
 </html>

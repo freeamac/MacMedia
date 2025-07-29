@@ -47,8 +47,8 @@
               {{ additional_artist.additional_artist }}
             </div>
             <div class="col-md-1 minus_button_{{ loop.index }}">
-              <div class="input-group-btn">
-                <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields({{ loop.index }});"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
+              <div class="btn-group" role="group">
+                <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields({{ loop.index }});"> <span class="bi bi-dash-lg" aria-hidden="true"></span></button>
               </div>
             </div>
             {% if loop.last %}
@@ -57,8 +57,8 @@
           
           <div class="row" id="plus_button">
             <div class="col-md-2 plus_button_{{ loop.index }}">
-              <div class="input-group-btn">
-                <button class="btn btn-success" type="button"  onclick="additional_artist_fields({{ loop.index }});"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>
+              <div class="btn-group" role="group">
+                <button class="btn btn-success" type="button"  onclick="additional_artist_fields({{ loop.index }});"> <span class="bi bi-plus" aria-hidden="true"></span> </button>
               </div>
             </div>
           </div>
@@ -147,8 +147,8 @@
         <input id="additional_artists-'+next_index+'-additional_artist" maxlength="40" minlength="0" name="additional_artists-'+next_index+'-additional_artist" type="text" value="">\
       </div>\
       <div class="col-md-1 minus_button_'+next_index+'">\
-        <div class="input-group-btn">\
-          <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+next_index+');"> <span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>\
+        <div class="btn-group" role="group">\
+          <button class="btn btn-danger" type="button" onclick="remove_additional_artist_fields('+next_index+');"> <span class="bi bi-dash-lg" aria-hidden="true"></span></button>\
         </div>\
       </div>\
     ';
@@ -160,8 +160,8 @@
     var plusButtonIcon = document.createElement("div");
     plusButtonIcon.setAttribute("class", "plus_button_"+next_index)
     plusButtonIcon.innerHTML ='\
-      <div class="input-group-btn">\
-        <button class="btn btn-success" type="button"  onclick="additional_artist_fields('+next_index+');"> <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> </button>\
+      <div class="btn-group" role="group">\
+        <button class="btn btn-success" type="button"  onclick="additional_artist_fields('+next_index+');"> <span class="bi bi-plus" aria-hidden="true"></span> </button>\
       </div>\
     </div>\
     ';
