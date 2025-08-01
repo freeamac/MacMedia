@@ -30,9 +30,9 @@ class MusicMediaMetaForm(FlaskForm):
     main_artist = StringField('Main Artist', validators=[Length(0, 40)])
     additional_artists = FieldList(FormField(AdditionalArtistForm, separator='-'), min_entries=1, max_entries=5)
     mixer = StringField('Mixer', validators=[Length(0, 40)])
-    classical_composer_1 = StringField('CLASSICAL_COMP_1_STR', validators=[Length(0, 40)])
-    classical_composer_2 = StringField('CLASSICAL_COMP_2_STR', validators=[Length(0, 40)])
-    year = IntegerField('YEAR_OF_RELEASE_STR', default=date.today().year)
+    classical_composer_1 = StringField(CLASSICAL_COMP_1_STR, validators=[Length(0, 40)])
+    classical_composer_2 = StringField(CLASSICAL_COMP_2_STR, validators=[Length(0, 40)])
+    year = IntegerField(YEAR_OF_RELEASE_STR, default=date.today().year)
 
 
 class NewMusicMediaMetaForm(MusicMediaMetaForm):
@@ -56,8 +56,8 @@ class SongForm(FlaskForm):
     song_featured_in = StringField('Feat. In', validators=[Length(0, 40)])
     song_list_main_artist = BooleanField('List Main Artist?')
     song_main_artist_sequel = StringField('Main Artist Sequel', validators=[Length(0, 40)])
-    song_classical_composer_1 = StringField('CLASSICAL_COMP_1_STR', validators=[Length(0, 40)])
-    song_classical_composer_2 = StringField('CLASSICAL_COMP_2_STR', validators=[Length(0, 40)])
+    song_classical_composer_1 = StringField(CLASSICAL_COMP_1_STR, validators=[Length(0, 40)])
+    song_classical_composer_2 = StringField(CLASSICAL_COMP_2_STR, validators=[Length(0, 40)])
     song_classical_work = StringField('Classical Work', validators=[Length(0, 40)])
     song_country = StringField('Country', validators=[Length(0, 20)])
     song_year = StringField('Release Year', validators=[Length(0, 4)])
@@ -82,7 +82,7 @@ class MusicMediaTrackForm(FlaskForm):
     track_name = StringField('Track Name', validators=[Length(0, 40)])
     track_mixer = StringField('Track Mixer', validators=[Length(0, 40)])
     track_artist = StringField('Track Artist', validators=[Length(0, 40)])      # Only valid for cassettes
-    track_release_year = IntegerField('YEAR_OF_RELEASE_STR')                        # Only valid for cassettes
+    track_release_year = IntegerField(YEAR_OF_RELEASE_STR, default=date.today().year)                        # Only valid for cassettes
     track_songs = FieldList(FormField(SongForm), min_entries=1, max_entries=30)
 
 
@@ -98,7 +98,7 @@ class ModifyMusicMediaTrackForm(MusicMediaTrackForm):
     new_track = BooleanField('Adding New Track')
     modify_next_track = SubmitField('Save And Modify Next Track')
     modify_songs = SubmitField('Save And Modify Track Songs')
-    save = SubmitField('SAVE_AND_FINISH_STR')
+    save = SubmitField(SAVE_AND_FINISH_STR)
     cancel = SubmitField('Cancel')
 
 
@@ -106,10 +106,10 @@ class DeleteMusicMediaForm(FlaskForm):
     """ Form for deleting a Music Media item """
     title = StringField('Title', render_kw={'readonly': True})
     artists = StringField('Artist(s)', render_kw={'readonly': True})
-    classical_composer_1 = StringField('CLASSICAL_COMP_1_STR', render_kw={'readonly': True})
-    classical_composer_2 = StringField('CLASSICAL_COMP_2_STR', render_kw={'readonly': True})
+    classical_composer_1 = StringField(CLASSICAL_COMP_1_STR, render_kw={'readonly': True})
+    classical_composer_2 = StringField(CLASSICAL_COMP_2_STR, render_kw={'readonly': True})
     mixer = StringField('Mixer', render_kw={'readonly': True})
-    year = StringField('YEAR_OF_RELEASE_STR', render_kw={'readonly': True})
+    year = StringField(YEAR_OF_RELEASE_STR, render_kw={'readonly': True})
 
     submit = SubmitField('Delete')
     cancel = SubmitField('Cancel Deletion')

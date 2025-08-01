@@ -7,61 +7,70 @@
 <div class="page-header">
     <h1>Modify Track #{{ form.track_number}} on "<b>{{ form.title }}</b>" Information</h1>
 </div>
-
+<hr class="hr-md">
 
 
 <div class="container">
     <form method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="row">
-          {% if form.new_track %}
-            <div class="col-md-3">
+        {% if form.new_track %}
+            <div class="col">
 		          <h2>Adding New Track To {{ media_str.upper() }}:</h2>
             </div>
-          {% endif %}
-          <div class="col-md-2">
-            <h4>{{ form.track_name.label }}</h4>
+        </div>
+        </div class="row top20">
+        {% endif %}
+
+          <div class="col-2">
+            <b>{{ form.track_name.label }}</b>
           </div>
-          <div class="col-md-2">
+          <div class="col-2">
             {{ form.track_name }}
           </div>
+          <div class="col-1">
+            <br>
+          </div>
           {% if media_str == "cassette" %}
-            <div class="col-md-2">
-              <h4>{{ form.track_artist.label }}:</h4>
+            <div class="col-2">
+              <b>{{ form.track_artist.label }}:</b>
             </div>
-            <div class="col-md-2">
+            <div class="col-2">
               {{ form.track_artist }}
             </div>
           </div>
-          <div class="row bottom10">
+          <div class="row top10">
           {% endif %}
-          <div class="col-md-2">
-            <h4>{{ form.track_mixer.label }}</h4>
+          <div class="col-2">
+            <b>{{ form.track_mixer.label }}</b>
           </div>
-          <div class="col-md-2">
+          <div class="col-2">
             {{ form.track_mixer }}
           </div>
           {% if media_str == "cassette" %}
-            <div class="col-md-2">
-              <h4>{{ form.track_release_year.label }}:</h4>
+            <div class="col-1">
+              <br>
             </div>
-            <div class="col-md-2">
+            <div class="col-2">
+              <b>{{ form.track_release_year.label }}:</b>
+            </div>
+            <div class="col-2">
               {{ form.track_release_year }}
             </div>
           {% endif %}
         </div>
 
-        <div class="row top20">
-          <div class="col-md-2">
+        <div class="row row-cols-auto top20">
+          <div class="col">
             <input type="submit" name="save" value="Save And Finish">
           </div>
-          <div class="col-md-2">
+          <div class="col">
             <input type="submit" name="modify_next_track" value="Save And Modify Next Track">
           </div>
-          <div class="col-md-2">
+          <div class="col">
             <input type="submit" name="modify_songs" value="Save And Modify Track Songs">
           </div>
-          <div class="col-md-2">
+          <div class="col">
             <input type="submit" name="cancel" value="Cancel">
           </div>
         </div>

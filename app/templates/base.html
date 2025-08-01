@@ -25,10 +25,7 @@
                <div class="container-fluid">
                    <div class="nav-header me-auto">
                        <a href="{{ url_for('index') }}" class="navbar-brand me-auto">MacLeod's Media Library Home</a>
-                       <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="navbarSupportedContent">
-                           <span class="sr-only">Toggle navigation</span>
-                       </button>
-                   </div>
+                   </div> 
                    {% if current_user.is_authenticated %}
                        <div class="navbar-collapse" id="navbarSupportedContent">
                            <ul class="navbar-nav ms-auto mb-2">
