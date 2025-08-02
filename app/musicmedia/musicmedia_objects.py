@@ -1452,6 +1452,11 @@ class MEDIA():
                     # Process each song on the side
                     side_songs = []
                     all_side_songs = side_element.find_all('li')
+
+                    # Handle music media with no content
+                    if all_side_elements is None:
+                        all_side_elements = []
+
                     found_song_parts = False
                     song_parts_parent = None
                     for song_block in all_side_songs:

@@ -231,7 +231,7 @@ class ApiMusicMediaRoutesTestCase(unittest.TestCase):
 
         json_response = response.json
         cassettes_in_response = json_response['data']
-        self.assertEqual(len(cassettes_in_response), 1)
+        self.assertEqual(len(cassettes_in_response), 2)
 
         cassettes_titles_in_response_set = set([cassettes['title'] for cassettes in cassettes_in_response])
         cassettes_titles_in_list = set([cassettes.title for cassettes in CASSETTEs().cassettes])
