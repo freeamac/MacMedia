@@ -49,7 +49,10 @@ You need to define all of the following environment variables:
 | DB_PORT              | Port used to connect to the database | 5432 |
 | DATABASE             | The name of the MacMedia database | None |
 
-The default value of the connection string will be "127.0.0.1:5432", the localhost and default postgres port. Then to run:
+The default value of the connection string will be "127.0.0.1:5432", the localhost and default postgres port. The
+actual values you should use will be determined by the configuration of your local postgresql installation.
+
+Then to run:
 ```
     % flask --app app/app.py run --debug
 ```
