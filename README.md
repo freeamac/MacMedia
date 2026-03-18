@@ -180,6 +180,11 @@ need to update you Docker desktop version.
     wsl --shuwdown
 ```
 
+5. Upgrading the version of Postgresql may cause the composed container to fail with incompatible data version messages even though you used the upgraded docker image to restore the datadump into the new format. Docker compose seems to cache the mount data and not update that cache. (This issue could also be related to switching the compatibility of Docker with various wsl installations.) The following will remove all cached Docker data:
+```
+    docker system prune -a
+```
+
 ## Setting The Application Environment
 
 The running environment and configuration is determined by the setting of the environment variable
