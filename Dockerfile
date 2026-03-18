@@ -1,5 +1,7 @@
 #FROM ubuntu:20.04
-FROM python:3.10-slim
+FROM python:3.12-slim
+RUN apt-get update && apt-get install -y libpq-dev
+RUN apt-get update && apt-get install -y gcc
 
 # We copy just the requirements.txt first to leverage Docker cache
 COPY requirements.txt /MacMedia/app/requirements.txt
@@ -27,7 +29,7 @@ ARG DB_PORT
 ENV FLASK_ENV=${FLASK_ENV}
 ENV APP_ENV=${APP_ENV}
 ENV DB_USER=${DB_USER}
-ENV DB_PASSWORD=${DB_HOST}
+ENV DB_PASSWORD=${DB_PASSWORD}
 ENV DB_HOST=${DB_HOST}
 ENV DATABASE=${DATABASE}
 ENV DB_PORT=${DB_PORT}

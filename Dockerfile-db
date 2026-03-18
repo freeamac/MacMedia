@@ -1,6 +1,7 @@
-FROM postgres:12
+FROM postgres:16
 
 ADD ./docker_data/postgresql.conf /etc/postgresql/postgresql.conf
 ADD ./docker_data/pg_hba.conf /etc/postgresql/pg_hba.conf
 
-CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+#CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
+#CMD ["-D", "/var/lib/postgresql/data"]
