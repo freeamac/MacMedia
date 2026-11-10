@@ -11,7 +11,7 @@ on:
       PYTHON_VERSION:
         required: false
         type: string
-        default: '3.10'
+        default: '3.10.20'
         
       ENABLE_SONAR:
         required: false
