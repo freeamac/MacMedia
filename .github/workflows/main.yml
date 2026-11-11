@@ -80,6 +80,7 @@ jobs:
           source venv/bin/activate
           ls -l
           ls -l bin/
+          ls -l venv/bin/
           make lint
           
       - name: Run Unit Tests and code coverage
