@@ -79,7 +79,7 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 SQLAlchemy==1.4.31
-stevedore==4.0.0
+stevedore==5.1.0
 tomli==2.0.1
 tqdm==4.66.3
 traitlets==5.1.1
